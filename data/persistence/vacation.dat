@@ -1,6 +1,6 @@
 (lp1
-(idata.holiday
-Holiday
+(idata.vacation
+Vacation
 p2
 (dp3
 S'code'
@@ -10,8 +10,8 @@ sS'label'
 p5
 S'dr\xc5\xbeavni praznik'
 p6
-sba(idata.holiday
-Holiday
+sba(idata.vacation
+Vacation
 p7
 (dp8
 g4
@@ -19,8 +19,8 @@ S'L'
 sg5
 S'letni dopust - tek. leto'
 p9
-sba(idata.holiday
-Holiday
+sba(idata.vacation
+Vacation
 p10
 (dp11
 g4
@@ -28,8 +28,8 @@ S'T'
 sg5
 S'letni dopust - pre. leto'
 p12
-sba(idata.holiday
-Holiday
+sba(idata.vacation
+Vacation
 p13
 (dp14
 g4
@@ -37,8 +37,8 @@ S'S'
 sg5
 S'izred. pla\xc4\x8d. dopust'
 p15
-sba(idata.holiday
-Holiday
+sba(idata.vacation
+Vacation
 p16
 (dp17
 g4
@@ -47,8 +47,8 @@ p18
 sg5
 S'\xc5\xa1tudijski dopust'
 p19
-sba(idata.holiday
-Holiday
+sba(idata.vacation
+Vacation
 p20
 (dp21
 g4
@@ -56,8 +56,8 @@ S'O'
 sg5
 S'pla\xc4\x8dana odsotnost'
 p22
-sba(idata.holiday
-Holiday
+sba(idata.vacation
+Vacation
 p23
 (dp24
 g4
@@ -65,8 +65,8 @@ S'Y'
 sg5
 S'nepla\xc4\x8dana odsotnost'
 p25
-sba(idata.holiday
-Holiday
+sba(idata.vacation
+Vacation
 p26
 (dp27
 g4
@@ -74,8 +74,8 @@ S'B'
 sg5
 S'bolni\xc5\xa1ka odsotnost'
 p28
-sba(idata.holiday
-Holiday
+sba(idata.vacation
+Vacation
 p29
 (dp30
 g4

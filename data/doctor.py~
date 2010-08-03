@@ -22,7 +22,7 @@ class Doctor:
     self.forbidden_turnuses = {}
     
     # almost identical to forbidden_turnuses
-    self.vacations = {}
+    self.holidays = {}
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
@@ -58,32 +58,32 @@ class Doctor:
       
     
     
-  def add_vacation(self,date,vacation):
+  def add_holiday(self,date,holiday):
     """
-    Adds a vacation to the vacation list
-      date: is the date, that the nurse will be on vacation
-      vacation: is the vacation instance
+    Adds a holiday to the holiday list
+      date: is the date, that the nurse will be on holiday
+      holiday: is the holiday instance
     """
     
     # TODO: synchronize with the forbidden_turnuses
     
-    if date in self.vacations:
+    if date in self.holidays:
       # TODO: check if this holds
       raise Exception("Več kot dve vrsti dopusta na isti dan?")
       
-    self.vacations[date] = set([vacation])
+    self.holidays[date] = set([holiday])
     
     
-  def remove_vacation(self,date,vacation):
+  def remove_holiday(self,date,holiday):
     """
-    Removes a vacation from the list.
-      date: is the date of the vacation
-      vacation: is the type of the vacation
+    Removes a holiday from the list.
+      date: is the date of the holiday
+      holiday: is the type of the holiday
     """
     try:
-      # Assuming that only one vacation per day is possible
+      # Assuming that only one holiday per day is possible
       # TODO: check if this is true
-      del self.vacations[date]
+      del self.holidays[date]
     except KeyError as e:
       # this should not be possible
       # pass

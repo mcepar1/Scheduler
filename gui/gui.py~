@@ -3,7 +3,7 @@
 import wx
 
 from turnus_gui import TurnusPanel
-from vacation_gui import VacationPanel
+from holiday_gui import HolidayPanel
 from nurse_gui import NursePanel
 from doctor_gui import DoctorPanel
 
@@ -21,7 +21,7 @@ class MainWindow(wx.Frame):
     notebook.AddPage(NursePanel(notebook), "Medicinske sestre")
     notebook.AddPage(DoctorPanel(notebook), "Zdravniki")
     notebook.AddPage(TurnusPanel(notebook), "Turnusi")
-    notebook.AddPage(VacationPanel(notebook), "Dopusti")    
+    notebook.AddPage(HolidayPanel(notebook), "Dopusti")    
     
     self.sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
     

@@ -10,14 +10,14 @@ turnuses.load()
 
 # init the vacations
 vacations = vacation.VacationContainer()
-vacations.load()
+#vacations.load()
 
 # init the nurses
 nurses = nurse.NurseContainer()
-nurses.load()
+#nurses.load()
 
 doctors = doctor.DoctorContainer()
-doctors.load()
+#doctors.load()
 
 def save():
   """An utility method, that saves all the data"""
