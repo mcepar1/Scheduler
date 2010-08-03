@@ -5,19 +5,19 @@
 from data import turnus, vacation, nurse, doctor
 
 # init the turnuses
-turnuses = turnus.TurnusContainer()
-turnuses.load()
+turnuses = turnus.TurnusContainer ( )
+turnuses.load ( )
 
 # init the vacations
-vacations = vacation.VacationContainer()
-vacations.load()
+vacations = vacation.VacationContainer ( )
+vacations.load ( )
 
 # init the nurses
-nurses = nurse.NurseContainer()
-nurses.load()
+nurses = nurse.NurseContainer ( )
+nurses.load ( )
 
-doctors = doctor.DoctorContainer()
-doctors.load()
+doctors = doctor.DoctorContainer ( )
+doctors.load ( )
 
 def save():
   """An utility method, that saves all the data"""
