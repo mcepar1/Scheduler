@@ -1,0 +1,10 @@
+This is an early prototype of the Scheduler.
+
+Prerequisites:
+  * Python 2.6: http://www.python.org/download/releases/2.6.5/
+  * wxPython 2.8.11: http://www.wxpython.org/download.php
+
+Starting the application:
+  * go to the root folder
+  * exceute the "python start.py" command
+
