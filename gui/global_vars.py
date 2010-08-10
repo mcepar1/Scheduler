@@ -2,7 +2,7 @@
 
 """This script contains global vars, that are accessed throughout the whole GUI. """
 
-from data import turnus, vacation, nurse, doctor
+from data import turnus, vacation, nurse, doctor, workplace
 
 # init the turnuses
 turnuses = turnus.TurnusContainer ( )
@@ -16,8 +16,13 @@ vacations.load ( )
 nurses = nurse.NurseContainer ( )
 nurses.load ( )
 
+# init the doctors
 doctors = doctor.DoctorContainer ( )
 doctors.load ( )
+
+# init the workplaces
+workplaces = workplace.WorkplaceContainer ( )
+workplaces.load ( )
 
 def save():
   """An utility method, that saves all the data"""
@@ -25,6 +30,7 @@ def save():
   vacations.save()
   nurses.save()
   doctors.save()
+  workplaces.save()
 
 
 """Following methods are used to set the initial state
@@ -83,10 +89,23 @@ def set_doctors():
     doctors.add_all([doctor.Doctor(new_doctor[0], new_doctor[1])])
     
   doctors.save()
+  
+def set_workplaces():
+  hardcoded_workplaces =  [
+                            ["Ambulanta"]
+                          ]
+                      
+  workplaces = workplace.WorkplaceContainer()
+  for new_workplace in hardcoded_workplaces:
+    workplaces.add_all([workplace.Workplace(new_workplace[0])])
+    
+  workplaces.save()
 
 """Uncomment the correct method to reset the specific data"""
 #set_turnuses()
 #set_vacations()  
 #set_nurses()
 #set_doctors()
+#set_workplaces()
+
   

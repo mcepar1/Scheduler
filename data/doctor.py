@@ -8,10 +8,11 @@ class Doctor:
   HEADERS = ["IME", "PRIIMEK"]
 
   def __init__(self,name,surname):
-    """This is the constructor.
+    """
+    This is the constructor.
       name: is the doctor's name
       surname: is the doctor's surname
-     """
+    """
      
     self.name = name
     self.surname = surname
@@ -147,7 +148,8 @@ class DoctorContainer:
     """Returns a table-like representation of self.
       return: a dictionary with two string keys:
         header: a list that contains headers of the table:
-        items: a list of lists. The external list represents rows and the intrenal one represents columns within a single row."""
+        items: a list of lists. The external list represents rows and the intrenal one represents columns within a single row.
+    """
         
     
     rows_list = []
