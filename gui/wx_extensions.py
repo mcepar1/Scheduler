@@ -5,6 +5,8 @@ import datetime
 import wx
 import wx.calendar
 
+from data.date import HolidayDate
+
 """
 This class behaves the same way as a normal wxCheckBox.
 The only difference is that is also has an attribute
@@ -57,12 +59,17 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
     self.__set_holidays(None)
         
   def __set_holidays(self, event):
+    """Colors the holidays"""
     
     for day in EnhancedCalendar.HOLIDAYS[self.PyGetDate().month]:
       self.SetHoliday(day)
       
   def GetDateObject (self):
-    pass
+    date = self.PyGetDate ( )
+    is_holiday = date.day in EnhancedCalendar.HOLIDAYS[date.month]
+    
+    return HolidayDate(date, is_holiday)
+    
     
     
     

@@ -54,10 +54,7 @@ class PersonPanel(wx.Panel):
     """Reads the date from the calendar control and returns a python date object.
       return: a python date, as selected in the calendar control.
     """
-    # month is zero-based
-    # TODO: there has to be a better way to convert the date
-    # print self.calendar.GetDate().GetDay(), self.calendar.GetDate().GetMonth(), self.calendar.GetDate().GetYear()
-    return datetime.date(day = self.calendar.GetDate().GetDay(), month = self.calendar.GetDate().GetMonth() + 1, year = self.calendar.GetDate().GetYear())
+    return self.calendar.GetDateObject ( )
     
 class PermissionsPanel(wx.Panel):
   def __init__(self, *args, **kwargs):
