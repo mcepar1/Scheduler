@@ -3,6 +3,8 @@
 import cPickle as pickle
 import os
 
+from cStringIO import StringIO
+
 class Doctor:
 
   HEADERS = ["IME", "PRIIMEK"]
@@ -138,11 +140,16 @@ class DoctorContainer:
  
   def save(self):
     """Saves the current state into an external file."""
-    pickle.dump(self.doctors, file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'w'))
+    #pickle.dump(self.doctors, file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'wb'))
+    
+    memFile = StringIO ( )
+    pickle.dump(self.doctors, memFile)
+    file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'wb').write(memFile.getvalue().encode('ISO 8859-2'))
+    
     
   def load(self):
     """Loads the contens from the external file. The current state is LOST!!!!"""
-    self.doctors = pickle.load(file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'r'))
+    self.doctors = pickle.load(file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'rb'))
     
   def as_table(self):
     """Returns a table-like representation of self.
