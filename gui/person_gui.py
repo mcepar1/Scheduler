@@ -24,7 +24,7 @@ class PersonPanel(wx.Panel):
     self.person_info = wx.StaticText(self,wx.NewId(),PersonPanel.INVALID_LABEL)
     sizer.Add(self.person_info,0,wx.CENTER)
     
-    self.calendar = wx.calendar.CalendarCtrl(self, wx.NewId(), style = wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_HOLIDAYS)
+    self.calendar = wx_extensions.EnhancedCalendar(self, wx.NewId(), style = wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_HOLIDAYS)
     self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED, self.__update_date, self.calendar)
     sizer.Add(self.calendar,1,wx.CENTER | wx.EXPAND)
     
