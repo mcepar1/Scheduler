@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
-
 import cPickle as pickle
 import os
-
-from global_constants import ENCODING
 
 class Doctor:
 
@@ -141,12 +138,11 @@ class DoctorContainer:
  
   def save(self):
     """Saves the current state into an external file."""
-    string = pickle.dumps(self.doctors)
-    file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'wb').write(string.encode(ENCODING))
+    pickle.dump(self.doctors, file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'w'))
     
   def load(self):
     """Loads the contens from the external file. The current state is LOST!!!!"""
-    self.doctors = pickle.load(file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'rb'))
+    self.doctors = pickle.load(file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'r'))
     
   def as_table(self):
     """Returns a table-like representation of self.
