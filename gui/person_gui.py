@@ -24,9 +24,17 @@ class PersonPanel(wx.Panel):
     self.person_info = wx.StaticText(self,wx.NewId(),PersonPanel.INVALID_LABEL)
     sizer.Add(self.person_info,0,wx.CENTER)
     
+    sub_sizer = wx.BoxSizer(wx.HORIZONTAL)
+    sub_sizer.Add(wx.StaticText(self,wx.NewId(),"Vrsta zaposlitve: "), 0, wx.ALIGN_LEFT|wx.ALL)
+    self.types = wx.ComboBox(self, wx.NewId())
+    self.Bind(wx.EVT_COMBOBOX, self.__update_employment_type, self.types)
+    sub_sizer.Add(self.types,0,wx.CENTER|wx.SHAPED|wx.CB_READONLY)
+    sizer.Add(sub_sizer,0,wx.ALIGN_LEFT)
+    
     self.calendar = wx_extensions.EnhancedCalendar(self, wx.NewId(), style = wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_HOLIDAYS)
     self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED, self.__update_date, self.calendar)
     sizer.Add(self.calendar,1,wx.CENTER | wx.EXPAND)
+    
     
     self.permissions = PermissionsPanel(self)
     sizer.Add(self.permissions,0, wx.ALIGN_LEFT)
@@ -34,27 +42,44 @@ class PersonPanel(wx.Panel):
     self.SetSizerAndFit(sizer)
     
   def set_person(self,person):
-    """Sets the person, that is represnted by this panel.
+    """
+    Sets the person, that is represnted by this panel.
       person: the person, that is represented
     """
-    if person:
-      self.person_info.SetLabel(str(person))
-      self.permissions.set_unit(person, self.__get_date())
+    self.person = person
+    
+    if self.person:
+      self.person_info.SetLabel(str(self.person))
     else:
       self.person_info.SetLabel(PersonPanel.INVALID_LABEL)
-      self.permissions.set_unit(person, self.__get_date())
       
-    self.person = person
+    self.permissions.set_unit(self.person, self.__get_date())
+    self.__set_choices ( )  
       
   def __update_date(self,event):
     """Event listener of the calendar object"""
     self.permissions.set_unit(self.person, self.__get_date())
+    
+  def __update_employment_type(self, event):
+    """Event listener of the emplment choices dropdown menu."""
+    self.person.set_employment_type(self.types.GetValue())
     
   def __get_date(self):
     """Reads the date from the calendar control and returns a python date object.
       return: a python date, as selected in the calendar control.
     """
     return self.calendar.GetDateObject ( )
+    
+  def __set_choices(self):
+    """Sets the emplyment choices in the dropdown menu"""
+    self.types.Clear()
+  
+    if self.person:
+      for choice in self.person.get_employment_types ( ):
+        self.types.Append(choice)
+      self.types.SetStringSelection(self.person.employment_type)
+      
+      
     
 class PermissionsPanel(wx.Panel):
   def __init__(self, *args, **kwargs):

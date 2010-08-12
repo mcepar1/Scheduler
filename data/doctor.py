@@ -3,21 +3,28 @@
 import cPickle as pickle
 import os
 
-from cStringIO import StringIO
-
 class Doctor:
 
   HEADERS = ["IME", "PRIIMEK"]
+  TYPES = ["Normalna"]
 
-  def __init__(self,name,surname):
+  def __init__(self, name, surname, employment_type = None):
     """
     This is the constructor.
       name: is the doctor's name
       surname: is the doctor's surname
+      employment_type: is the employment type of the doctor
     """
      
     self.name = name
     self.surname = surname
+    
+    # this field should never be changed directly
+    # use set_employment_type instead
+    if employment_type:
+      self.set_employment_type(employment_type)
+    else:
+      self.employment_type = Doctor.TYPES[0]
     
     # this dictionary maps sates to a set of turnuses
     # if a date maps to a set that contains a turnus,
@@ -92,6 +99,23 @@ class Doctor:
       # pass
       # TODO: check if this holds
       raise e
+      
+  def get_employment_types(self):
+    """
+    Returns the valid empolyment types.
+      return: a list of strings
+    """
+    return Doctor.TYPES
+      
+  def set_employment_type(self, employment_type):
+    """
+    Set's the doctor's employment type.
+      employment_type: is the employment type of this nurse
+    """
+    if employment_type in Doctor.TYPES:
+      self.employment_type = employment_type
+    else:
+      raise Exception("Nepravilna vrsta zaposlitve")
     
     
   def __str__(self):
@@ -140,11 +164,7 @@ class DoctorContainer:
  
   def save(self):
     """Saves the current state into an external file."""
-    #pickle.dump(self.doctors, file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'wb'))
-    
-    memFile = StringIO ( )
-    pickle.dump(self.doctors, memFile)
-    file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'wb').write(memFile.getvalue().encode('ISO 8859-2'))
+    pickle.dump(self.doctors, file(os.path.join(DoctorContainer.FILES_DIR, DoctorContainer.FILE_NAME),'wb'))
     
     
   def load(self):

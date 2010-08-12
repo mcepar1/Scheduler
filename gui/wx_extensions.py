@@ -4,6 +4,7 @@ import datetime
 
 import wx
 import wx.calendar
+import dateutil.easter
 
 from data.date import HolidayDate
 
@@ -34,19 +35,20 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
   # fill these dates out for the present year
   # some could change with another year
   # {month: list of holiday dates in month}
+  # TODO: export into an external, easy to edit file
   HOLIDAYS = {
-                1: [1],
-                2: [13],
-                3: [22],
-                4: [3],
-                5: [29],
-                6: [15],
-                7: [4, 11],
-                8: [4],
-                9: [3],
-                10: [],
-                11: [27, 26],
-                12: [24, 25]
+                1: [1, 2], # novo leto
+                2: [8], # Slovenski kulturni praznik
+                3: [], 
+                4: [27], # dan boja proti okupatorju
+                5: [1, 2, 31], # praznik dela, Binkošti
+                6: [25], # dan državnosti
+                7: [], 
+                8: [15], # Marijino vnebovzetje
+                9: [],
+                10: [31], # dan reformacije
+                11: [1], # dan spomina na mrtve
+                12: [25, 26] # božič, dan samostojnosti
               }
               
               
@@ -61,12 +63,38 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
   def __set_holidays(self, event):
     """Colors the holidays"""
     
-    for day in EnhancedCalendar.HOLIDAYS[self.PyGetDate().month]:
+    for day in self.__get_holidays(year = self.PyGetDate().year)[self.PyGetDate().month]:
       self.SetHoliday(day)
       
+  def __get_holidays(self, year = datetime.date.today().year):
+    """
+    Returns a dict in the same format as HOLIDAYS, only with the correct EASTER and easter mondays dates.
+    """
+    # create a hard copy
+    holidays = {}
+    for month in EnhancedCalendar.HOLIDAYS:
+      holidays[month] = []
+      for day in EnhancedCalendar.HOLIDAYS[month]:
+        holidays[month].append(day)
+    
+    easter = dateutil.easter.easter(year)
+    easter_monday = easter+datetime.timedelta(days = 1)
+    
+    holidays[easter.month].append(easter.day)
+    holidays[easter_monday.month].append(easter_monday.day)
+    
+    return holidays
+      
   def GetDateObject (self):
+    """
+    Returns a custom date object.
+      return: a HolidayDate instance
+    """
+    
     date = self.PyGetDate ( )
-    is_holiday = date.day in EnhancedCalendar.HOLIDAYS[date.month]
+    
+    # a national holiday or a Sunday
+    is_holiday = (date.strftime("%w") == 0) or date.day in self.__get_holidays()[date.month]
     
     return HolidayDate(date, is_holiday)
     

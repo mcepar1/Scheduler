@@ -6,15 +6,25 @@ import os
 class Nurse:
 
   HEADERS = ["IME", "PRIIMEK"]
+  TYPES = [u"Normalna", u"Polovičen delovni čas", u"35 ur/teden"]
 
-  def __init__(self,name,surname):
-    """This is the constructor.
+  def __init__(self, name, surname, employment_type = None):
+    """
+    This is the constructor.
       name: is the nurse's name
       surname: is the nurse's surname
-     """
+      employment_type: is the employment type of the nurse
+    """
      
     self.name = name
     self.surname = surname
+    
+    # this field should never be changed directly
+    # use set_employment_type instead
+    if employment_type:
+      self.set_employment_type(employment_type)
+    else:
+      self.employment_type = Nurse.TYPES[0]
     
     # this dictionary maps sates to a set of turnuses
     # if a date maps to a set that contains a turnus,
@@ -89,6 +99,23 @@ class Nurse:
       # pass
       # TODO: check if this holds
       raise e
+      
+  def get_employment_types(self):
+    """
+    Returns the valid empolyment types.
+      return: a list of strings
+    """
+    return Nurse.TYPES
+      
+  def set_employment_type(self, employment_type):
+    """
+    Set's the nurse's employment type.
+      employment_type: is the employment type of this nurse
+    """
+    if unicode(employment_type) in Nurse.TYPES:
+      self.employment_type = unicode(employment_type)
+    else:
+      raise Exception("Nepravilna vrsta zaposlitve")
     
     
   def __str__(self):
