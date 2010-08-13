@@ -120,4 +120,12 @@ class WorkplaceContainer:
   def __str__(self):
     return ", ".join([str(workplace) for workplace in self.workplaces])
     
+def load():
+  """
+  Loads and returns a container instance.
+  """
+  el = WorkplaceContainer()
+  el.load()
+  return el
+    
     

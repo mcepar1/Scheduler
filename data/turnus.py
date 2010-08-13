@@ -8,12 +8,13 @@ class Turnus:
   HEADERS = ["OZNAKA", "TIP DELA", "ZAČETEK", "KONEC"]
   
   def __init__(self,code,label,start,end):
-    """This is the constructor.
+    """
+    This is the constructor.
       code: is the code of the turnus (D,P,N, ...)
       label: is the label of the turnus (eno izmensko, ...)
       start: is the starting time
       end: is the ending time
-      """
+    """
   
   
     self.code = code
@@ -106,4 +107,16 @@ class TurnusContainer:
   def __str__(self):
     return ", ".join([str(turnus) for turnus in self.turnuses])
     
+def load():
+  """
+  Loads and returns a container instance.
+  """
+  el = TurnusContainer()
+  try:
+    el.load()
+  except Exception as e:
+    print e
+    pass
+  return el
+  
     

@@ -20,7 +20,55 @@ class LinkedCheckBox(wx.CheckBox):
     wx.CheckBox.__init__(self,*args,**kwargs)
     
     self.element = element
+
+"""
+This class behaves the same way as a normal wxComboBox.
+The only difference is that is handles employement 
+types internally.
+"""    
+class LinkedComboBox(wx.ComboBox):
+  
+  def __init__(self, *args, **kwargs):
+    """The default constructor."""
+  
+    #TODO clean the imports
+    from global_vars import employment_types
     
+    wx.ComboBox.__init__(self, *args, **kwargs)
+    self.employment_types = employment_types.employment_types
+    
+    self.Clear()
+    for employment_type in self.employment_types:
+      self.Append(str(employment_type))
+      
+    self.Disable()
+    
+    
+  def set_selection(self, person):
+    """
+    Sets the selection.
+      person: is an instance of either the Nurse or Doctor class
+    """
+    
+    if person:
+      self.Enable()
+      self.SetStringSelection(str(person.employment_type))
+    else:
+      self.Disable()
+        
+  def get_selected_type(self):
+    """
+    Return the selected employement type if any.
+      return: an employement type if a valid emplyement type was
+              selected, None otherwise.
+    """
+    
+    if self.employment_types:
+      for employment_type in self.employment_types:
+        if employment_type.label == self.GetValue():
+          return employment_type
+    else:
+      return None
     
 """
 This class behaves the same way as a normal wxCalendar.
@@ -29,7 +77,6 @@ Saturday as a weekend.
 It has additional methods and returns a custom wrapper
 around the python date object.
 """
-
 class EnhancedCalendar(wx.calendar.CalendarCtrl):
 
   # fill these dates out for the present year

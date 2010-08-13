@@ -26,7 +26,7 @@ class PersonPanel(wx.Panel):
     
     sub_sizer = wx.BoxSizer(wx.HORIZONTAL)
     sub_sizer.Add(wx.StaticText(self,wx.NewId(),"Vrsta zaposlitve: "), 0, wx.ALIGN_LEFT|wx.ALL)
-    self.types = wx.ComboBox(self, wx.NewId())
+    self.types = wx_extensions.LinkedComboBox(self, wx.NewId())
     self.Bind(wx.EVT_COMBOBOX, self.__update_employment_type, self.types)
     sub_sizer.Add(self.types,0,wx.CENTER|wx.SHAPED|wx.CB_READONLY)
     sizer.Add(sub_sizer,0,wx.ALIGN_LEFT)
@@ -62,7 +62,8 @@ class PersonPanel(wx.Panel):
     
   def __update_employment_type(self, event):
     """Event listener of the emplment choices dropdown menu."""
-    self.person.set_employment_type(self.types.GetValue())
+    self.person.set_employment_type(self.types.get_selected_type())
+    self.permissions.set_unit(self.person, self.__get_date())
     
   def __get_date(self):
     """Reads the date from the calendar control and returns a python date object.
@@ -71,13 +72,8 @@ class PersonPanel(wx.Panel):
     return self.calendar.GetDateObject ( )
     
   def __set_choices(self):
-    """Sets the emplyment choices in the dropdown menu"""
-    self.types.Clear()
-  
-    if self.person:
-      for choice in self.person.get_employment_types ( ):
-        self.types.Append(choice)
-      self.types.SetStringSelection(self.person.employment_type)
+    """Sets the employment selection in the dropdown menu"""
+    self.types.set_selection(self.person)
       
       
     
@@ -170,7 +166,11 @@ class PermissionsPanel(wx.Panel):
         vacation_checker.Disable()
     else:
       for turnus_checker in self.turnuses:
-        turnus_checker.Enable()
+        if turnus_checker.element in self.person.get_allowed_turnuses():
+          turnus_checker.Enable()
+        else:
+          turnus_checker.Disable()
+          
       for vacation_checker in self.vacations:
         vacation_checker.Enable()
         

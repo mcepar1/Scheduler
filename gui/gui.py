@@ -7,6 +7,7 @@ from vacation_gui import VacationPanel
 from nurse_gui import NursePanel
 from doctor_gui import DoctorPanel
 from workplace_gui import WorkplacePanel
+from employment_type_gui import EmploymentTypePanel
 
 class MainWindow(wx.Frame):
 
@@ -21,6 +22,7 @@ class MainWindow(wx.Frame):
     notebook = wx.Notebook(self)
     notebook.AddPage(NursePanel(notebook), "Medicinske sestre")
     notebook.AddPage(DoctorPanel(notebook), "Zdravniki")
+    notebook.AddPage(EmploymentTypePanel(notebook), "Vrste zaposlitve")
     notebook.AddPage(TurnusPanel(notebook), "Turnusi")
     notebook.AddPage(VacationPanel(notebook), "Dopusti")
     notebook.AddPage(WorkplacePanel(notebook), "Delovišča")

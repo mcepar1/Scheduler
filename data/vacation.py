@@ -96,3 +96,11 @@ class VacationContainer:
   def __str__(self):
     return ", ".join([str(vacation) for vacation in self.vacations])
     
+def load():
+  """
+  Loads and returns a container instance.
+  """
+  el = VacationContainer()
+  el.load()
+  return el
+    

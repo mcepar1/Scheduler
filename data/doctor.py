@@ -6,7 +6,6 @@ import os
 class Doctor:
 
   HEADERS = ["IME", "PRIIMEK"]
-  TYPES = ["Normalna"]
 
   def __init__(self, name, surname, employment_type = None):
     """
@@ -24,7 +23,9 @@ class Doctor:
     if employment_type:
       self.set_employment_type(employment_type)
     else:
-      self.employment_type = Doctor.TYPES[0]
+      # very rare case
+      from data import employment_type
+      self.employment_type = employment_type.load().employment_types[0]
     
     # this dictionary maps sates to a set of turnuses
     # if a date maps to a set that contains a turnus,
@@ -66,6 +67,10 @@ class Doctor:
       # TODO: check if this holds
       raise e
       
+    if date in self.vacations:
+      # TODO assuming only one vacation per day
+      del self.vacations[date]
+      
     
     
   def add_vacation(self,date,vacation):
@@ -75,7 +80,7 @@ class Doctor:
       vacation: is the vacation instance
     """
     
-    # TODO: synchronize with the forbidden_turnuses
+    self.forbidden_turnuses[date] = set(self.get_allowed_turnuses())
     
     if date in self.vacations:
       # TODO: check if this holds
@@ -94,28 +99,28 @@ class Doctor:
       # Assuming that only one vacation per day is possible
       # TODO: check if this is true
       del self.vacations[date]
+      self.forbidden_turnuses[date] = set()
     except KeyError as e:
       # this should not be possible
       # pass
       # TODO: check if this holds
       raise e
       
-  def get_employment_types(self):
-    """
-    Returns the valid empolyment types.
-      return: a list of strings
-    """
-    return Doctor.TYPES
-      
   def set_employment_type(self, employment_type):
     """
     Set's the doctor's employment type.
       employment_type: is the employment type of this nurse
     """
-    if employment_type in Doctor.TYPES:
-      self.employment_type = employment_type
-    else:
-      raise Exception("Nepravilna vrsta zaposlitve")
+    self.employment_type = employment_type
+    
+      
+  def get_allowed_turnuses(self):
+    """
+    Returns a list of turnuses, that this doctor can attain.
+      return: a list of Turnus objects
+    """
+  
+    return self.employment_type.allowed_turnuses
     
     
   def __str__(self):
@@ -199,4 +204,16 @@ class DoctorContainer:
     
   def __str__(self):
     return ", ".join([str(doctor) for doctor in self.doctors])
+    
+def load():
+  """
+  Loads and returns a container instance.
+  """
+  el = DoctorContainer()
+  try:
+    el.load()
+  except Exception as e:
+    print e
+    pass
+  return el
     
