@@ -20,6 +20,30 @@ class LinkedCheckBox(wx.CheckBox):
     wx.CheckBox.__init__(self,*args,**kwargs)
     
     self.element = element
+    
+class MonthChoice(wx.Choice):
+  MONTHS = [
+              'Januar',
+              'Februar',
+              'Marec',
+              'April',
+              'Maj',
+              'Junij',
+              'Julij',
+              'Avgust',
+              'September',
+              'Oktober',
+              'November',
+              'December'
+           ]
+
+  def __init__(self, *args, **kwargs):
+    kwargs['choices'] = MonthChoice.MONTHS
+    wx.Choice.__init__(self,*args,**kwargs)
+    
+  def get_value(self):
+    return MonthChoice.MONTHS[self.GetCurrentSelection()]
+    
 
 """
 This class behaves the same way as a normal wxComboBox.

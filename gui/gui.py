@@ -2,6 +2,7 @@
 
 import wx
 
+from scheduler_gui import SchedulerPanel
 from turnus_gui import TurnusPanel
 from vacation_gui import VacationPanel
 from nurse_gui import NursePanel
@@ -20,6 +21,7 @@ class MainWindow(wx.Frame):
     self.sizer = wx.BoxSizer(wx.VERTICAL)
     
     notebook = wx.Notebook(self)
+    notebook.AddPage(SchedulerPanel(notebook), "Urnik")
     notebook.AddPage(NursePanel(notebook), "Medicinske sestre")
     notebook.AddPage(DoctorPanel(notebook), "Zdravniki")
     notebook.AddPage(EmploymentTypePanel(notebook), "Vrste zaposlitve")

@@ -29,7 +29,7 @@ def save():
   nurses.save()
   doctors.save()
   workplaces.save()
-  employement_type.save()
+  employment_type.save()
 
 
 """Following methods are used to set the initial state

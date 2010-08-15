@@ -72,7 +72,7 @@ class PersonPanel(wx.Panel):
     return self.calendar.GetDateObject ( )
     
   def __set_choices(self):
-    """Sets the employment selection in the dropdown menu"""
+    """Sets the emplyment choices in the dropdown menu"""
     self.types.set_selection(self.person)
       
       
