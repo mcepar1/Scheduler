@@ -20,7 +20,11 @@ class LinkedCheckBox(wx.CheckBox):
     wx.CheckBox.__init__(self,*args,**kwargs)
     
     self.element = element
-    
+
+"""
+This class is a wx.Cdoice, with predefined choices.
+The hard-coded choices are months of the year.
+"""    
 class MonthChoice(wx.Choice):
   MONTHS = [
               'Januar',
@@ -40,6 +44,8 @@ class MonthChoice(wx.Choice):
   def __init__(self, *args, **kwargs):
     kwargs['choices'] = MonthChoice.MONTHS
     wx.Choice.__init__(self,*args,**kwargs)
+    
+    self.SetSelection(datetime.date.today().month -1)
     
   def get_value(self):
     return MonthChoice.MONTHS[self.GetCurrentSelection()]

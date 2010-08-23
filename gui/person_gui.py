@@ -26,7 +26,7 @@ class PersonPanel(wx.Panel):
     
     sub_sizer = wx.BoxSizer(wx.HORIZONTAL)
     sub_sizer.Add(wx.StaticText(self,wx.NewId(),"Vrsta zaposlitve: "), 0, wx.ALIGN_LEFT|wx.ALL)
-    self.types = wx_extensions.LinkedComboBox(self, wx.NewId())
+    self.types = wx_extensions.LinkedComboBox(self, wx.NewId(),style = wx.CB_READONLY)
     self.Bind(wx.EVT_COMBOBOX, self.__update_employment_type, self.types)
     sub_sizer.Add(self.types,0,wx.CENTER|wx.SHAPED|wx.CB_READONLY)
     sizer.Add(sub_sizer,0,wx.ALIGN_LEFT)
