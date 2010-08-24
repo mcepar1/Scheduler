@@ -43,8 +43,8 @@ def set_turnuses():
                          ['N', 'več izmensko',datetime.time(hour = 21), datetime.time(hour = 7)],
                          ['C', 'celodnevno',datetime.time(hour = 7), datetime.time(hour = 19)],
                          
-                         ['D', 'več izmensko',datetime.time(hour = 7), datetime.time(hour = 14)],
-                         ['P', 'več izmensko',datetime.time(hour = 14), datetime.time(hour = 21)],
+                         ['D-', 'več izmensko',datetime.time(hour = 7), datetime.time(hour = 14)],
+                         ['P-', 'več izmensko',datetime.time(hour = 14), datetime.time(hour = 21)],
                          
                          ['D8', 'tro izmensko',datetime.time(hour = 7), datetime.time(hour = 15)],
                          ['P8', 'tro izmensko',datetime.time(hour = 15), datetime.time(hour = 23)],
@@ -53,7 +53,7 @@ def set_turnuses():
                          ['E', 'dežurna',datetime.time(hour = 7), datetime.time(hour = 7)],
                          ['I', 'pripravljenost',datetime.time(hour = 15), datetime.time(hour = 7)],
                          ['I-TX', 'pripravljenost za transplantacijo',datetime.time(hour = 15), datetime.time(hour = 7)],
-                         ['D-', 'dopoldanska po dežorni',datetime.time(hour = 7), datetime.time(hour = 11)]
+                         ['D-', 'dopoldanska po dežurni',datetime.time(hour = 7), datetime.time(hour = 11)]
                        ]
   
   turnuses.turnuses = []                     
