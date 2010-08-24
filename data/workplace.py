@@ -15,8 +15,8 @@ class Workplace:
     
     self.label = label
     
-    # if the turnus is located in the set, the workplace does not allow that turnus
-    self.forbidden_turnuses = set ( )
+    # if the turnus is located in the set, the workplace allows that turnus
+    self.allowed_turnuses = set ( )
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
@@ -24,19 +24,19 @@ class Workplace:
     
     return [self.label]
     
-  def add_invalid_turnus (self, turnus):
+  def add_allowed_turnus (self, turnus):
     """
-    Adds a turnus to the forbidden turnuses.
-      turnus: is the new forbidden turnus
+    Adds a turnus to the allowed turnuses.
+      turnus: is the new allowed turnus
     """
-    self.forbidden_turnuses.add (turnus)
+    self.allowed_turnuses.add (turnus)
     
-  def remove_invalid_turnus (self,turnus):
+  def remove_allowed_turnus (self,turnus):
     """
-    Removes a turnus from the forbidden turnuses.
+    Removes a turnus from the allowed turnuses.
       turnus: the turnus, that will be allowed
     """
-    self.forbidden_turnuses.remove (turnus)
+    self.allowed_turnuses.remove (turnus)
     
   def __str__(self):
     return self.label

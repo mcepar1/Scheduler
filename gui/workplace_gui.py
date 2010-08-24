@@ -2,7 +2,7 @@
 
 import wx
 import wx_extensions
-from global_vars import workplaces, turnuses
+from global_vars import workplaces, turnuses, nurses, doctors
 
 class WorkplacePanel(wx.Panel):
   
@@ -85,21 +85,33 @@ class TurnusPanel(wx.Panel):
     
     if event.IsChecked():
       # remove the turnus from restrictions
-      self.workplace.remove_invalid_turnus(event.GetEventObject().element)
+      self.workplace.add_allowed_turnus(event.GetEventObject().element)
     else:
       # add the restriction
-      self.workplace.add_invalid_turnus(event.GetEventObject().element)
+      self.workplace.remove_allowed_turnus(event.GetEventObject().element)
+      
+    #update every single person
+    for nurse in nurses.nurses:
+      if self.workplace in nurse.workplaces:
+        nurse.remove_workplace(self.workplace)
+        nurse.add_workplace(self.workplace)
+    for doctor in doctors.doctors:
+      if self.workplace in doctor.workplaces:
+        doctor.remove_workplace(self.workplace)
+        doctor.add_workplace(self.workplace)
+        
+    
     
   def __set_permissions (self):
-    """Checks and unchecks the checker according ti the current state."""
+    """Checks and unchecks the checker according to the current state."""
     
     if self.workplace:
       for turnus in self.turnuses:
         turnus.Enable ( )
-        if turnus.element in self.workplace.forbidden_turnuses:
-          turnus.SetValue (False)
-        else:
+        if turnus.element in self.workplace.allowed_turnuses:
           turnus.SetValue (True)
+        else:
+          turnus.SetValue (False)
     else:
       for turnus in self.turnuses:
         turnus.Disable ( )

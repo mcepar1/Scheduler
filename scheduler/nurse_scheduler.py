@@ -58,4 +58,4 @@ class NurseScheduler:
     
     filename = str(self.date.month) + '_' + str(self.date.year) + '.dat'
     pickle.dump(self.nurses, file(os.path.join(NurseScheduler.FILES_DIR, filename),'wb'))
-    
+       

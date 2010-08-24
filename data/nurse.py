@@ -7,7 +7,7 @@ class Nurse:
 
   HEADERS = ["IME", "PRIIMEK"]
 
-  def __init__(self, name, surname, employment_type = None):
+  def __init__(self, name, surname, employment_type = None, workplaces = None):
     """
     This is the constructor.
       name: is the nurse's name
@@ -34,6 +34,13 @@ class Nurse:
     
     # almost identical to forbidden_turnuses
     self.vacations = {}
+    
+    # on which workplaces the nurse works
+    self.workplaces = set ()
+    if workplaces:
+      for workplace in workplaces:
+        self.add_workplace(workplace)
+      
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
@@ -106,6 +113,14 @@ class Nurse:
       # pass
       # TODO: check if this holds
       raise e
+    
+  def add_workplace(self, workplace):
+    """Adds a workplace to the nurse."""
+    self.workplaces.add(workplace)
+    
+  def remove_workplace(self,workplace):
+    """Removes a workplace from the nurse"""
+    self.workplaces.remove(workplace)
       
   def set_employment_type(self, employment_type):
     """

@@ -7,7 +7,7 @@ import wx_extensions
 
 import datetime
 
-from global_vars import turnuses, vacations
+from global_vars import turnuses, vacations, workplaces
 
 class PersonPanel(wx.Panel):
 
@@ -43,7 +43,7 @@ class PersonPanel(wx.Panel):
     
   def set_person(self,person):
     """
-    Sets the person, that is represnted by this panel.
+    Sets the person, that is represented by this panel.
       person: the person, that is represented
     """
     self.person = person
@@ -88,6 +88,7 @@ class PermissionsPanel(wx.Panel):
     
     turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self,wx.NewId(),"Turnusi"),wx.VERTICAL)
     vacationSizer = wx.StaticBoxSizer(wx.StaticBox(self,wx.NewId(),"Dopusti"), wx.VERTICAL)
+    workplaceSizer = wx.StaticBoxSizer(wx.StaticBox(self,wx.NewId(),"Delovisca"),wx.VERTICAL)
     
     #set the turnuses
     self.turnuses = []
@@ -103,12 +104,21 @@ class PermissionsPanel(wx.Panel):
       self.vacations.append(wx_extensions.LinkedCheckBox(vacation,self,wx.NewId(),str(vacation)))
       self.Bind(wx.EVT_CHECKBOX, self.__vacation_edited, self.vacations[-1])
       vacationSizer.Add(self.vacations[-1],0,wx.ALIGN_LEFT)
+      
+    #set the workplaces
+    self.workplaces = []
+    for workplace in workplaces.workplaces:
+        self.workplaces.append(wx_extensions.LinkedCheckBox(workplace,self,wx.NewId(),str(workplace)))
+        self.Bind(wx.EVT_CHECKBOX, self.__workplace_edited, self.workplaces[-1])
+        workplaceSizer.Add(self.workplaces[-1],0,wx.ALIGN_LEFT)
+        
     
     #set the initial permissions  
     self.__set_permissions()
     
     topSizer.Add(turnusSizer,0,wx.ALIGN_RIGHT)
     topSizer.Add(vacationSizer,0,wx.ALIGN_RIGHT)
+    topSizer.Add(workplaceSizer,0,wx.ALIGN_RIGHT)
     
     self.SetSizerAndFit(topSizer)
     
@@ -155,6 +165,18 @@ class PermissionsPanel(wx.Panel):
     # reload permissions - vacation to turnus sync
     self.__set_permissions()
     
+  def __workplace_edited(self,event):
+    """The event listener for the workplace checkboxes."""
+    if event.IsChecked():
+      # remove the turnus from restrictions
+      self.person.add_workplace(event.GetEventObject().element)
+    else:
+      # add the restriction
+      self.person.remove_workplace(event.GetEventObject().element)
+      
+    # reload permissions - vacation to turnus sync
+    self.__set_permissions()
+    
   def __set_permissions(self):
     """This method set's the initial permissions, according to the person and date attributes."""
     
@@ -164,6 +186,8 @@ class PermissionsPanel(wx.Panel):
         turnus_checker.Disable()
       for vacation_checker in self.vacations:
         vacation_checker.Disable()
+      for workplace_checker in self.workplaces:
+        workplace_checker.Disable()
     else:
       for turnus_checker in self.turnuses:
         if turnus_checker.element in self.person.get_allowed_turnuses():
@@ -173,6 +197,9 @@ class PermissionsPanel(wx.Panel):
           
       for vacation_checker in self.vacations:
         vacation_checker.Enable()
+        
+      for workplace_checker in self.workplaces:
+        workplace_checker.Enable()
         
       # select correct turnus permissons
       if self.date in self.person.forbidden_turnuses:
@@ -197,5 +224,13 @@ class PermissionsPanel(wx.Panel):
       else:
         for vacation_checker in self.vacations:
           vacation_checker.SetValue(False)
+          
+      # set the correct workplace
+      for workplace_checker in self.workplaces:
+        if workplace_checker.element in self.person.workplaces:
+          workplace_checker.SetValue(True)
+        else:
+          workplace_checker.SetValue(False)
+          
       
     

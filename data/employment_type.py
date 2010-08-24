@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import turnus
-
 import cPickle as pickle
 import os
 
@@ -13,12 +11,21 @@ class EmploymentType:
   HEADERS = ["VRSTA", "URE NA TEDEN", "URE NA MESEC", "NADURE"]
 
   def __init__(self, label, weekly_hours, monthly_hours, has_overtime, allowed_turnuses = []):
+    """
+    The default constructor
+      label: is the label of the employment type
+      weekly_hours: is the minimum required work time per week
+      monthly_hours: is the minimum required work time per month
+      has_overtime: true, if it allows overtime, false otherwise
+      allowed_turnuses: a list of turnuses, that a parson can have
+    """
+    
     self.label = label
     self.weekly_hours = weekly_hours
     self.monthly_hours = monthly_hours
     self.has_overtime = has_overtime
     
-    self.allowed_turnuses = allowed_turnuses
+    self.allowed_turnuses = set(allowed_turnuses)
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
