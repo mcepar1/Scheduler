@@ -52,10 +52,18 @@ class MonthChoice(wx.Choice):
   def get_value(self):
     return MonthChoice.MONTHS[self.GetCurrentSelection()]
     
-
+"""
+This class behaves the same way as as a normal wxIntCtrl.
+The only difference is that it handles employment
+types internally.
+"""
 class LinkedIntCtrl(wx.lib.intctrl.IntCtrl):
   
   def __init__(self, employment_type, *args, **kwargs):
+    """
+    The default constructor.
+      employment_type: is an instance of the EmploymentType, that this control will manage.
+    """
     wx.lib.intctrl.IntCtrl.__init__(self, *args, **kwargs)
     
     self.employment_type = employment_type
@@ -63,11 +71,12 @@ class LinkedIntCtrl(wx.lib.intctrl.IntCtrl):
     self.Bind(wx.lib.intctrl.EVT_INT, self.__set_monthly_hours, self)
     
   def __set_monthly_hours(self, event):
+    """Event listener for the value."""
     self.employment_type.monthly_hours = self.GetValue()
 
 """
 This class behaves the same way as a normal wxComboBox.
-The only difference is that is handles employement 
+The only difference is that it handles employment 
 types internally.
 """    
 class LinkedComboBox(wx.ComboBox):
