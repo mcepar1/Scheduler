@@ -5,18 +5,22 @@ import os
 
 class Doctor:
 
-  HEADERS = ["IME", "PRIIMEK"]
+  HEADERS = ["IME", "PRIIMEK", "NAZIV", "ROJSTNI DAN"]
 
-  def __init__(self, name, surname, employment_type = None, workplaces = None):
+  def __init__(self, name, surname, title, birthday, employment_type = None, workplaces = None):
     """
     This is the constructor.
       name: is the doctor's name
       surname: is the doctor's surname
+      title: is the doctor's title
+      birthday: is the doctor's birthday
       employment_type: is the employment type of the doctor
     """
      
     self.name = name
     self.surname = surname
+    self.title = title
+    self.birthday = birthday
     
     # this field should never be changed directly
     # use set_employment_type instead
@@ -44,7 +48,7 @@ class Doctor:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.name, self.surname]
+    return [self.name, self.surname, self.title, self.birthday]
     
   def add_invalid_turnus(self,date,turnus):
     """
@@ -147,7 +151,10 @@ class Doctor:
     try:
       if self.surname == other.surname:
         if self.name == other.name:
-          return 0
+          if self.title == other.title:
+            return cmp(self.birthday, other.birthday)
+          else:
+            return cmp(self.title, other.title)
         else:
           return cmp(self.name, other.name)
       else:

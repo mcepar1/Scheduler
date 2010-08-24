@@ -84,33 +84,33 @@ def set_vacations():
   
 def set_nurses():
   hardcoded_nurses = [
-                      ["Marija","Šraj"],
-                      ["Nadja","Robič"],
-                      ["Mateja","Segulin"],
-                      ["Nika","Valenčič"],
-                      ["Kristina","Košmrlj"],
-                      ["Neža","Skrt"]
+                      ["Marija","Šraj", "Sestra", "1"],
+                      ["Nadja","Robič", "Sestra", "1"],
+                      ["Mateja","Segulin", "Sestra", "1"],
+                      ["Nika","Valenčič", "Sestra", "1"],
+                      ["Kristina","Košmrlj", "Sestra", "1"],
+                      ["Neža","Skrt", "Sestra", "1"]
                      ]
                     
   nurses = nurse.NurseContainer()
   for new_nurse in hardcoded_nurses:
-    nurses.add_all([nurse.Nurse(new_nurse[0], new_nurse[1], workplaces = workplaces.workplaces)])
+    nurses.add_all([nurse.Nurse(new_nurse[0], new_nurse[1], new_nurse[2], new_nurse[3], workplaces = workplaces.workplaces)])
     
   nurses.save()
   
 def set_doctors():
   hardcoded_doctors = [
-                       ["Matjaž","Čepar"],
-                       ["Matej","Ravšelj"],
-                       ["Miloš","Čotar"],
-                       ["Simon","Križman"],
-                       ["Davor","Petrinja"],
-                       ["Urban","Jernejčič"]
+                       ["Matjaž","Čepar", "Zdravnik", "1"],
+                       ["Matej","Ravšelj", "Zdravnik", "1"],
+                       ["Miloš","Čotar", "Zdravnik", "1"],
+                       ["Simon","Križman", "Zdravnik", "1"],
+                       ["Davor","Petrinja", "Zdravnik", "1"],
+                       ["Urban","Jernejčič", "Zdravnik", "1"]
                       ]
   
   doctors = doctor.DoctorContainer()
   for new_doctor in hardcoded_doctors:
-    doctors.add_all([doctor.Doctor(new_doctor[0], new_doctor[1], workplaces = workplaces.workplaces)])
+    doctors.add_all([doctor.Doctor(new_doctor[0], new_doctor[1], new_doctor[2], new_doctor[3], workplaces = workplaces.workplaces)])
     
   doctors.save()
   
