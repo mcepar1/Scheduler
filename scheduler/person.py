@@ -10,7 +10,7 @@ class Nurse (nurse.Nurse):
       data_nurse: an instance of the data.nurse.Nurse class
     """
       
-    nurse.Nurse.__init__(self,data_nurse.name, data_nurse.surname, data_nurse.employment_type)
+    nurse.Nurse.__init__(self,data_nurse.name, data_nurse.surname, data_nurse.title, data_nurse.birthday, data_nurse.employment_type)
     
     self.forbidden_turnuses = data_nurse.forbidden_turnuses
     self.vacations = data_nurse.vacations

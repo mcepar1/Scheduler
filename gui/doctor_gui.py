@@ -6,7 +6,7 @@ from global_vars import doctors
 
 class DoctorPanel(wx.Panel):
   
-  def __init__(self,parent):
+  def __init__(self, parent):
     wx.Panel.__init__(self, parent)
     
     sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -14,10 +14,10 @@ class DoctorPanel(wx.Panel):
     self.grid = wx.grid.Grid(self, -1)
     self.fill_grid()
     
-    sizer.Add(self.grid,1,wx.CENTER | wx.EXPAND)
+    sizer.Add(self.grid, 1, wx.CENTER | wx.EXPAND)
     
     self.person = PersonPanel(self)
-    sizer.Add(self.person,0,wx.ALIGN_LEFT | wx.LEFT, 4)
+    sizer.Add(self.person, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
     
     self.SetSizerAndFit(sizer)
     
@@ -29,7 +29,7 @@ class DoctorPanel(wx.Panel):
     headers = table['header']
     rows = table['items']
     
-    self.grid.CreateGrid(len(rows),len(headers))
+    self.grid.CreateGrid(len(rows), len(headers))
       
     for i in range(len(headers)):
       self.grid.SetColLabelValue(i, headers[i])
@@ -41,7 +41,7 @@ class DoctorPanel(wx.Panel):
     self.grid.AutoSize()
 
   def doctor_selected(self, event):
-    if event.GetCol()==-1:
+    if event.GetCol() == -1:
       if event.GetRow() < 0:
         self.person.set_person(None)
         self.grid.ClearSelection()
