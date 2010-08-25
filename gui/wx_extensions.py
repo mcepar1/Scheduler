@@ -24,7 +24,7 @@ class LinkedCheckBox(wx.CheckBox):
     self.element = element
 
 """
-This class is a wx.Cdoice, with predefined choices.
+This class is a wx.Choice, with predefined choices.
 The hard-coded choices are months of the year.
 """    
 class MonthChoice(wx.Choice):
@@ -50,7 +50,29 @@ class MonthChoice(wx.Choice):
     self.SetSelection(datetime.date.today().month - 1)
     
   def get_value(self):
-    return MonthChoice.MONTHS[self.GetCurrentSelection()]
+    """
+    Returns an instance of the datetime.date, with current year, the selected
+    month and the first day in the month.
+      return: a datetime.date instance
+    """
+    #return MonthChoice.MONTHS[self.GetCurrentSelection()]
+    return datetime.date(day = 1, month = self.GetCurrentSelection() + 1, year = int(datetime.date.today().year))
+
+"""
+This class behaves the same way as as a normal wxChoice.
+The only difference is that it handles workplaces 
+internally.
+"""  
+class WorkplaceChoice(wx.Choice):
+  def __init__(self, workplaces, *args, **kwargs):
+    self.workplaces = workplaces
+    
+    kwargs['choices'] = [str(workplace) for workplace in self.workplaces]
+    wx.Choice.__init__(self, *args, **kwargs)
+    
+  def get_value(self):
+    """Returns the selected instance of the workspace class"""
+    return self.workplaces[self.GetCurrentSelection()]
     
 """
 This class behaves the same way as as a normal wxIntCtrl.
@@ -73,6 +95,12 @@ class LinkedIntCtrl(wx.lib.intctrl.IntCtrl):
   def __set_monthly_hours(self, event):
     """Event listener for the value."""
     self.employment_type.monthly_hours = self.GetValue()
+
+class LinkedSpinCtr(wx.SpinCtrl):
+  def __init__(self, turnus, *args, **kwargs):
+    wx.SpinCtrl.__init__(self, *args, **kwargs)
+    
+    self.element = turnus
 
 """
 This class behaves the same way as a normal wxComboBox.

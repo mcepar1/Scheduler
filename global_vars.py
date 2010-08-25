@@ -133,14 +133,14 @@ def set_workplaces():
   
 def set_employement_types():
   hardcoded_employment_types = [
-                                  ['Normalna zaposlitev', 40, 200, True, turnuses.turnuses[:5]],
-                                  ['Polovicen delovni cas', 20, 100, False, turnuses.turnuses[-2:]],
-                                  ['35 ur/teden', 35, 150, True, turnuses.turnuses[:3] + [turnuses.turnuses[4]]]
+                                  ['Normalna zaposlitev', 40, True, turnuses.turnuses[:5]],
+                                  ['Polovicen delovni cas', 20, False, turnuses.turnuses[-2:]],
+                                  ['35 ur/teden', 35, True, turnuses.turnuses[:3] + [turnuses.turnuses[4]]]
                                 ]
   
   employment_types = employment_type.EmploymentTypeContainer()                              
   for new_employment_type in hardcoded_employment_types:
-    employment_types.add_all([employment_type.EmploymentType(new_employment_type[0], new_employment_type[1], new_employment_type[2], new_employment_type[3], new_employment_type[4])])
+    employment_types.add_all([employment_type.EmploymentType(new_employment_type[0], new_employment_type[1], new_employment_type[2], allowed_turnuses = new_employment_type[3])])
     
   employment_types.save()
 
