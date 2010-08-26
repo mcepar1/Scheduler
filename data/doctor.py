@@ -160,6 +160,9 @@ class Doctor:
     
   def __str__(self):
     return self.name + " " + self.surname
+  
+  def __hash__(self):
+    return hash(str(self))
     
   def __eq__(self, other):
     return self.__cmp__(other) == 0

@@ -2,18 +2,20 @@
 
 import cPickle as pickle
 import os
+import datetime
 
 class Turnus:
   
-  HEADERS = ["OZNAKA", "TIP DELA", "ZAČETEK", "KONEC"]
+  HEADERS = ["OZNAKA", "TIP DELA", "ZAČETEK", "KONEC", "TRAJANJE"]
   
-  def __init__(self,code,label,start,end):
+  def __init__(self,code,label,start,end,duration):
     """
     This is the constructor.
       code: is the code of the turnus (D,P,N, ...)
       label: is the label of the turnus (eno izmensko, ...)
       start: is the starting time
       end: is the ending time
+      duration: is the length of the shift (start - end)
     """
   
   
@@ -21,11 +23,12 @@ class Turnus:
     self.label = label
     self.start = start
     self.end = end
+    self.duration = duration
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.code, self.label, self.start.strftime("%H:%M"), self.end.strftime("%H:%M")]
+    return [self.code, self.label, self.start.strftime("%H:%M"), self.end.strftime("%H:%M"), str(self.duration)]
     
   def __str__(self):
     return self.code + " - " + self.label

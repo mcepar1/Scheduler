@@ -37,28 +37,29 @@ DO NOT USE THEM UNLESS YOU KNOW WHAT YOU ARE DOING"""
 def set_turnuses():
   import datetime
   hardcoded_turnuses = [
-                         ['D', 'eno izmensko',datetime.time(hour = 7), datetime.time(hour = 15)],
-                         ['D', 'več izmensko',datetime.time(hour = 7), datetime.time(hour = 14)],
-                         ['P', 'več izmensko',datetime.time(hour = 14), datetime.time(hour = 21)],
-                         ['N', 'več izmensko',datetime.time(hour = 21), datetime.time(hour = 7)],
-                         ['C', 'celodnevno',datetime.time(hour = 7), datetime.time(hour = 19)],
+                         ['D', 'eno izmensko',datetime.time(hour = 7), datetime.time(hour = 15), datetime.timedelta(hours = 8)],
+                         ['D', 'več izmensko',datetime.time(hour = 7), datetime.time(hour = 14), datetime.timedelta(hours = 7)],
+                         ['P', 'več izmensko',datetime.time(hour = 14), datetime.time(hour = 21), datetime.timedelta(hours = 7)],
+                         ['N', 'več izmensko',datetime.time(hour = 21), datetime.time(hour = 7), datetime.timedelta(hours = 10)],
+                         ['N', 'več izmensko (nedelja)',datetime.time(hour = 19), datetime.time(hour = 7), datetime.timedelta(hours = 12)],
+                         ['C', 'celodnevno',datetime.time(hour = 7), datetime.time(hour = 19), datetime.timedelta(hours = 12)],
                          
-                         ['D-', 'več izmensko',datetime.time(hour = 7), datetime.time(hour = 14)],
-                         ['P-', 'več izmensko',datetime.time(hour = 14), datetime.time(hour = 21)],
+                         ['D-', 'več izmensko',datetime.time(hour = 7), datetime.time(hour = 14), datetime.timedelta(hours = 4)],
+                         ['P-', 'več izmensko',datetime.time(hour = 14), datetime.time(hour = 21), datetime.timedelta(hours = 4)],
                          
-                         ['D8', 'tro izmensko',datetime.time(hour = 7), datetime.time(hour = 15)],
-                         ['P8', 'tro izmensko',datetime.time(hour = 15), datetime.time(hour = 23)],
-                         ['N8', 'tro izmensko',datetime.time(hour = 23), datetime.time(hour = 7)],
+                         ['D8', 'tro izmensko',datetime.time(hour = 7), datetime.time(hour = 15), datetime.timedelta(hours = 8)],
+                         ['P8', 'tro izmensko',datetime.time(hour = 15), datetime.time(hour = 23), datetime.timedelta(hours = 8)],
+                         ['N8', 'tro izmensko',datetime.time(hour = 23), datetime.time(hour = 7), datetime.timedelta(hours = 8)],
                          
-                         ['E', 'dežurna',datetime.time(hour = 7), datetime.time(hour = 7)],
-                         ['I', 'pripravljenost',datetime.time(hour = 15), datetime.time(hour = 7)],
-                         ['I-TX', 'pripravljenost za transplantacijo',datetime.time(hour = 15), datetime.time(hour = 7)],
-                         ['D-', 'dopoldanska po dežurni',datetime.time(hour = 7), datetime.time(hour = 11)]
+                         ['E', 'dežurna',datetime.time(hour = 7), datetime.time(hour = 7), datetime.timedelta(hours = 24)],
+                         ['I', 'pripravljenost',datetime.time(hour = 15), datetime.time(hour = 7), datetime.timedelta(hours = 24)],
+                         ['I-TX', 'pripravljenost za transplantacijo',datetime.time(hour = 15), datetime.time(hour = 7), datetime.timedelta(hours = 24)],
+                         ['D-', 'dopoldanska po dežurni',datetime.time(hour = 7), datetime.time(hour = 11), datetime.timedelta(hours = 4)]
                        ]
   
   turnuses.turnuses = []                     
   for new_turnus in hardcoded_turnuses:
-    turnuses.add_all([turnus.Turnus(new_turnus[0], new_turnus[1], new_turnus[2], new_turnus[3])])
+    turnuses.add_all([turnus.Turnus(new_turnus[0], new_turnus[1], new_turnus[2], new_turnus[3], new_turnus[4])])
     
   turnuses.save()
 

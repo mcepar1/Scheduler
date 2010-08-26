@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from data import workplace as data_model
 
 class Workplace(data_model.Workplace):

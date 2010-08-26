@@ -47,9 +47,7 @@ class SchedulerPanel(wx.Panel):
       for turnus in workers[workplace]:
         workplace.set_worker(turnus, workers[workplace][turnus])
     
-    for nurse in nurses.nurses:
-      print nurse.employment_type.monthly_hours
-    
+    ns.schedule()
     print 'Done'
 
 

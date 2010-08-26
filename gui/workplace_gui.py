@@ -90,15 +90,6 @@ class TurnusPanel(wx.Panel):
       # add the restriction
       self.workplace.remove_allowed_turnus(event.GetEventObject().element)
       
-    #update every single person
-    for nurse in nurses.nurses:
-      if self.workplace in nurse.workplaces:
-        nurse.remove_workplace(self.workplace)
-        nurse.add_workplace(self.workplace)
-    for doctor in doctors.doctors:
-      if self.workplace in doctor.workplaces:
-        doctor.remove_workplace(self.workplace)
-        doctor.add_workplace(self.workplace)
         
     
     
