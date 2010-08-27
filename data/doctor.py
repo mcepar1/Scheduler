@@ -86,16 +86,10 @@ class Doctor:
       date: is the date that does not allow the turnus
       turnus: is the invalid turnus
     """
-    try:
-      self.forbidden_turnuses[date].remove(turnus)
-    except KeyError as e:
-      # this should not be possible
-      # pass
-      # TODO: check if this holds
-      raise e
+    
+    self.forbidden_turnuses[date].remove(turnus)
       
     if date in self.vacations:
-      # TODO assuming only one vacation per day
       del self.vacations[date]
       
     
@@ -110,8 +104,7 @@ class Doctor:
     self.forbidden_turnuses[date] = set(self.get_allowed_turnuses())
     
     if date in self.vacations:
-      # TODO: check if this holds
-      raise Exception("Več kot dve vrsti dopusta na isti dan?")
+      raise Exception("Več kot dve vrsti dopusta na isti dan.")
       
     self.vacations[date] = set([vacation])
     
@@ -122,16 +115,10 @@ class Doctor:
       date: is the date of the vacation
       vacation: is the type of the vacation
     """
-    try:
-      # Assuming that only one vacation per day is possible
-      # TODO: check if this is true
-      del self.vacations[date]
-      self.forbidden_turnuses[date] = set()
-    except KeyError as e:
-      # this should not be possible
-      # pass
-      # TODO: check if this holds
-      raise e
+      
+    del self.vacations[date]
+    self.forbidden_turnuses[date] = set()
+    
     
   def add_workplace(self, workplace):
     """Adds a workplace to the doctor."""
@@ -156,6 +143,25 @@ class Doctor:
     """
   
     return self.employment_type.allowed_turnuses
+  
+  def is_turnus_forbidden(self, turnus, date):
+    """
+    Checks, if the turnus is allowed for the specific date.
+      turnus: is the checked turnus
+      date: is the date checked
+      return: true, if the turnus isn't allowed, false otherwise
+    """
+    
+    if turnus not in self.allowed_turnuses:
+      return True
+    
+    if date not in self.forbidden_turnuses:
+      return False
+    
+    if turnus in self.forbidden_turnuses[date]:
+      return True
+    
+    return False
     
     
   def __str__(self):

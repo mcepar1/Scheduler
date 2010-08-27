@@ -8,8 +8,6 @@ import wx.lib.intctrl
 import dateutil.easter
 
 
-from data.date import HolidayDate
-
 """
 This class behaves the same way as a normal wxCheckBox.
 The only difference is that is also has an attribute
@@ -212,19 +210,6 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
     holidays[easter_monday.month].append(easter_monday.day)
     
     return holidays
-      
-  def GetDateObject (self):
-    """
-    Returns a custom date object.
-      return: a HolidayDate instance
-    """
-    
-    date = self.PyGetDate ()
-    
-    # a national holiday or a Sunday
-    is_holiday = (date.strftime("%w") == 0) or date.day in self.__get_holidays()[date.month]
-    
-    return HolidayDate(date, is_holiday)
     
     
     

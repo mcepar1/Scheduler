@@ -123,7 +123,7 @@ class DateDialog(wx.Dialog):
     """Reads the date from the calendar control and returns a python date object.
       return: a python date, as selected in the calendar control.
     """
-    return self.calendar.GetDateObject ()
+    return self.calendar.PyGetDate ()
     
     
 
