@@ -1,0 +1,6 @@
+# -*- coding: utf-8 -*-
+
+MONTH_HOURS = 1
+WEEK_HOURS  = 1
+TURNUS_DISPERSION = 1
+WORKPLACE_DISPERSION = 1

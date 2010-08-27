@@ -1,8 +1,13 @@
-from data import nurse
+from data import nurse, turnus, vacation
+
+from utils.time_conversion import timedelta_to_hours 
 
 import calendar
 import datetime
 import math
+
+
+FREE_DAY_SIGN = 'This is a free day'
 
 class Nurse (nurse.Nurse):
 
@@ -38,7 +43,7 @@ class Nurse (nurse.Nurse):
       
       self.weekly_hours = old_nurse.weekly_hours
       
-      next_month = datetime.date(day = 28, month = date.month, year = date.year) + datetime.timedelta(days = 8)
+      next_month = datetime.date(day=28, month=date.month, year=date.year) + datetime.timedelta(days=8)
       if next_month in old_nurse.monthly_hours:
         self.monthly_hours[next_month.month] = old_nurse.monthly_hours[next_month.month]
     else:
@@ -52,9 +57,7 @@ class Nurse (nurse.Nurse):
     if date.month not in self.monthly_hours:
       self.monthly_hours[date.month] = datetime.timedelta()
 
-    for day in self.__get_days(date):
-      date_ = datetime.date (day = day, month = date.month, year = date.year)
-      
+    for date_ in self.__get_affected_dates(date):
       if date_ not in self.scheduled_turnus and date_ not in self.scheduled_workplace:
         self.scheduled_turnus[date_] = ''
         self.scheduled_workplace[date_] = ''
@@ -86,6 +89,30 @@ class Nurse (nurse.Nurse):
     self.scheduled_turnus[date] = turnus
     self.scheduled_workplace[date] = workplace
     
+  def is_scheduled(self, date):
+    """
+    Checks if the date is already scheduled.
+      date: the date checked
+      return: true, if scheduled, false otherwise
+    """
+    
+    if self.scheduled_turnus[date] or self.scheduled_workplace[date]:
+      return True
+    else:
+      return False
+    
+    
+  def is_scheduled_exact(self, workplace, turnus, date):
+    """
+    Checks if the combination is scheduled.
+      workplace: is tha workplace that is checked
+      turnus: is the turnus that is checked
+      date: is date for against the turnus and workplaces are checked
+      return: true if they are scheduled, false otherwise
+    """
+    
+    return self.scheduled_turnus[date] == turnus and self.scheduled_workplace == workplace
+    
   def schedule_vacation (self, date, vacation):
     """
     Adds a vacation to the person.
@@ -103,6 +130,34 @@ class Nurse (nurse.Nurse):
     self.scheduled_turnus[date] = vacation
     self.scheduled_workplace[date] = ''
     
+  def add_free_day(self, date):
+    """
+    Adds a free day in the schedule. This is not a vacation! This is the a legal 
+    requirement.
+      date: is the date of the free day
+    """
+    
+    if date in self.scheduled_turnus or date in self.scheduled_workplace:
+      raise Exception('Ta dan ne more biti prost')
+    
+    self.scheduled_workplace[date] = FREE_DAY_SIGN
+    
+  def is_free_day(self, date):
+    """
+    Checks if the date is a free day. A free day is: a vacation, a specificly
+    marked free day or a yet unscheduled date,
+      date: is the date checked
+      return: true, if the day is free, false otherwise
+    """
+    if self.scheduled_turnus or self.scheduled_workplace:
+      if isinstance(self.scheduled_turnus[date], vacation.Vacation):
+        return True
+      else:
+        return False
+    else:
+      return True
+    
+    
   def get_turnus_dispersion(self):
     """Calculates and returns the entropy of the turnuses."""
     
@@ -118,7 +173,10 @@ class Nurse (nurse.Nurse):
       if turnus in raw_data:
         raw_data[turnus] += 1.0
         total_turnuses += 1.0
-        
+    
+    if total_turnuses == 0:
+      #no turnuses - no dispersion
+      return 0.0    
     
     for _, occuernces in raw_data.items():
       p = occuernces / total_turnuses
@@ -129,7 +187,7 @@ class Nurse (nurse.Nurse):
       
     return entropy
   
-  def get_workspace_dispersion(self):
+  def get_workplace_dispersion(self):
     """Calculates and returns the entropy of the workplaces."""
     
     raw_data = {}
@@ -144,6 +202,9 @@ class Nurse (nurse.Nurse):
         raw_data[workspace] += 1.0
         total_workspaces += 1.0
         
+    if total_workspaces == 0:
+      #no workplaces - no dispersion
+      return 0.0
     
     for _, occuernces in raw_data.items():
       p = occuernces / total_workspaces
@@ -154,12 +215,65 @@ class Nurse (nurse.Nurse):
       
     return entropy
   
-  def get_weekly_hours_difference(self):
-    """Returns the difference in the current week hours, versus 
+  def get_weekly_hours_difference(self, date):
+    """
+    Returns the difference in the current week hours, versus 
     the minimum week hours. If the difference is negative, the person is working
-    overtime"""
-    pass
+    overtime.
+      date: an instance of the datetime.date class
+      return: a number
+    """
+    
+    current_hours = datetime.timedelta()
+    week = self.__get_week(date)
+    
+    for date_ in week:
+      if self.scheduled_turnus[date_]:
+        #TODO: VACATIONS
+        if isinstance(self.scheduled_turnus[date_], turnus.Turnus):
+          current_hours += self.scheduled_turnus[date_].duration
+        elif isinstance(self.scheduled_turnus[date_], vacation.Vacation):
+          current_hours += datetime.timedelta(hours=7)
+    
+    current_hours = timedelta_to_hours(current_hours)
+    
+    return self.employment_type.weekly_hours - current_hours
   
+  def get_monthly_hours_difference(self, date):
+    """
+    Returns the difference in the current month hours, versus
+    the minimum month hours. If the difference is negative, the person is working
+    overtime.
+      date: an instance of the datetime.date class
+      return: a number
+    """
+    
+    current_hours = datetime.timedelta()
+    for day in self.__get_days(date):
+      date_ = datetime.date(day=day, month=date.month, year=date.year)
+      if self.scheduled_turnus[date_]:
+        #TODO: VACATIONS
+        if isinstance(self.scheduled_turnus[date_], turnus.Turnus):
+          current_hours += self.scheduled_turnus[date_].duration
+        elif isinstance(self.scheduled_turnus[date_], vacation.Vacation):
+          current_hours += datetime.timedelta(hours=7)
+        
+        
+    current_hours = timedelta_to_hours(current_hours)
+    
+    return self.employment_type.monthly_hours - current_hours
+  
+  def get_schedule(self):
+    """Returns the nurse's schedule."""
+    schedule = {}
+    
+    for date in self.scheduled_workplace:
+      schedule[date] = (self.scheduled_turnus[date], self.scheduled_workplace[date])
+      
+    return schedule
+    
+    
+      
   def __get_days(self, date):
     """
     Returns a sorted list of days for the scheduling date.
@@ -174,7 +288,30 @@ class Nurse (nurse.Nurse):
     days.sort()
     
     return days
+  
+  def __get_affected_dates(self, date):
+    """
+    Returns all the dates in all the weeks that this month includes.
+      date: an instance of datetime.date, that contains the month
+      return: a list of dates
+    """
     
+    dates = []
+    for week in calendar.Calendar().monthdatescalendar(year=date.year, month=date.month):
+      dates += week
       
+    return dates
     
-      
+  def __get_week(self, date):
+    """
+    Returns the week in which the date is located.
+      date: instance of the datetime.date class
+      return: a list of dates
+    """
+    
+    for week in calendar.Calendar().monthdatescalendar(year=date.year, month=date.month):
+      if date in week:
+        return week
+    else:
+      raise Exception('Date week error')
+          

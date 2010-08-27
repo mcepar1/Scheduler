@@ -147,10 +147,9 @@ def set_employement_types():
 
 """Uncomment the correct method to reset the specific data"""
 #set_turnuses()
-#set_vacations()  
+#set_vacations()
+#set_workplaces()
+#set_employement_types()  
 #set_nurses()
 #set_doctors()
-#set_workplaces()
-#set_employement_types()
-
   
