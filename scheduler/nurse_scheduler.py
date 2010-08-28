@@ -16,12 +16,14 @@ import os
 class NurseScheduler:
   FILES_DIR = os.path.join("scheduler", "persistence", "nurses")
 
-  def __init__(self, nurses, workplaces, date):
+  def __init__(self, nurses, workplaces, date, input_raw=False):
     """
     The default constructor.
       nurses: a list of all the nurses, that will be scheduled
       workplaces: a list of workplaces, that the nurses will be scheduled into
       date: is the starting date of the scheduling
+      input_raw: a boolean that tells the scheduler, not perform certain tasks, thus
+                 enabling total control over data input
     """
   
     self.nurses = []
@@ -29,7 +31,12 @@ class NurseScheduler:
       if nurse.allowed_turnuses:
         self.nurses.append(person.Nurse(nurse))
         self.nurses[-1].add_month (date)
-    self.__get_previous_month(date)
+        #add the next month, because it may overflow
+        self.nurses[-1].add_month(datetime.date(day = 28, month = date.month, year = date.year) + datetime.timedelta(days = 10))
+    
+    if not input_raw:
+      self.__get_previous_month(date)
+      
     
     self.workplaces = []
     for workplace_ in workplaces:
@@ -71,11 +78,12 @@ class NurseScheduler:
         if turnus not in self.turnus_nurses:
           self.turnus_nurses[turnus] = set()
         self.turnus_nurses[turnus].add(nurse)
-        
-    pre_scheduler = prescheduler.PreScheduler(self.nurses, self.date)
-    pre_scheduler.pre_schedule()
+     
+    # no auto execution, when inputing raw_data
+    if not input_raw:    
+      pre_scheduler = prescheduler.PreScheduler(self.nurses, self.date)
+      pre_scheduler.pre_schedule()
       
-    #self.__save()
       
     
     
@@ -94,15 +102,7 @@ class NurseScheduler:
       for old_nurse in old_nurses:
         if nurse == old_nurse:
           #we can always do that, because the past is always right
-          nurse.load_previous_month(old_nurse, prev_date)
-    
-    
-  def __save(self):
-    """Saves the schedule"""
-    
-    filename = str(self.date.month) + '_' + str(self.date.year) + '.dat'
-    pickle.dump(self.nurses, file(os.path.join(NurseScheduler.FILES_DIR, filename), 'wb'))
-       
+          nurse.load_previous_month(old_nurse, prev_date)       
 
   def schedule(self):
     dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
@@ -161,7 +161,7 @@ class NurseScheduler:
       scheduled[person] = []
       for date in dates:
         temp = person.get_scheduled(date)
-        scheduled[person].append(temp[0]+'-'+temp[1])
+        scheduled[person].append(temp[0] + '-' + temp[1])
         
     headers = ['Oseba']
     for date in dates:
@@ -171,10 +171,16 @@ class NurseScheduler:
     for person in self.nurses:
       lines.append([])
       lines[-1].append(str(person))
-      lines[-1]+=scheduled[person]
+      lines[-1] += scheduled[person]
       lines[-1].append(str(person.get_monthly_hours_difference(self.date)))
       
     return lines
+  
+  def save(self):
+    """Saves the schedule"""
+    
+    filename = str(self.date.month) + '_' + str(self.date.year) + '.dat'
+    pickle.dump(self.nurses, file(os.path.join(NurseScheduler.FILES_DIR, filename), 'wb'))
     
   def __schedule_workplace(self, workplace, date, nurses=[], overtime=False):
     """

@@ -3,6 +3,8 @@
 import cPickle as pickle
 import os
 
+from utils import time_conversion
+
 class Nurse:
 
   HEADERS = ["IME", "PRIIMEK", "NAZIV", "ROJSTNI DAN"]
@@ -56,7 +58,7 @@ class Nurse:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.name, self.surname, self.title, self.birthday]
+    return [self.name, self.surname, self.title, time_conversion.date_to_string(self.birthday)]
   
   def add_allowed_turnus(self, turnus):
     """
@@ -233,7 +235,7 @@ class NurseContainer:
     self.nurses = []
     
     if nurses_list:
-      self.add_all(self, nurses_list)
+      self.add_all(nurses_list)
       
   def add_all(self, nurses_list):
     """Adds all the elements of the nurses_list into the container

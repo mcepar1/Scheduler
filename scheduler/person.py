@@ -29,8 +29,6 @@ class Nurse (nurse.Nurse):
     #this field maps a date to the workplace
     self.scheduled_workplace = {}
     
-    self.monthly_hours = {}
-    self.weekly_hours = datetime.timedelta()
     
     
   def load_previous_month (self, old_nurse, date):
@@ -39,15 +37,15 @@ class Nurse (nurse.Nurse):
       old_nurse: is the instance of this class, from the previous month
       date: is the datetime.date, that contains the previous month and year
     """
+    
+    next_month = datetime.date(day=28, month=date.month, year=date.year) + datetime.timedelta(days=8)
+    self.add_month(date)
+    self.add_month(next_month)
+    
     if self == old_nurse:
       self.scheduled_turnus.update(old_nurse.scheduled_turnus)
       self.scheduled_workplace.update(old_nurse.scheduled_workplace)
       
-      self.weekly_hours = old_nurse.weekly_hours
-      
-      next_month = datetime.date(day=28, month=date.month, year=date.year) + datetime.timedelta(days=8)
-      if next_month in old_nurse.monthly_hours:
-        self.monthly_hours[next_month.month] = old_nurse.monthly_hours[next_month.month]
     else:
       raise Exception('Napaka pri nalaganju prejsnjega meseca.')
     
@@ -56,8 +54,6 @@ class Nurse (nurse.Nurse):
     Adds a new month into this scheduler.
       date: is an datetime.date instance with the correct year or month
     """
-    if date.month not in self.monthly_hours:
-      self.monthly_hours[date.month] = datetime.timedelta()
 
     for date_ in self.__get_affected_dates(date):
       if date_ not in self.scheduled_turnus and date_ not in self.scheduled_workplace:
@@ -82,16 +78,11 @@ class Nurse (nurse.Nurse):
     if self.scheduled_turnus[date] or self.scheduled_workplace[date]:
       raise Exception("Trying to override an already scheduled date")
       
-    #if monday
-    if date.weekday() == 0:
-      self.weekly_hours = datetime.timedelta()
       
     #if new month
     if date not in self.scheduled_turnus or date not in self.scheduled_workplace:
       self.add_month (date)
         
-    self.weekly_hours += turnus.duration
-    self.monthly_hours[date.month] += turnus.duration
     
     self.scheduled_turnus[date] = turnus
     self.scheduled_workplace[date] = workplace

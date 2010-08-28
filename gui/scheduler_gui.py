@@ -4,7 +4,7 @@ import wx
 import wx_extensions
 import result_gui
 
-from global_vars import employment_types, workplaces, turnuses, nurses
+from global_vars import employment_types, workplaces, turnuses, doctors
 from data import employment_type
 from scheduler import nurse_scheduler
 
@@ -37,13 +37,13 @@ class SchedulerPanel(wx.Panel):
     #force the nurses to refresh employment_types
     #TODO: this should be done automaticly
     for employment_type in employment_types.employment_types:
-      for nurse in nurses.nurses:
-        if nurse.employment_type == employment_type:
+      for doctor in doctors.doctors:
+        if doctor.employment_type == employment_type:
           # skips the built in method on purpose
-          nurse.employment_type = employment_type
+          doctor.employment_type = employment_type
     
     workers = self.shift_control.get_workers()
-    ns = nurse_scheduler.NurseScheduler(nurses.nurses, workers.keys(), self.__get_date())
+    ns = nurse_scheduler.NurseScheduler(doctors.doctors, workers.keys(), self.__get_date())
     for workplace in ns.workplaces:
       for turnus in workers[workplace]:
         workplace.set_worker(turnus, workers[workplace][turnus])

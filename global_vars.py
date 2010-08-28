@@ -7,6 +7,7 @@ from data import turnus, vacation, nurse, doctor, workplace, employment_type
 # init the turnuses
 turnuses = turnus.load ()
 
+
 # init the vacations
 vacations = vacation.load ()
 
