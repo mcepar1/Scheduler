@@ -22,6 +22,7 @@ class Nurse (nurse.Nurse):
     self.forbidden_turnuses = data_nurse.forbidden_turnuses
     self.vacations = data_nurse.vacations
     self.workplaces = data_nurse.workplaces
+    self.predefined = data_nurse.predefined
     
     #this field maps a date to the turnus
     self.scheduled_turnus = {}
@@ -30,6 +31,7 @@ class Nurse (nurse.Nurse):
     
     self.monthly_hours = {}
     self.weekly_hours = datetime.timedelta()
+    
     
   def load_previous_month (self, old_nurse, date):
     """
@@ -61,6 +63,11 @@ class Nurse (nurse.Nurse):
       if date_ not in self.scheduled_turnus and date_ not in self.scheduled_workplace:
         self.scheduled_turnus[date_] = ''
         self.scheduled_workplace[date_] = ''
+        
+  def schedule_constraints(self):
+    """Schedules vacations and manually added constraints into the person."""
+    self.__synchronize_vacations()
+    self.__synchronize_predefined()
   
         
     
@@ -89,6 +96,34 @@ class Nurse (nurse.Nurse):
     self.scheduled_turnus[date] = turnus
     self.scheduled_workplace[date] = workplace
     
+  def is_blocked(self, date, turnus):
+    """
+    Checks, if the following can be scheduled for the specific date.
+      date: is the date that we want to insert
+      turnus: is the turnus that we want to schedule
+      return: true, if it is blocked, false otherwise
+    """
+    
+    if self.is_scheduled(date):
+      return True
+    else:
+      prev_date = date - datetime.timedelta(days=1)
+      if self.is_free_day(prev_date):
+        return False
+      else:
+        prev_turnus = self.scheduled_turnus[prev_date]
+        #calculate blocking next free date
+        instance = datetime.datetime(year=prev_date.year, month=prev_date.month, day=prev_date.day)
+        prev_turnus_start = instance.combine(prev_date, prev_turnus.start)
+        prev_turnus_end = instance.combine(prev_date, prev_turnus.end)
+        
+        #if it went over midnight
+        if prev_turnus_end < prev_turnus_start:
+          prev_turnus_end += datetime.timedelta(days=1)
+          
+        current_start = instance.combine(date, turnus.start)
+        return current_start < (prev_turnus_end + prev_turnus.blockade)
+    
   def is_scheduled(self, date):
     """
     Checks if the date is already scheduled.
@@ -110,8 +145,8 @@ class Nurse (nurse.Nurse):
       date: is date for against the turnus and workplaces are checked
       return: true if they are scheduled, false otherwise
     """
-    
-    return self.scheduled_turnus[date] == turnus and self.scheduled_workplace == workplace
+        
+    return self.scheduled_turnus[date] == turnus and self.scheduled_workplace[date] == workplace
     
   def schedule_vacation (self, date, vacation):
     """
@@ -137,10 +172,22 @@ class Nurse (nurse.Nurse):
       date: is the date of the free day
     """
     
-    if date in self.scheduled_turnus or date in self.scheduled_workplace:
+    if self.scheduled_turnus[date] or self.scheduled_workplace[date]:
       raise Exception('Ta dan ne more biti prost')
+      
+    self.scheduled_turnus[date] = FREE_DAY_SIGN
     
-    self.scheduled_workplace[date] = FREE_DAY_SIGN
+  def is_vacation(self, date):
+    """
+    Checks if the date is a vacation.
+      date: is the date being checked
+      return: true, if the date is a vacation, flase otherwise
+    """
+    
+    if date in self.scheduled_turnus:
+      return isinstance(self.scheduled_turnus[date], vacation.Vacation)
+    else:
+      return False
     
   def is_free_day(self, date):
     """
@@ -149,8 +196,8 @@ class Nurse (nurse.Nurse):
       date: is the date checked
       return: true, if the day is free, false otherwise
     """
-    if self.scheduled_turnus or self.scheduled_workplace:
-      if isinstance(self.scheduled_turnus[date], vacation.Vacation):
+    if date in self.scheduled_turnus or date in self.scheduled_workplace:
+      if  not isinstance(self.scheduled_turnus[date], turnus.Turnus):
         return True
       else:
         return False
@@ -263,14 +310,35 @@ class Nurse (nurse.Nurse):
     
     return self.employment_type.monthly_hours - current_hours
   
-  def get_schedule(self):
-    """Returns the nurse's schedule."""
+  def get_schedule_raw(self):
+    """
+    Returns the nurse's schedule.
+    @deprecated: use get_scheduled instead
+    """
     schedule = {}
     
     for date in self.scheduled_workplace:
       schedule[date] = (self.scheduled_turnus[date], self.scheduled_workplace[date])
       
     return schedule
+  
+  def get_scheduled(self, date):
+    """
+    Returns a tuple, that represents the scheduled object.
+      return: a 2-tuple of strings, the first string is the turnus/vacation, the second
+              is the workplace
+    """
+    
+    if date not in self.scheduled_turnus or date not in self.scheduled_workplace:
+      raise Exception ('Tega dneva ni bilo v razvrscanju')
+    else:
+      if self.scheduled_turnus[date]:
+        if self.scheduled_turnus[date] == FREE_DAY_SIGN:
+          return ('', str(self.scheduled_workplace[date]))
+        else:
+          return (str(self.scheduled_turnus[date]), str(self.scheduled_workplace[date]))
+      else:
+        return (str(self.scheduled_turnus[date]), str(self.scheduled_workplace[date]))
     
     
       
@@ -314,4 +382,17 @@ class Nurse (nurse.Nurse):
         return week
     else:
       raise Exception('Date week error')
+    
+  def __synchronize_vacations(self):
+    """Schedules all the vacations."""
+    
+    for date in self.vacations:
+      self.schedule_vacation(date, self.vacations[date])
+      
+  def __synchronize_predefined(self):
+    """Schedule all the predefined turnuses. The user is always right, so this can break any constraint,
+      except one turnus per day.."""
+    
+    for date in self.predefined:
+      self.schedule_turnus(date, self.predefined[date][0], self.predefined[date][1])
           

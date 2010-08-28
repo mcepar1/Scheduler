@@ -47,6 +47,10 @@ class Doctor:
     if workplaces:
       for workplace in workplaces:
         self.add_workplace(workplace)
+        
+    # maps a date to a two tuple (turnus, worspace)
+    # if a entry exists in this dict, it will be pre-scheduled    
+    self.predefined = {}
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
@@ -77,7 +81,8 @@ class Doctor:
     
     if date not in self.forbidden_turnuses:
       self.forbidden_turnuses[date] = set()
-      
+    
+    self.remove_predefined(date)   
     self.forbidden_turnuses[date].add(turnus)
     
   def remove_invalid_turnus(self, date, turnus):
@@ -101,11 +106,7 @@ class Doctor:
       vacation: is the vacation instance
     """
     
-    self.forbidden_turnuses[date] = set(self.get_allowed_turnuses())
-    
-    if date in self.vacations:
-      raise Exception("Več kot dve vrsti dopusta na isti dan.")
-      
+    self.forbidden_turnuses[date] = set(self.get_allowed_turnuses())  
     self.vacations[date] = set([vacation])
     
     
@@ -127,6 +128,30 @@ class Doctor:
   def remove_workplace(self, workplace):
     """Removes a workplace from the doctor"""
     self.workplaces.remove(workplace)
+    
+  def add_predefined(self, date, turnus, workplace):
+    """
+    Adds a predefined date in the schedule.
+      date: the date that will be added
+      turnus: the turnus, that will be added
+      workplace: the workplace, that will be added
+    """
+    self.predefined[date] = (turnus, workplace)
+    
+  def remove_predefined(self, date):
+    """
+    Removes the predefined date, if necessary.
+      date: the date that will be removed
+    """
+    if date in self.predefined:
+      del self.predefined[date]
+      
+  def is_predefined(self, date):
+    """
+    Checks, if the date is predefined.
+      return: true, if predefined, false otherwise
+    """
+    return date in self.predefined
       
   def set_employment_type(self, employment_type):
     """

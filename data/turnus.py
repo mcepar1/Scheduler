@@ -5,9 +5,9 @@ import os
 
 class Turnus:
   
-  HEADERS = ["OZNAKA", "TIP DELA", "ZAČETEK", "KONEC", "TRAJANJE"]
+  HEADERS = ["OZNAKA", "TIP DELA", "ZAČETEK", "KONEC", "TRAJANJE", "BLOKADA"]
   
-  def __init__(self,code,label,start,end,duration):
+  def __init__(self,code,label,start,end,duration,blockade):
     """
     This is the constructor.
       code: is the code of the turnus (D,P,N, ...)
@@ -15,6 +15,7 @@ class Turnus:
       start: is the starting time
       end: is the ending time
       duration: is the length of the shift (start - end)
+      blockade: how long after the end of the shift, the person cannot perform tasks
     """
   
   
@@ -23,11 +24,12 @@ class Turnus:
     self.start = start
     self.end = end
     self.duration = duration
+    self.blockade = blockade
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.code, self.label, self.start.strftime("%H:%M"), self.end.strftime("%H:%M"), str(self.duration)]
+    return [self.code, self.label, self.start.strftime("%H:%M"), self.end.strftime("%H:%M"), str(self.duration), str(self.blockade)]
     
   def __str__(self):
     return self.code + " - " + self.label

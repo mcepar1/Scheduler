@@ -63,7 +63,7 @@ internally.
 """  
 class WorkplaceChoice(wx.Choice):
   def __init__(self, workplaces, *args, **kwargs):
-    self.workplaces = workplaces
+    self.workplaces = sorted(workplaces)
     
     kwargs['choices'] = [str(workplace) for workplace in self.workplaces]
     wx.Choice.__init__(self, *args, **kwargs)

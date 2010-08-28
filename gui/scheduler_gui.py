@@ -2,6 +2,7 @@
 
 import wx
 import wx_extensions
+import result_gui
 
 from global_vars import employment_types, workplaces, turnuses, nurses
 from data import employment_type
@@ -48,9 +49,12 @@ class SchedulerPanel(wx.Panel):
         workplace.set_worker(turnus, workers[workplace][turnus])
     
     ns.schedule()
-    print 'Done'
+    self.__show_result(ns)
 
-
+  def __show_result(self, scheduler):
+    dialog = result_gui.Result(scheduler, self, wx.NewId())
+    dialog.CenterOnScreen()
+    dialog.Show(True)
     
   def __get_date(self):
     """Returns a datetime.date object."""

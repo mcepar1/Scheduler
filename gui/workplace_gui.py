@@ -6,7 +6,7 @@ from global_vars import workplaces, turnuses, nurses, doctors
 
 class WorkplacePanel(wx.Panel):
   
-  def __init__(self,parent):
+  def __init__(self, parent):
     wx.Panel.__init__(self, parent)
     
     sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -14,10 +14,10 @@ class WorkplacePanel(wx.Panel):
     self.grid = wx.grid.Grid(self, wx.NewId())
     self.fill_grid()
     
-    sizer.Add(self.grid,1,wx.CENTER | wx.EXPAND)
+    sizer.Add(self.grid, 1, wx.CENTER | wx.EXPAND)
     
     self.person = TurnusPanel(self)
-    sizer.Add(self.person,0,wx.ALIGN_LEFT | wx.LEFT, 4)
+    sizer.Add(self.person, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
     
     self.SetSizerAndFit(sizer)
     
@@ -29,7 +29,7 @@ class WorkplacePanel(wx.Panel):
     headers = table['header']
     rows = table['items']
     
-    self.grid.CreateGrid(len(rows),len(headers))
+    self.grid.CreateGrid(len(rows), len(headers))
       
     for i in range(len(headers)):
       self.grid.SetColLabelValue(i, headers[i])
@@ -41,7 +41,7 @@ class WorkplacePanel(wx.Panel):
     self.grid.AutoSize()
     
   def workplace_selected(self, event):
-    if event.GetCol()==-1:
+    if event.GetCol() == -1:
       if event.GetRow() < 0:
         self.person.set_workplace(None)
         self.grid.ClearSelection()
@@ -60,26 +60,26 @@ class TurnusPanel(wx.Panel):
     
     topSizer = wx.BoxSizer(wx.HORIZONTAL)
     
-    turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self,wx.NewId(),"Turnusi"),wx.VERTICAL)
+    turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
     
     #set the turnuses
     self.turnuses = []
     for turnus in turnuses.turnuses:
-      self.turnuses.append(wx_extensions.LinkedCheckBox(turnus,self,wx.NewId(),str(turnus)))
+      self.turnuses.append(wx_extensions.LinkedCheckBox(turnus, self, wx.NewId(), str(turnus)))
       self.Bind(wx.EVT_CHECKBOX, self.__turnus_edited, self.turnuses[-1])
-      turnusSizer.Add(self.turnuses[-1],0,wx.ALIGN_LEFT)
+      turnusSizer.Add(self.turnuses[-1], 0, wx.ALIGN_LEFT)
     
 
     #set the initial turnuses  
-    self.__set_permissions ( )
+    self.__set_permissions ()
     
-    topSizer.Add(turnusSizer,0,wx.ALIGN_RIGHT)
+    topSizer.Add(turnusSizer, 0, wx.ALIGN_RIGHT)
     
     self.SetSizerAndFit(topSizer)
     
   def set_workplace (self, workplace):
     self.workplace = workplace
-    self.__set_permissions ( )
+    self.__set_permissions ()
     
   def __turnus_edited (self, event):
     
@@ -89,6 +89,16 @@ class TurnusPanel(wx.Panel):
     else:
       # add the restriction
       self.workplace.remove_allowed_turnus(event.GetEventObject().element)
+         
+    #update every single person - needed for synchronization
+    for nurse in nurses.nurses:
+      if self.workplace in nurse.workplaces:
+        nurse.remove_workplace(self.workplace)
+        nurse.add_workplace(self.workplace)
+    for doctor in doctors.doctors:
+      if self.workplace in doctor.workplaces:
+        doctor.remove_workplace(self.workplace)
+        doctor.add_workplace(self.workplace)
       
         
     
@@ -98,14 +108,14 @@ class TurnusPanel(wx.Panel):
     
     if self.workplace:
       for turnus in self.turnuses:
-        turnus.Enable ( )
+        turnus.Enable ()
         if turnus.element in self.workplace.allowed_turnuses:
           turnus.SetValue (True)
         else:
           turnus.SetValue (False)
     else:
       for turnus in self.turnuses:
-        turnus.Disable ( )
+        turnus.Disable ()
         
         
       

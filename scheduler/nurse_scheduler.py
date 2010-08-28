@@ -2,6 +2,7 @@
 from scheduler import person
 from scheduler import workplace as workplace_module
 from scheduler import weights
+from scheduler import prescheduler
 from global_vars import employment_types, turnuses as all_turnuses, workplaces as all_workplaces
 from utils import time_conversion, holiday
 
@@ -70,6 +71,9 @@ class NurseScheduler:
         if turnus not in self.turnus_nurses:
           self.turnus_nurses[turnus] = set()
         self.turnus_nurses[turnus].add(nurse)
+        
+    pre_scheduler = prescheduler.PreScheduler(self.nurses, self.date)
+    pre_scheduler.pre_schedule()
       
     #self.__save()
       
@@ -104,16 +108,11 @@ class NurseScheduler:
     dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
     
     
-    nurses = set()
-    for employment_type in self.employment_type_nurses:
-      #exclude the part time employees
-      if employment_type != employment_types.employment_types[1]:
-        nurses = nurses | self.employment_type_nurses[employment_type]
-    
-    # for each date and workplace go through each allowed turnus and add 
-    # one employee, until reaching the point, where the overtime is needed
-    # or enough workers are working in a turnus
+    #for each date and workplace go through each allowed turnus and add 
+    #one employee, until reaching the point, where the overtime is needed
+    #or enough workers are working in a turnus
     scheduled = True
+    nurses = set(self.nurses) - self.employment_type_nurses[employment_types.employment_types[1]]
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)
@@ -123,7 +122,59 @@ class NurseScheduler:
         for date in dates:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, nurses, overtime=False)
           
-    self.__debug_print()
+    #repeat the process for the part-time employees
+    #nurses = self.employment_type_nurses[]
+    scheduled = True
+    nurses = self.employment_type_nurses[employment_types.employment_types[1]]
+    while (scheduled):
+      #start with workplaces
+      random.shuffle(self.workplaces)
+      scheduled = False
+      for workplace in self.workplaces:
+        for date in dates:
+          scheduled = scheduled | self.__schedule_workplace(workplace, date, nurses, overtime=False)
+          
+    #finally add all the persons, including the ones with the overtime
+    scheduled = True
+    nurses = set(self.nurses) - self.employment_type_nurses[employment_types.employment_types[1]]
+    while (scheduled):
+      #start with workplaces
+      random.shuffle(self.workplaces)
+      scheduled = False
+      for workplace in self.workplaces:
+        for date in dates:
+          scheduled = scheduled | self.__schedule_workplace(workplace, date, nurses, overtime=True)
+          
+    
+    
+          
+    self.print_human_readable_output()
+    
+  def get_schedule_matrix(self):
+    """
+    Returns a matrix, that is close to what the final output might be.
+    """
+    dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
+    scheduled = {}
+    
+    for person in self.nurses:
+      scheduled[person] = []
+      for date in dates:
+        temp = person.get_scheduled(date)
+        scheduled[person].append(temp[0]+'-'+temp[1])
+        
+    headers = ['Oseba']
+    for date in dates:
+      headers.append(time_conversion.date_to_string(date))
+    headers.append('Nadure')
+    lines = [headers]
+    for person in self.nurses:
+      lines.append([])
+      lines[-1].append(str(person))
+      lines[-1]+=scheduled[person]
+      lines[-1].append(str(person.get_monthly_hours_difference(self.date)))
+      
+    return lines
     
   def __schedule_workplace(self, workplace, date, nurses=[], overtime=False):
     """
@@ -142,8 +193,8 @@ class NurseScheduler:
     
     scheduled = False
     
-    #always start with the night shift, because it requires the nurse, to be scheduled
-    #across multiple days
+    #always start with the night shift, because it may require the nurse, to be 
+    #scheduled across multiple days
     if all_turnuses.turnuses[3] in turnuses:
       turnuses.remove(all_turnuses.turnuses[3])
       
@@ -210,16 +261,17 @@ class NurseScheduler:
     """
     
     
-    if nurse.is_scheduled(date):
-      return False
-    
     if turnus not in nurse.allowed_turnuses:
       return False
     
     if nurse.is_turnus_forbidden(turnus, date):
       return False
     
-    if not overtime:
+    if nurse.is_blocked(date, turnus):
+      return False
+    
+    #also check the persons empolyment type
+    if not overtime or not nurse.employment_type.has_overtime:
       mh = nurse.get_monthly_hours_difference(date)
       wh = nurse.get_weekly_hours_difference(date)
       
@@ -402,7 +454,17 @@ class NurseScheduler:
       
     return self.__get_week(date + datetime.timedelta(days= -7))
   
-  def __debug_print(self):
+  def print_human_readable_output(self):
+    """Prints a console version of the final output."""
+    for line in self.get_schedule_matrix():
+      print '\t'.join(line)
+      
+        
+        
+      
+    
+  
+  def debug_print_nurses(self):
     min_date = datetime.date(day=1, month=self.date.month, year=self.date.year)
     
     for nurse in self.nurses:
@@ -413,4 +475,23 @@ class NurseScheduler:
           print '\tDate: ' + str(date)
           print '\t\t Turnus: ' + str(schedule[date][0])
           print '\t\t Workplace: ' + str(schedule[date][1])
+      print ''
+      
+  def debug_print_workplaces(self):
+    dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
+    
+    for workplace in self.workplace_nurses.keys():
+      print str(workplace)
+      
+      counter = {}
+      for turnus in self.turnus_nurses.keys():
+        print '\t' + str(turnus)
+        for date in dates:
+          counter = 0
+          for nurse in self.nurses:
+            if nurse.is_scheduled_exact(workplace, turnus, date):
+              counter += 1
+          
+          print '\t\t' + str(date) + ': ' + str(counter)
+      
       print ''
