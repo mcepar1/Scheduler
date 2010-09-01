@@ -1,0 +1,1 @@
+This folder contains all the stored data for the whole application.
