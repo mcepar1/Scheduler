@@ -1,0 +1,1 @@
+The logging output is redirected into this folder's log.txt file.

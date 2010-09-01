@@ -196,7 +196,7 @@ class PersonScheduler:
     
     
           
-    self.print_human_readable_output()
+    #self.print_human_readable_output()
     
   def get_schedule_matrix(self):
     """

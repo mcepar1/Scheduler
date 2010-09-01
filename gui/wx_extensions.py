@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from utils import holiday
+
 import datetime
+import calendar
 
 import wx
 import wx.calendar
 import wx.lib.intctrl
-import dateutil.easter
+
 
 
 """
@@ -54,7 +57,7 @@ class MonthChoice(wx.Choice):
       return: a datetime.date instance
     """
     #return MonthChoice.MONTHS[self.GetCurrentSelection()]
-    return datetime.date(day = 1, month = self.GetCurrentSelection() + 1, year = int(datetime.date.today().year))
+    return datetime.date(day=1, month=self.GetCurrentSelection() + 1, year=int(datetime.date.today().year))
 
 """
 This class behaves the same way as as a normal wxChoice.
@@ -158,26 +161,7 @@ around the python date object.
 """
 class EnhancedCalendar(wx.calendar.CalendarCtrl):
 
-  # fill these dates out for the present year
-  # some could change with another year
-  # {month: list of holiday dates in month}
-  # TODO: export into an external, easy to edit file
-  HOLIDAYS = {
-                1: [1, 2], # novo leto
-                2: [8], # Slovenski kulturni praznik
-                3: [],
-                4: [27], # dan boja proti okupatorju
-                5: [1, 2, 31], # praznik dela, Binkošti
-                6: [25], # dan državnosti
-                7: [],
-                8: [15], # Marijino vnebovzetje
-                9: [],
-                10: [31], # dan reformacije
-                11: [1], # dan spomina na mrtve
-                12: [25, 26] # božič, dan samostojnosti
-              }
-              
-              
+                      
   def __init__(self, *args, **kwargs):
   
     wx.calendar.CalendarCtrl.__init__(self, *args, **kwargs)
@@ -189,28 +173,24 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
   def __set_holidays(self, event):
     """Colors the holidays"""
     
-    for day in self.__get_holidays(year=self.PyGetDate().year)[self.PyGetDate().month]:
-      self.SetHoliday(day)
+    for date in self.__get_dates():
+      if holiday.is_workfree(date):
+        self.SetHoliday(date.day)
+      else:
+        self.ResetAttr(date.day)
       
-  def __get_holidays(self, year=datetime.date.today().year):
-    """
-    Returns a dict in the same format as HOLIDAYS, only with the correct EASTER and easter mondays dates.
-    """
-    # create a hard copy
-    holidays = {}
-    for month in EnhancedCalendar.HOLIDAYS:
-      holidays[month] = []
-      for day in EnhancedCalendar.HOLIDAYS[month]:
-        holidays[month].append(day)
     
-    easter = dateutil.easter.easter(year)
-    easter_monday = easter + datetime.timedelta(days=1)
+  def __get_dates(self):
+    """Returns a sorted list of days for the current date and month."""
+    current_date = self.PyGetDate()
+    dates = []
+    for day in calendar.Calendar().itermonthdays(current_date.year, current_date.month):
+      if day:
+        dates.append(datetime.date(day = day, month = current_date.month, year = current_date.year))
+              
+    dates.sort()
     
-    holidays[easter.month].append(easter.day)
-    holidays[easter_monday.month].append(easter_monday.day)
-    
-    return holidays
-    
+    return dates
     
     
     

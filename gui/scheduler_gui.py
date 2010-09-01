@@ -237,7 +237,7 @@ class DateShiftControl(wx.Dialog):
     
     sizer.Add(wx.StaticText(self, wx.NewId(), label=str(self.workplace)), 0, wx.CENTER)
     
-    self.calendar = wx_extensions.EnhancedCalendar(self, wx.NewId())
+    self.calendar = wx_extensions.EnhancedCalendar(self, wx.NewId(), style=wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_SURROUNDING_WEEKS | wx.calendar.CAL_SEQUENTIAL_MONTH_SELECTION)
     self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED, self.__update_date, self.calendar)
     sizer.Add(self.calendar, 0, wx.ALIGN_LEFT | wx.EXPAND)
     
