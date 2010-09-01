@@ -49,7 +49,7 @@ class VacationContainer:
   """Contains methods, that deal with multiple instences of the vacation
   class at once (loading, saving, representing as a table, ...)"""
   
-  FILES_DIR = os.path.join("data","persistence")
+  FILES_DIR = os.path.join("persistence", "data")
   FILE_NAME = "vacation.dat"
   
   def __init__(self, vacation_list = None):

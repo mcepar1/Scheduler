@@ -5,9 +5,9 @@ import os
 
 class Turnus:
   
-  HEADERS = ["OZNAKA", "TIP DELA", "ZAČETEK", "KONEC", "TRAJANJE", "BLOKADA"]
+  HEADERS = ["OZNAKA", "TIP DELA", "ZACETEK", "KONEC", "TRAJANJE", "BLOKADA", "NA PROST DAN"]
   
-  def __init__(self,code,label,start,end,duration,blockade):
+  def __init__(self,code,label,start,end,duration,blockade, holiday):
     """
     This is the constructor.
       code: is the code of the turnus (D,P,N, ...)
@@ -16,6 +16,7 @@ class Turnus:
       end: is the ending time
       duration: is the length of the shift (start - end)
       blockade: how long after the end of the shift, the person cannot perform tasks
+      holiday: if true, the turnus can be scheduled an a holiday
     """
   
   
@@ -24,12 +25,13 @@ class Turnus:
     self.start = start
     self.end = end
     self.duration = duration
-    self.blockade = blockade
+    self.blockade = blockade    
+    self.holiday = holiday
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.code, self.label, self.start.strftime("%H:%M"), self.end.strftime("%H:%M"), str(self.duration), str(self.blockade)]
+    return [self.code, self.label, self.start.strftime("%H:%M"), self.end.strftime("%H:%M"), str(self.duration), str(self.blockade), str(self.holiday)]
     
   def __str__(self):
     return self.code + " - " + self.label
@@ -64,7 +66,7 @@ class TurnusContainer:
   """Contains methods, that deal with multiple instences of the Turnus
   class at once (loading, saving, representing as a table, ...)"""
   
-  FILES_DIR = os.path.join("data","persistence")
+  FILES_DIR = os.path.join("persistence", "data")
   FILE_NAME = "turnus.dat"
   
   def __init__(self, turnus_list = None):

@@ -3,7 +3,7 @@
 from data.doctor import Doctor, DoctorContainer
 from utils import time_conversion
 from global_vars import doctors, workplaces
-from scheduler import nurse_scheduler
+from scheduler import person_scheduler
 import keyboard
 
 import os
@@ -20,7 +20,7 @@ def input_doctors():
   print 'Zacetno stanje zdravnikov vzpostavljeno.'
   
 def input_persons():
-  FILES_DIR = os.path.join('data', 'input', 'start_data')
+  FILES_DIR = os.path.join('persistence', 'data', 'start_data')
   FILE_NAME = 'zdravniki.csv'
   
   print 'Zaceli boste z vnosom zdravnikov.'
@@ -57,18 +57,26 @@ def input_last_month():
   weeks += calendar.Calendar().monthdatescalendar(year=next_date.year, month=next_date.month)[0]
   weeks += calendar.Calendar().monthdatescalendar(year=next_date.year, month=next_date.month)[1]
   
+  print 'Ali zelite rocno vnesti zadnji razpored v aplikacijo?\nPOZOR: Ce tega ne storite se bodo vsi zadnji dnevi v zadnjem razvrscenem mesecu steli kot nerazvrsceni!'
+  manual = keyboard.get_yes_no_choice()
+  
   print 'Za potrebe razvrscanja je dovolj, ce vnesemo le zadnja dva tedna v mesecu in prva tedna v naslednjem mesecu.'
   
-  ns = nurse_scheduler.NurseScheduler(doctors.doctors, workplaces.workplaces, date, input_raw=True)
+  ps = person_scheduler.PersonScheduler(doctors.doctors, workplaces.workplaces, date, input_raw=True)
   doctor_map = {}
-  for doctor in ns.nurses:
+  for doctor in ps.people:
     doctor_map[doctor] = doctor 
   
   for doctor in doctors.doctors:
     for date in sorted(set(weeks)):
         print 'Vnasamo podatke za zdravnika: ' + str(doctor.as_list())
         print 'Datum: ' + time_conversion.date_to_string(date)
-        choice = keyboard.get_three_way_choice()
+        if manual:
+          choice = keyboard.get_three_way_choice()
+        else:
+          choice = 1
+          
+          
         if choice == 2:
           doctor_map[doctor].add_free_day(date)
           print '\tProst dan uspesno dodan.'
@@ -86,7 +94,7 @@ def input_last_month():
           
   
   sys.stdout.write('Shranjevanje ...')
-  ns.save()
+  ps.save(force=True)
   sys.stdout.write('OK\n')
   
   

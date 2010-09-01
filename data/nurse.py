@@ -24,6 +24,9 @@ class Nurse:
     self.title = title
     self.birthday = birthday
     
+    # tells if the night turnuses are scheduled in packages
+    self.packet_night_turnuses = False
+    
     # this field should never be changed directly
     # use set_employment_type instead
     if employment_type:
@@ -225,7 +228,7 @@ class NurseContainer:
   """Contains methods, that deal with multiple instences of the Nurse
   class at once (loading, saving, representing as a table, ...)"""
   
-  FILES_DIR = os.path.join("data", "persistence")
+  FILES_DIR = os.path.join("persistence", "data")
   FILE_NAME = "nurses.dat"
 
   def __init__(self, nurses_list=None):

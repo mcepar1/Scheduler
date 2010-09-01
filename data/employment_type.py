@@ -61,7 +61,7 @@ class EmploymentTypeContainer:
   """Contains methods, that deal with multiple instences of the employmentType
   class at once (loading, saving, representing as a table, ...)"""
   
-  FILES_DIR = os.path.join("data", "persistence")
+  FILES_DIR = os.path.join("persistence", "data")
   FILE_NAME = "employment_type.dat"
   
   def __init__(self, employment_type_list=None):

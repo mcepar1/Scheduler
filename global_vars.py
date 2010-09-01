@@ -38,44 +38,44 @@ DO NOT USE THEM UNLESS YOU KNOW WHAT YOU ARE DOING"""
 def set_turnuses():
   import datetime
   hardcoded_turnuses = [
-                         ['D', 'eno izmensko', datetime.time(hour=7), datetime.time(hour=15), datetime.timedelta(hours=8), datetime.timedelta(hours=12)],
-                         ['D', 'več izmensko', datetime.time(hour=7), datetime.time(hour=14), datetime.timedelta(hours=7), datetime.timedelta(hours=12)],
-                         ['P', 'več izmensko', datetime.time(hour=14), datetime.time(hour=21), datetime.timedelta(hours=7), datetime.timedelta(hours=12)],
-                         ['N', 'več izmensko', datetime.time(hour=21), datetime.time(hour=7), datetime.timedelta(hours=10), datetime.timedelta(hours=12)],
-                         ['N', 'več izmensko (nedelja)', datetime.time(hour=19), datetime.time(hour=7), datetime.timedelta(hours=12), datetime.timedelta(hours=12)],
-                         ['C', 'celodnevno', datetime.time(hour=7), datetime.time(hour=19), datetime.timedelta(hours=12), datetime.timedelta(hours=12)],
+                         ['D', 'eno izmensko', datetime.time(hour=7), datetime.time(hour=15), datetime.timedelta(hours=8), datetime.timedelta(hours=12), False],
+                         ['D', 'vec izmensko', datetime.time(hour=7), datetime.time(hour=14), datetime.timedelta(hours=7), datetime.timedelta(hours=12), False],
+                         ['P', 'vec izmensko', datetime.time(hour=14), datetime.time(hour=21), datetime.timedelta(hours=7), datetime.timedelta(hours=12), False],
+                         ['N', 'vec izmensko', datetime.time(hour=21), datetime.time(hour=7), datetime.timedelta(hours=10), datetime.timedelta(hours=12), False],
+                         ['N', 'vec izmensko (nedelja)', datetime.time(hour=19), datetime.time(hour=7), datetime.timedelta(hours=12), datetime.timedelta(hours=12), True],
+                         ['C', 'celodnevno', datetime.time(hour=7), datetime.time(hour=19), datetime.timedelta(hours=12), datetime.timedelta(hours=12), True],
                          
-                         ['D-', 'več izmensko', datetime.time(hour=7), datetime.time(hour=14), datetime.timedelta(hours=4), datetime.timedelta(hours=12)],
-                         ['P-', 'več izmensko', datetime.time(hour=14), datetime.time(hour=21), datetime.timedelta(hours=4), datetime.timedelta(hours=12)],
+                         ['D-', 'vec izmensko', datetime.time(hour=7), datetime.time(hour=14), datetime.timedelta(hours=4), datetime.timedelta(hours=12), False],
+                         ['P-', 'vec izmensko', datetime.time(hour=14), datetime.time(hour=21), datetime.timedelta(hours=4), datetime.timedelta(hours=12), False],
                          
-                         ['D8', 'tro izmensko', datetime.time(hour=7), datetime.time(hour=15), datetime.timedelta(hours=8), datetime.timedelta(hours=12)],
-                         ['P8', 'tro izmensko', datetime.time(hour=15), datetime.time(hour=23), datetime.timedelta(hours=8), datetime.timedelta(hours=12)],
-                         ['N8', 'tro izmensko', datetime.time(hour=23), datetime.time(hour=7), datetime.timedelta(hours=8), datetime.timedelta(hours=12)],
+                         ['D8', 'tro izmensko', datetime.time(hour=7), datetime.time(hour=15), datetime.timedelta(hours=8), datetime.timedelta(hours=12), False],
+                         ['P8', 'tro izmensko', datetime.time(hour=15), datetime.time(hour=23), datetime.timedelta(hours=8), datetime.timedelta(hours=12), False],
+                         ['N8', 'tro izmensko', datetime.time(hour=23), datetime.time(hour=7), datetime.timedelta(hours=8), datetime.timedelta(hours=12), False],
                          
-                         ['E', 'dežurna', datetime.time(hour=7), datetime.time(hour=7), datetime.timedelta(hours=24), datetime.timedelta(hours=12)],
-                         ['I', 'pripravljenost', datetime.time(hour=15), datetime.time(hour=7), datetime.timedelta(hours=24), datetime.timedelta(hours=12)],
-                         ['I-TX', 'pripravljenost za transplantacijo', datetime.time(hour=15), datetime.time(hour=7), datetime.timedelta(hours=24), datetime.timedelta(hours=12)],
-                         ['D-', 'dopoldanska po dežurni', datetime.time(hour=7), datetime.time(hour=11), datetime.timedelta(hours=4), datetime.timedelta(hours=12)]
+                         ['E', 'dezurna', datetime.time(hour=7), datetime.time(hour=7), datetime.timedelta(hours=24), datetime.timedelta(hours=12), False],
+                         ['I', 'pripravljenost', datetime.time(hour=15), datetime.time(hour=7), datetime.timedelta(hours=24), datetime.timedelta(hours=12), False],
+                         ['I-TX', 'pripravljenost za transplantacijo', datetime.time(hour=15), datetime.time(hour=7), datetime.timedelta(hours=24), datetime.timedelta(hours=12), False],
+                         ['D-', 'dopoldanska po dezurni', datetime.time(hour=7), datetime.time(hour=11), datetime.timedelta(hours=4), datetime.timedelta(hours=12), False]
                        ]
   
   turnuses.turnuses = []                     
   for new_turnus in hardcoded_turnuses:
-    turnuses.add_all([turnus.Turnus(new_turnus[0], new_turnus[1], new_turnus[2], new_turnus[3], new_turnus[4], new_turnus[5])])
+    turnuses.add_all([turnus.Turnus(*new_turnus)])
     
   turnuses.save()
 
 
 def set_vacations():
   hardcoded_vacations = [
-                          ["X", "državni praznik"],
+                          ["X", "drzavni praznik"],
                           ["L", "letni dopust - tek. leto"],
                           ["T", "letni dopust - pre. leto"],
-                          ["S", "izred. plač. dopust"],
-                          ["Š", "študijski dopust"],
-                          ["O", "plačana odsotnost"],
-                          ["Y", "neplačana odsotnost"],
-                          ["B", "bolniška odsotnost"],
-                          ["R", "porodniški dopust"]
+                          ["S", "izred. plac. dopust"],
+                          ["Š", "studijski dopust"],
+                          ["O", "placana odsotnost"],
+                          ["Y", "neplacana odsotnost"],
+                          ["B", "bolniska odsotnost"],
+                          ["R", "porodniski dopust"]
                         ]
         
   vacations.vacations = []      
@@ -86,12 +86,12 @@ def set_vacations():
   
 def set_nurses():
   hardcoded_nurses = [
-                      ["Marija", "Šraj", "Sestra", "1"],
-                      ["Nadja", "Robič", "Sestra", "1"],
+                      ["Marija", "Sraj", "Sestra", "1"],
+                      ["Nadja", "Robic", "Sestra", "1"],
                       ["Mateja", "Segulin", "Sestra", "1"],
-                      ["Nika", "Valenčič", "Sestra", "1"],
-                      ["Kristina", "Košmrlj", "Sestra", "1"],
-                      ["Neža", "Skrt", "Sestra", "1"]
+                      ["Nika", "Valencic", "Sestra", "1"],
+                      ["Kristina", "Kosmrlj", "Sestra", "1"],
+                      ["Neza", "Skrt", "Sestra", "1"]
                      ]
                     
   nurses = nurse.NurseContainer()
@@ -102,12 +102,12 @@ def set_nurses():
   
 def set_doctors():
   hardcoded_doctors = [
-                       ["Matjaž", "Čepar", "Zdravnik", "1"],
-                       ["Matej", "Ravšelj", "Zdravnik", "1"],
-                       ["Miloš", "Čotar", "Zdravnik", "1"],
-                       ["Simon", "Križman", "Zdravnik", "1"],
+                       ["Matjaz", "Cepar", "Zdravnik", "1"],
+                       ["Matej", "Ravselj", "Zdravnik", "1"],
+                       ["Milos", "Cotar", "Zdravnik", "1"],
+                       ["Simon", "Krizman", "Zdravnik", "1"],
                        ["Davor", "Petrinja", "Zdravnik", "1"],
-                       ["Urban", "Jernejčič", "Zdravnik", "1"]
+                       ["Urban", "Jernejcic", "Zdravnik", "1"]
                       ]
   
   doctors = doctor.DoctorContainer()
@@ -118,26 +118,27 @@ def set_doctors():
   
 def set_workplaces():
   hardcoded_workplaces = [
-                            ["Ambulanta"],
-                            ["Navadna nega (odd)"],
-                            ["Intenzivna terapija A"],
-                            ["Intenzivna terapija B"],
-                            ["Intenzivna nega"],
-                            ["Perfuzija"],
-                            ["Administracija"]
+                            ["Ambulanta" , False],
+                            ["Navadna nega (odd)", True],
+                            ["Intenzivna terapija A", True],
+                            ["Intenzivna terapija B", True],
+                            ["Intenzivna nega", True],
+                            ["Perfuzija", False],
+                            ["Administracija", False]
                           ]
                       
   workplaces = workplace.WorkplaceContainer()
   for new_workplace in hardcoded_workplaces:
-    workplaces.add_all([workplace.Workplace(new_workplace[0])])
+    workplaces.add_all([workplace.Workplace(*new_workplace)])
     
   workplaces.save()
   
 def set_employement_types():
   hardcoded_employment_types = [
-                                  ['Normalna zaposlitev', 40, True, turnuses.turnuses[:5]],
-                                  ['Polovicen delovni cas', 20, False, turnuses.turnuses[-2:]],
-                                  ['35 ur/teden', 35, True, turnuses.turnuses[:3] + [turnuses.turnuses[4]]]
+                                  ['Medicinska sestra: Normalna zaposlitev', 40, True, turnuses.turnuses[:5]],
+                                  ['Medicinska sestra: Polovicen delovni cas', 20, False, turnuses.turnuses[-2:]],
+                                  ['Medicinska sestra: 35 ur/teden', 35, True, turnuses.turnuses[:3] + [turnuses.turnuses[4]]],
+                                  ['Zdravnik: Normalna zaposlitev', 40, True, turnuses.turnuses[:5] + turnuses.turnuses[-3:]]
                                 ]
   
   employment_types = employment_type.EmploymentTypeContainer()                              

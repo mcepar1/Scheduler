@@ -27,7 +27,7 @@ class PersonPanel(wx.Panel):
     sub_sizer.Add(wx.StaticText(self, wx.NewId(), "Vrsta zaposlitve: "), 0, wx.ALIGN_LEFT | wx.ALL)
     self.types = wx_extensions.LinkedComboBox(self, wx.NewId(), style=wx.CB_READONLY)
     self.Bind(wx.EVT_COMBOBOX, self.__update_employment_type, self.types)
-    sub_sizer.Add(self.types, 0, wx.CENTER | wx.SHAPED | wx.CB_READONLY)
+    sub_sizer.Add(self.types, 0, wx.ALIGN_LEFT | wx.EXPAND)
     sizer.Add(sub_sizer, 0, wx.ALIGN_LEFT)
     
     self.permissions = PermissionsPanel(self)
@@ -129,10 +129,11 @@ class PermissionsPanel(wx.Panel):
     
     self.person = None
     
-    topSizer = wx.BoxSizer(wx.HORIZONTAL)
+    topSizer = wx.FlexGridSizer(cols=2)
     
     turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
     workplaceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Delovisca"), wx.VERTICAL)
+    specialCaseSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Posebne lastnosti"), wx.VERTICAL)
     
     #set the turnuses
     self.turnuses = []
@@ -148,11 +149,16 @@ class PermissionsPanel(wx.Panel):
         self.Bind(wx.EVT_CHECKBOX, self.__workplace_edited, self.workplaces[-1])
         workplaceSizer.Add(self.workplaces[-1], 0, wx.ALIGN_LEFT)
         
+    self.packet_night_turnuses = wx.CheckBox(self, wx.NewId(), label='Zdruzuj nocne turnuse')
+    self.Bind(wx.EVT_CHECKBOX, self.__packet_night_turnuses, self.packet_night_turnuses)
+    specialCaseSizer.Add(self.packet_night_turnuses, 0, wx.ALIGN_LEFT)
+        
     #set the initial permissions  
     self.__set_permissions()
     
     topSizer.Add(turnusSizer, 0, wx.ALIGN_LEFT)
     topSizer.Add(workplaceSizer, 0, wx.ALIGN_LEFT)
+    topSizer.Add(specialCaseSizer, 0 , wx.ALIGN_LEFT)
     
     self.SetSizerAndFit(topSizer)
     
@@ -191,6 +197,10 @@ class PermissionsPanel(wx.Panel):
     # reload permissions - vacation to turnus sync
     self.__set_permissions()
     
+  def __packet_night_turnuses(self, event):
+    """The event listener for the packet night turnuses check box"""
+    self.person.packet_night_turnuses = event.IsChecked()
+    
     
   def __set_permissions(self):
     """This method set's the initial permissions, according to the person attribute."""
@@ -201,12 +211,16 @@ class PermissionsPanel(wx.Panel):
         turnus_checker.Disable()
       for workplace_checker in self.workplaces:
         workplace_checker.Disable()
+      self.packet_night_turnuses.Disable()
     else:
       for turnus_checker in self.turnuses:
         turnus_checker.Enable()
           
       for workplace_checker in self.workplaces:
         workplace_checker.Enable()
+        
+      self.packet_night_turnuses.Enable()
+      self.packet_night_turnuses.SetValue(self.person.packet_night_turnuses)
         
       # select correct turnus permissons
       for turnus_checker in self.turnuses:

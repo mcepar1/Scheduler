@@ -8,12 +8,12 @@ class EmploymentTypePanel(wx.Panel):
   def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
     
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    sizer = wx.BoxSizer(wx.VERTICAL)
     
     self.grid = wx.grid.Grid(self, -1)
     self.fill_grid()
     
-    sizer.Add(self.grid,1,wx.CENTER | wx.EXPAND)
+    sizer.Add(self.grid,1,wx.ALIGN_LEFT)
     
     self.SetSizerAndFit(sizer)
     

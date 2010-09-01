@@ -27,7 +27,7 @@ class MainWindow(wx.Frame):
     notebook.AddPage(EmploymentTypePanel(notebook), "Vrste zaposlitve")
     notebook.AddPage(TurnusPanel(notebook), "Turnusi")
     notebook.AddPage(VacationPanel(notebook), "Dopusti")
-    notebook.AddPage(WorkplacePanel(notebook), "Delovišča")
+    notebook.AddPage(WorkplacePanel(notebook), "Delovisca")
     
     self.sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
     
@@ -49,7 +49,7 @@ class MainButtons(wx.Panel):
         
     sizer = wx.BoxSizer(wx.VERTICAL)
         
-    self.button = wx.Button(self, wx.NewId(), "Save")
+    self.button = wx.Button(self, wx.NewId(), "Shrani")
     sizer.Add(self.button,0,wx.ALIGN_RIGHT)
     self.Bind(wx.EVT_BUTTON,self.save_all,self.button)
        

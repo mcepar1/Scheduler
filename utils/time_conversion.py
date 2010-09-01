@@ -16,7 +16,7 @@ def string_to_time(string):
     date = datetime.datetime.strptime(string, TIME_FORMAT)
     return datetime.time(hour = date.hour, minute = date.minute)
   except Exception:
-    raise Exception(u"Čas mora biti oblike " + TIME_FORMAT + ". Ura je lahko 0-23, minute pa 0-59")
+    raise Exception(u"Cas mora biti oblike " + TIME_FORMAT + ". Ura je lahko 0-23, minute pa 0-59")
 
 def date_to_string (date):
   """Convert a date object into human readable date"""

@@ -24,6 +24,9 @@ class Doctor:
     self.title = title
     self.birthday = birthday
     
+    # tells if the night turnuses are scheduled in packages
+    self.packet_night_turnuses = False
+    
     # this field should never be changed directly
     # use set_employment_type instead
     if employment_type:
@@ -31,7 +34,7 @@ class Doctor:
     else:
       # very rare case
       from data import employment_type
-      self.employment_type = employment_type.load().employment_types[0]
+      self.employment_type = employment_type.load().employment_types[-1]
       
     # contains all turnuses, that the person can use  
     self.allowed_turnuses = self.employment_type.allowed_turnuses
@@ -222,7 +225,7 @@ class DoctorContainer:
   """Contains methods, that deal with multiple instences of the Doctor
   class at once (loading, saving, representing as a table, ...)"""
   
-  FILES_DIR = os.path.join("data", "persistence")
+  FILES_DIR = os.path.join("persistence", "data")
   FILE_NAME = "doctors.dat"
 
   def __init__(self, doctors_list=None):

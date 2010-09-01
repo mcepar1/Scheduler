@@ -3,7 +3,7 @@
 from data.nurse import Nurse, NurseContainer
 from utils import time_conversion
 from global_vars import nurses, workplaces
-from scheduler import nurse_scheduler
+from scheduler import person_scheduler
 import keyboard
 
 import os
@@ -20,7 +20,7 @@ def input_nurses():
   print 'Zacetno stanje medicinskih sester vzpostavljeno.'
   
 def input_persons():
-  FILES_DIR = os.path.join('data', 'input', 'start_data')
+  FILES_DIR = os.path.join('persistence', 'data', 'start_data')
   FILE_NAME = 'sestre.csv'
   
   print 'Zaceli boste z vnosom medicinskih sester.'
@@ -46,7 +46,6 @@ def input_persons():
   
 def input_last_month():
   
-  
   print 'Zacetek vnosa zadnjega tedna v zadnjem razvrscenem mesecu.'
   
   print 'Vnestie poljuben datum iz zadnjega razvrscenega meseca.'
@@ -57,18 +56,25 @@ def input_last_month():
   weeks += calendar.Calendar().monthdatescalendar(year=next_date.year, month=next_date.month)[0]
   weeks += calendar.Calendar().monthdatescalendar(year=next_date.year, month=next_date.month)[1]
   
+  print 'Ali zelite rocno vnesti zadnji razpored v aplikacijo?\nPOZOR: Ce tega ne storite se bodo vsi zadnji dnevi v zadnjem razvrscenem mesecu steli kot nerazvrsceni!'
+  manual = keyboard.get_yes_no_choice()
+  
   print 'Za potrebe razvrscanja je dovolj, ce vnesemo le zadnja dva tedna v mesecu in prva tedna v naslednjem mesecu.'
   
-  ns = nurse_scheduler.NurseScheduler(nurses.nurses, workplaces.workplaces, date, input_raw=True)
+  ps = person_scheduler.PersonScheduler(nurses.nurses, workplaces.workplaces, date, input_raw=True)
   nurse_map = {}
-  for nurse in ns.nurses:
+  for nurse in ps.people:
     nurse_map[nurse] = nurse 
   
   for nurse in nurses.nurses:
     for date in sorted(set(weeks)):
         print 'Vnasamo podatke za medicinsko sestro: ' + str(nurse.as_list())
         print 'Datum: ' + time_conversion.date_to_string(date)
-        choice = keyboard.get_three_way_choice()
+        if manual:
+          choice = keyboard.get_three_way_choice()
+        else:
+          choice = 1
+        
         if choice == 2:
           nurse_map[nurse].add_free_day(date)
           print '\tProst dan uspesno dodan.'
@@ -86,7 +92,7 @@ def input_last_month():
           
   
   sys.stdout.write('Shranjevanje ...')
-  ns.save()
+  ps.save()
   sys.stdout.write('OK\n')
   
   

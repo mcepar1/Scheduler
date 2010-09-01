@@ -18,6 +18,10 @@ def parse():
     insert_doctors = False
     print_help = False
     
+    #if no parameter was given
+    if not options:
+      return (False, False, True)
+    
     for option, _ in options:
       if option in ('-s', '--medicinske_sestre'):
         insert_nurses = True
@@ -61,3 +65,7 @@ def help():
 if __name__ == '__main__':
   insert_doctors, insert_nurses, print_help = parse()
   load_inports(insert_doctors, insert_nurses, print_help)
+  try:
+    input('\nPritisnite enter za izhod.\n')
+  except:
+    pass
