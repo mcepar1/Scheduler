@@ -64,7 +64,7 @@ class PersonPanel(wx.Panel):
     
   def __show_date_specific (self, event):
     """Event listener of the button"""
-    dialog = DateDialog(self.person, self, wx.NewId())
+    dialog = DateDialog(self.person, self, wx.NewId(), title=str(self.person))
     dialog.CenterOnScreen()
     dialog.ShowModal()
     
@@ -89,9 +89,6 @@ class DateDialog(wx.Dialog):
     
     sizer = wx.BoxSizer(wx.VERTICAL)
     
-    self.person_info = wx.StaticText(self, wx.NewId(), str(self.person))
-    sizer.Add(self.person_info, 0, wx.CENTER)
-    
     self.calendar = wx_extensions.EnhancedCalendar(self, wx.NewId(), style=wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_SURROUNDING_WEEKS | wx.calendar.CAL_SEQUENTIAL_MONTH_SELECTION)
     self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED, self.__update_date, self.calendar)
     sizer.Add(self.calendar, 1, wx.CENTER | wx.EXPAND)
@@ -101,12 +98,6 @@ class DateDialog(wx.Dialog):
     sizer.Add(self.permissions, 0, wx.ALIGN_LEFT)
     
     self.SetSizerAndFit(sizer)
-    
-    
-    if self.person:
-      self.person_info.SetLabel(str(self.person))
-    else:
-      self.person_info.SetLabel(PersonPanel.INVALID_LABEL)
       
     self.permissions.set_unit(self.__get_date())
       

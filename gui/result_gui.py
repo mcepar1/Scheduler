@@ -70,20 +70,23 @@ class Result(wx.Frame):
         self.__reconstruct()
         
   def __reconstruct(self):
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    main_sizer = wx.BoxSizer(wx.VERTICAL)
     
+    sizer = wx.BoxSizer(wx.HORIZONTAL)
     self.grid = wx.grid.Grid(self, wx.NewId())
     self.fill_grid()
-    sizer.Add(self.grid, 4, wx.ALIGN_LEFT | wx.EXPAND | wx.RIGHT, 5)
+    sizer.Add(self.grid, 4, wx.ALIGN_LEFT | wx.EXPAND)
     
     self.warnings = WarningsPanel(self.scheduler.get_warnings(), self, wx.NewId())
     sizer.Add(self.warnings, 1, wx.ALIGN_LEFT | wx.EXPAND)
     
+    main_sizer.Add(sizer, 1, wx.ALIGN_LEFT | wx.EXPAND)
+    
     self.save_button = wx.Button(self, wx.NewId(), label='Shrani')
     self.Bind(wx.EVT_BUTTON, self.__save, self.save_button)
-    sizer.Add(self.save_button, 0, wx.ALIGN_RIGHT)
+    main_sizer.Add(self.save_button, 0, wx.ALIGN_RIGHT)
     
-    self.SetSizerAndFit(sizer)
+    self.SetSizerAndFit(main_sizer)
     self.Show(True)
         
   def __save(self, event):
@@ -112,7 +115,7 @@ class WarningsPanel(wx.Panel):
     wx.Panel.__init__(self, *args, **kwargs)
     
     sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Opozorila"), wx.VERTICAL)
-    self.tree = TreeWarnings(warnings, self, wx.NewId(), style = wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT)
+    self.tree = TreeWarnings(warnings, self, wx.NewId(), style=wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT)
     sizer.Add(self.tree, 1, wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit(sizer)
@@ -199,7 +202,7 @@ class Scheduler(Thread):
   def get_workplace_result(self):
     """A wrapper around the PersonScheduler.get_workplace_matrix method."""
     if self.scheduler:
-      return self.scheduler.get_workplace_matrix ( )
+      return self.scheduler.get_workplace_matrix ()
     else:
       return {}
     

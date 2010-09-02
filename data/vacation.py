@@ -28,10 +28,10 @@ class Vacation:
   def __hash__(self):
     return hash(str(self))
     
-  def __eq__(self,other):
+  def __eq__(self, other):
     return self.__cmp__(other) == 0
     
-  def __cmp__(self,other):
+  def __cmp__(self, other):
     try:
       if self.code == other.code:
         if self.label == other.label:
@@ -43,7 +43,7 @@ class Vacation:
     
     
     except:
-      return -1
+      return - 1
     
 class VacationContainer:
   """Contains methods, that deal with multiple instences of the vacation
@@ -52,7 +52,7 @@ class VacationContainer:
   FILES_DIR = os.path.join("persistence", "data")
   FILE_NAME = "vacation.dat"
   
-  def __init__(self, vacation_list = None):
+  def __init__(self, vacation_list=None):
     """This is the constructor
     vacation_list: a list (or set) that contains instances of the vacation class"""
     
@@ -70,11 +70,11 @@ class VacationContainer:
   
   def save(self):
     """Saves the current state into an external file."""
-    pickle.dump(self.vacations, file(os.path.join(VacationContainer.FILES_DIR, VacationContainer.FILE_NAME),'wb'))
+    pickle.dump(self.vacations, file(os.path.join(VacationContainer.FILES_DIR, VacationContainer.FILE_NAME), 'wb'))
     
   def load(self):
     """Loads the contens from the external file. The current state is LOST!!!!"""
-    self.vacations = pickle.load(file(os.path.join(VacationContainer.FILES_DIR, VacationContainer.FILE_NAME),'rb'))
+    self.vacations = pickle.load(file(os.path.join(VacationContainer.FILES_DIR, VacationContainer.FILE_NAME), 'rb'))
     
   def as_table(self):
     """Returns a table-like representation of self.
@@ -101,6 +101,12 @@ def load():
   Loads and returns a container instance.
   """
   el = VacationContainer()
-  el.load()
+  try:
+    el.load()
+  except Exception as e:
+    print e
+    
   return el
+      
+  
     

@@ -48,7 +48,8 @@ class MonthChoice(wx.Choice):
     kwargs['choices'] = MonthChoice.MONTHS
     wx.Choice.__init__(self, *args, **kwargs)
     
-    self.SetSelection(datetime.date.today().month - 1)
+    next_month = datetime.date(day=28, month=datetime.date.today().month, year=datetime.date.today().year) + datetime.timedelta(days=10)
+    self.SetSelection(next_month.month - 1)
     
   def get_value(self):
     """
@@ -73,7 +74,10 @@ class WorkplaceChoice(wx.Choice):
     
   def get_value(self):
     """Returns the selected instance of the workspace class"""
-    return self.workplaces[self.GetCurrentSelection()]
+    if self.workplaces:
+      return self.workplaces[self.GetCurrentSelection()]
+    else:
+      return 'Ni delovisc'
     
 """
 This class behaves the same way as as a normal wxIntCtrl.
@@ -168,6 +172,9 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
     
     self.Bind(wx.calendar.EVT_CALENDAR_MONTH, self.__set_holidays, self)
     self.Bind(wx.calendar.EVT_CALENDAR_YEAR, self.__set_holidays, self)
+    
+    next_month = datetime.date(day=28, month=datetime.date.today().month, year=datetime.date.today().year) + datetime.timedelta(days=10)
+    self.PySetDate(next_month.replace(day=1))
     self.__set_holidays(None)
         
   def __set_holidays(self, event):
@@ -186,7 +193,7 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
     dates = []
     for day in calendar.Calendar().itermonthdays(current_date.year, current_date.month):
       if day:
-        dates.append(datetime.date(day = day, month = current_date.month, year = current_date.year))
+        dates.append(datetime.date(day=day, month=current_date.month, year=current_date.year))
               
     dates.sort()
     

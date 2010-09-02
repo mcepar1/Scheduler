@@ -197,7 +197,7 @@ class ShiftControl(wx.Panel):
     if self.workplace not in self.date_workers:
       self.date_workers[self.workplace] = {}
     
-    dialog = DateShiftControl(self.workplace, self.workers[self.workplace], self.date_workers[self.workplace], self, wx.NewId())
+    dialog = DateShiftControl(self.workplace, self.workers[self.workplace], self.date_workers[self.workplace], self, wx.NewId(), title = str(self.workplace))
     dialog.CenterOnScreen()
     dialog.ShowModal()
     
@@ -234,8 +234,6 @@ class DateShiftControl(wx.Dialog):
     self.date_workers = date_workers
     
     sizer = wx.BoxSizer(wx.VERTICAL)
-    
-    sizer.Add(wx.StaticText(self, wx.NewId(), label=str(self.workplace)), 0, wx.CENTER)
     
     self.calendar = wx_extensions.EnhancedCalendar(self, wx.NewId(), style=wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_SURROUNDING_WEEKS | wx.calendar.CAL_SEQUENTIAL_MONTH_SELECTION)
     self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED, self.__update_date, self.calendar)

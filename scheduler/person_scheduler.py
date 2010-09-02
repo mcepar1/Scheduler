@@ -20,7 +20,7 @@ PersonScheduler
 """
 class DummyLog:
   def send_message(self, *args, **kwargs):
-    pass
+    print args, kwargs
 
 class PersonScheduler:
   FILES_DIR = os.path.join("persistence", "scheduler")
@@ -140,7 +140,10 @@ class PersonScheduler:
     prev_date = datetime.date(day=1, month=date.month, year=date.year) - datetime.timedelta (days=1) 
     filename = str(prev_date.month) + '_' + str(prev_date.year) + '.dat'
     
-    old_people = pickle.load(file(os.path.join(self.file_dir, filename), 'rb'))
+    try:
+      old_people = pickle.load(file(os.path.join(self.file_dir, filename), 'rb'))
+    except Exception:
+      raise Exception('Ni podatkov o prejsnjem mesecu v aplikaciji.')
     
     for person in self.people:
       for old_person in old_people:
@@ -246,7 +249,7 @@ class PersonScheduler:
         for date in dates:
             turnus = person.get_turnus(date, workplace)
             if turnus:
-              person_schedule.append(str(turnus))
+              person_schedule.append(turnus.code[0])
             else:
               person_schedule.append('')
         map[workplace].append(person_schedule)

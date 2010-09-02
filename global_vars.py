@@ -7,7 +7,6 @@ from data import turnus, vacation, nurse, doctor, workplace, employment_type
 # init the turnuses
 turnuses = turnus.load ()
 
-
 # init the vacations
 vacations = vacation.load ()
 
@@ -84,37 +83,6 @@ def set_vacations():
     
   vacations.save()
   
-def set_nurses():
-  hardcoded_nurses = [
-                      ["Marija", "Sraj", "Sestra", "1"],
-                      ["Nadja", "Robic", "Sestra", "1"],
-                      ["Mateja", "Segulin", "Sestra", "1"],
-                      ["Nika", "Valencic", "Sestra", "1"],
-                      ["Kristina", "Kosmrlj", "Sestra", "1"],
-                      ["Neza", "Skrt", "Sestra", "1"]
-                     ]
-                    
-  nurses = nurse.NurseContainer()
-  for new_nurse in hardcoded_nurses:
-    nurses.add_all([nurse.Nurse(new_nurse[0], new_nurse[1], new_nurse[2], new_nurse[3], workplaces=workplaces.workplaces)])
-    
-  nurses.save()
-  
-def set_doctors():
-  hardcoded_doctors = [
-                       ["Matjaz", "Cepar", "Zdravnik", "1"],
-                       ["Matej", "Ravselj", "Zdravnik", "1"],
-                       ["Milos", "Cotar", "Zdravnik", "1"],
-                       ["Simon", "Krizman", "Zdravnik", "1"],
-                       ["Davor", "Petrinja", "Zdravnik", "1"],
-                       ["Urban", "Jernejcic", "Zdravnik", "1"]
-                      ]
-  
-  doctors = doctor.DoctorContainer()
-  for new_doctor in hardcoded_doctors:
-    doctors.add_all([doctor.Doctor(new_doctor[0], new_doctor[1], new_doctor[2], new_doctor[3], workplaces=workplaces.workplaces)])
-    
-  doctors.save()
   
 def set_workplaces():
   hardcoded_workplaces = [
@@ -135,15 +103,15 @@ def set_workplaces():
   
 def set_employement_types():
   hardcoded_employment_types = [
-                                  ['Medicinska sestra: Normalna zaposlitev', 40, True, turnuses.turnuses[:5]],
-                                  ['Medicinska sestra: Polovicen delovni cas', 20, False, turnuses.turnuses[-2:]],
-                                  ['Medicinska sestra: 35 ur/teden', 35, True, turnuses.turnuses[:3] + [turnuses.turnuses[4]]],
-                                  ['Zdravnik: Normalna zaposlitev', 40, True, turnuses.turnuses[:5] + turnuses.turnuses[-3:]]
+                                  ['Medicinska sestra: Normalna zaposlitev', 40, True, turnuses.turnuses[8:11]],
+                                  ['Medicinska sestra: Polovicen delovni cas', 20, False, turnuses.turnuses[6:8]],
+                                  ['Medicinska sestra: 35 ur/teden', 35, True, turnuses.turnuses[:4]],
+                                  ['Zdravnik: Normalna zaposlitev', 40, True, turnuses.turnuses[:5] + turnuses.turnuses[-4:]]
                                 ]
   
   employment_types = employment_type.EmploymentTypeContainer()                              
   for new_employment_type in hardcoded_employment_types:
-    employment_types.add_all([employment_type.EmploymentType(new_employment_type[0], new_employment_type[1], new_employment_type[2], allowed_turnuses=new_employment_type[3])])
+    employment_types.add_all([employment_type.EmploymentType(*new_employment_type)])
     
   employment_types.save()
 
@@ -152,6 +120,5 @@ def set_employement_types():
 #set_vacations()
 #set_workplaces()
 #set_employement_types()  
-#set_nurses()
-#set_doctors()
+#use the vnos_zactinh_podatkov.py script for inserting nurses or doctor
   

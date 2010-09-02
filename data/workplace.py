@@ -130,7 +130,10 @@ def load():
   Loads and returns a container instance.
   """
   el = WorkplaceContainer()
-  el.load()
+  try:
+    el.load()
+  except Exception as e:
+    print e
   return el
     
     
