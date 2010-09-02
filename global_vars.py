@@ -38,5 +38,6 @@ def save():
   doctors.save()
   workplaces.save()
   employment_types.save()
+  titles.save()
 
   

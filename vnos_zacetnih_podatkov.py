@@ -11,10 +11,10 @@ import data.input
 
 
 def parse():
-  error_ret = (False, False, False, False, False, False, True)
+  error_ret = (False, False, False, False, False, False, False, True)
   
   try:
-    options, _ = getopt.gnu_getopt(sys.argv[1:], 'szptdeva', ['medicinske_sestre', 'zdravniki', 'pomoc', 'turnusi', 'dopusti', 'delovisca', 'zaposlitve', 'vsi'])
+    options, _ = getopt.gnu_getopt(sys.argv[1:], 'szptdevna', ['medicinske_sestre', 'zdravniki', 'pomoc', 'turnusi', 'dopusti', 'delovisca', 'zaposlitve', 'nazivi', 'vsi'])
     
     insert_nurses = False
     insert_doctors = False
@@ -22,6 +22,7 @@ def parse():
     insert_vacations = False
     insert_workplaces = False
     insert_employment_types = False
+    insert_titles = False
     print_help = False
     
     #if no parameter was given
@@ -43,6 +44,8 @@ def parse():
         insert_workplaces = True
       if option in ('-v', '--zaposlitve'):
         insert_employment_types = True
+      if option in ('-n', '--nazivi'):
+        insert_titles = True
       if option in ('-a', '--vsi'):
         insert_nurses = True
         insert_doctors = True
@@ -50,15 +53,16 @@ def parse():
         insert_vacations = True
         insert_workplaces = True
         insert_employment_types = True
+        insert_titles = True
         print_help = False
-    return insert_doctors, insert_nurses, insert_turnuses, insert_vacations, insert_workplaces, insert_employment_types, print_help
+    return insert_doctors, insert_nurses, insert_turnuses, insert_vacations, insert_workplaces, insert_employment_types, insert_titles, print_help
       
   except getopt.GetoptError:
     print 'Podali ste napacne parametre.\n'
   
   return error_ret
 
-def load_inports(insert_doctors=False, insert_nurses=False, insert_turnuses=False, insert_vacations=False, insert_workplaces=False, insert_employment_types=False, print_help=True):
+def load_inports(insert_doctors=False, insert_nurses=False, insert_turnuses=False, insert_vacations=False, insert_workplaces=False, insert_employment_types=False, insert_titles=False, print_help=True):
   
   if print_help:
     help()
@@ -72,6 +76,9 @@ def load_inports(insert_doctors=False, insert_nurses=False, insert_turnuses=Fals
       
     if insert_workplaces:
       data.input.input_workplaces()
+      
+    if insert_titles:
+      data.input.input_titles()
       
     if insert_employment_types:
       data.input.input_employment_types()
@@ -101,6 +108,8 @@ def help():
       izprise obstojeca delovisca in vnese nova
     -v ali --zaposltive:
       izbrise obstojece vrste zaposlitve in vnese nove
+    -n ali --nazivi:
+      izbrise obstojece nazive in vnese nove
     -p ali --pomoc:
       izpise to sporocilo"""
     
