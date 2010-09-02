@@ -136,6 +136,12 @@ class Nurse:
     """Removes a workplace from the nurse"""
     self.workplaces.remove(workplace)
     
+    # do not forget to clean the predefined entries
+    for date in self.predefined.keys():
+      if self.predefined[date][1] == workplace:
+        self.remove_predefined(date)
+
+    
   def add_predefined(self, date, turnus, workplace):
     """
     Adds a predefined date in the schedule.

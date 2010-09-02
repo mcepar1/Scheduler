@@ -54,7 +54,7 @@ class Turnus:
           else:
             return cmp(self.start,other.start)
         else:
-          return cmp(self.name, other.name)
+          return cmp(self.label, other.label)
       else:
         return cmp(self.code, other.code)
     
