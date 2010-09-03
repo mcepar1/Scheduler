@@ -161,7 +161,7 @@ class PersonScheduler:
     #one employee, until reaching the point, where the overtime is needed
     #or enough workers are working in a turnus
     scheduled = True
-    people = set(self.people) - self.employment_type_people[employment_types.employment_types[1]]
+    people = set(self.people)
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)
@@ -175,7 +175,7 @@ class PersonScheduler:
     #repeat the process for the part-time employees
     #people = self.employment_type_people[]
     scheduled = True
-    people = self.employment_type_people[employment_types.employment_types[1]]
+    people = self.employment_type_people[employment_types.employment_types[2]]
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)
@@ -187,7 +187,7 @@ class PersonScheduler:
     self.log.send_message('Tretja faza razvrscanja ...')
     #finally add all the people, including the ones with the overtime
     scheduled = True
-    people = set(self.people) - self.employment_type_people[employment_types.employment_types[1]]
+    people = set(self.people)
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)

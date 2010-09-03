@@ -17,7 +17,7 @@ class Nurse (nurse.Nurse):
       data_nurse: an instance of the data.nurse.Nurse class
     """
       
-    nurse.Nurse.__init__(self, data_nurse.name, data_nurse.surname, data_nurse.title, data_nurse.birthday, data_nurse.employment_type)
+    nurse.Nurse.__init__(self, data_nurse.work_id, data_nurse.name, data_nurse.surname, data_nurse.title, data_nurse.birthday, data_nurse.employment_type)
     
     self.allowed_turnuses = data_nurse.allowed_turnuses
     self.forbidden_turnuses = data_nurse.forbidden_turnuses
@@ -208,11 +208,13 @@ class Nurse (nurse.Nurse):
   def is_free_day(self, date):
     """
     Checks if the date is a free day. A free day is: a vacation, a specifically
-    marked free day or a yet unscheduled date,
+    marked free day, a yet unscheduled date or the persons birthday.
       date: is the date checked
       return: true, if the day is free, false otherwise
     """
-    if date in self.scheduled_turnus or date in self.scheduled_workplace:
+    if date == self.birthday:
+      return True
+    elif date in self.scheduled_turnus or date in self.scheduled_workplace:
       if  not isinstance(self.scheduled_turnus[date], turnus.Turnus):
         return True
       else:
@@ -455,7 +457,7 @@ class Doctor (doctor.Doctor):
       data_doctor: an instance of the data.doctor.Doctor class
     """
       
-    doctor.Doctor.__init__(self, data_doctor.name, data_doctor.surname, data_doctor.title, data_doctor.birthday, data_doctor.employment_type)
+    doctor.Doctor.__init__(self, data_doctor.work_id, data_doctor.name, data_doctor.surname, data_doctor.title, data_doctor.birthday, data_doctor.employment_type)
     
     self.allowed_turnuses = data_doctor.allowed_turnuses
     self.forbidden_turnuses = data_doctor.forbidden_turnuses
@@ -646,11 +648,13 @@ class Doctor (doctor.Doctor):
   def is_free_day(self, date):
     """
     Checks if the date is a free day. A free day is: a vacation, a specifically
-    marked free day or a yet unscheduled date,
+    marked free day, a yet unscheduled date or the persons birthday.
       date: is the date checked
       return: true, if the day is free, false otherwise
     """
-    if date in self.scheduled_turnus or date in self.scheduled_workplace:
+    if date == self.birthday:
+      return True
+    elif date in self.scheduled_turnus or date in self.scheduled_workplace:
       if  not isinstance(self.scheduled_turnus[date], turnus.Turnus):
         return True
       else:

@@ -7,18 +7,21 @@ from utils import time_conversion
 
 class Doctor:
 
-  HEADERS = ["IME", "PRIIMEK", "NAZIV", "ROJSTNI DAN"]
+  HEADERS = ["MAT. STEV.", "IME", "PRIIMEK", "NAZIV", "ROJSTNI DAN"]
 
-  def __init__(self, name, surname, title, birthday, employment_type=None, workplaces=None):
+  def __init__(self, work_id, name, surname, birthday, title='', employment_type=None, workplaces=None):
     """
     This is the constructor.
+      work_id: is the unique work id
       name: is the doctor's name
       surname: is the doctor's surname
-      title: is the doctor's title
       birthday: is the doctor's birthday
+      title: is the doctor's title
       employment_type: is the employment type of the doctor
+      workplaces: a sequence of workplaces, in which the doctor works
     """
-     
+    
+    self.work_id = work_id 
     self.name = name
     self.surname = surname
     self.title = title
@@ -34,7 +37,10 @@ class Doctor:
     else:
       # very rare case
       from data import employment_type
-      self.employment_type = employment_type.load().employment_types[-1]
+      try:
+        self.employment_type = employment_type.load().employment_types[-1]
+      except:
+        raise Exception('V aplikaciji ni vrst zaposlitve.')
       
     # contains all turnuses, that the person can use  
     self.allowed_turnuses = self.employment_type.allowed_turnuses
@@ -60,7 +66,7 @@ class Doctor:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.name, self.surname, self.title, time_conversion.date_to_string(self.birthday)]
+    return [self.work_id, self.name, self.surname, self.title, time_conversion.date_to_string(self.birthday)]
   
   def add_allowed_turnus(self, turnus):
     """
@@ -210,16 +216,19 @@ class Doctor:
     
   def __cmp__(self, other):
     try:
-      if self.surname == other.surname:
-        if self.name == other.name:
-          if self.title == other.title:
-            return cmp(self.birthday, other.birthday)
+      if self.work_id == other.work_id:
+        if self.surname == other.surname:
+          if self.name == other.name:
+            if self.title == other.title:
+              return cmp (self.birthday, other.birthday)
+            else:
+              return cmp(self.title, other.title)
           else:
-            return cmp(self.title, other.title)
+            return cmp(self.name, other.name)
         else:
-          return cmp(self.name, other.name)
+          return cmp(self.surname, other.surname)
       else:
-        return cmp(self.surname, other.surname)
+        return cmp (self.work_id, other.work_id)
     
     
     except:
@@ -247,6 +256,9 @@ class DoctorContainer:
       doctors_list: a list that contains  instances of the Doctor class"""
       
     for doctor in doctors_list:
+      for existing_doctor in self.doctors:
+        if doctor.work_id == existing_doctor.work_id:
+          raise Exception('Oseba z maticno stevilko ' + str(existing_doctor.work_id) + ' ze obstaja.')
       self.doctors.append(doctor)
  
   def save(self):
