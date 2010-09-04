@@ -17,7 +17,7 @@ class Nurse (nurse.Nurse):
       data_nurse: an instance of the data.nurse.Nurse class
     """
       
-    nurse.Nurse.__init__(self, data_nurse.work_id, data_nurse.name, data_nurse.surname, data_nurse.title, data_nurse.birthday, data_nurse.employment_type)
+    nurse.Nurse.__init__(self, data_nurse.work_id, data_nurse.name, data_nurse.surname, data_nurse.birthday, data_nurse.titles, data_nurse.employment_type)
     
     self.allowed_turnuses = data_nurse.allowed_turnuses
     self.forbidden_turnuses = data_nurse.forbidden_turnuses
@@ -457,7 +457,7 @@ class Doctor (doctor.Doctor):
       data_doctor: an instance of the data.doctor.Doctor class
     """
       
-    doctor.Doctor.__init__(self, data_doctor.work_id, data_doctor.name, data_doctor.surname, data_doctor.title, data_doctor.birthday, data_doctor.employment_type)
+    doctor.Doctor.__init__(self, data_doctor.work_id, data_doctor.name, data_doctor.surname, data_doctor.birthday, data_doctor.title, data_doctor.employment_type)
     
     self.allowed_turnuses = data_doctor.allowed_turnuses
     self.forbidden_turnuses = data_doctor.forbidden_turnuses

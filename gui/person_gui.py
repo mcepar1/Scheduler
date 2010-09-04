@@ -5,7 +5,7 @@ import wx.grid
 import wx.calendar
 import wx_extensions
 
-from global_vars import turnuses, vacations, workplaces
+from global_vars import turnuses, vacations, workplaces, titles
 
 class PersonPanel(wx.Panel):
   
@@ -124,6 +124,7 @@ class PermissionsPanel(wx.Panel):
     
     turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
     workplaceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Delovisca"), wx.VERTICAL)
+    titlesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Nazivi"), wx.VERTICAL)
     specialCaseSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Posebne lastnosti"), wx.VERTICAL)
     
     #set the turnuses
@@ -140,6 +141,12 @@ class PermissionsPanel(wx.Panel):
         self.Bind(wx.EVT_CHECKBOX, self.__workplace_edited, self.workplaces[-1])
         workplaceSizer.Add(self.workplaces[-1], 0, wx.ALIGN_LEFT)
         
+    self.titles = []
+    for title in titles.titles:
+        self.titles.append(wx_extensions.LinkedCheckBox(title, self, wx.NewId(), str(title)))
+        self.Bind(wx.EVT_CHECKBOX, self.__title_edited, self.titles[-1])
+        titlesSizer.Add(self.titles[-1], 0, wx.ALIGN_LEFT)
+        
     self.packet_night_turnuses = wx.CheckBox(self, wx.NewId(), label='Zdruzuj nocne turnuse')
     self.Bind(wx.EVT_CHECKBOX, self.__packet_night_turnuses, self.packet_night_turnuses)
     specialCaseSizer.Add(self.packet_night_turnuses, 0, wx.ALIGN_LEFT)
@@ -148,6 +155,7 @@ class PermissionsPanel(wx.Panel):
     self.__set_permissions()
     
     topSizer.Add(turnusSizer, 0, wx.ALIGN_LEFT)
+    topSizer.Add(titlesSizer, 0, wx.ALIGN_LEFT)
     topSizer.Add(workplaceSizer, 0, wx.ALIGN_LEFT)
     topSizer.Add(specialCaseSizer, 0 , wx.ALIGN_LEFT)
     
@@ -179,14 +187,28 @@ class PermissionsPanel(wx.Panel):
   def __workplace_edited(self, event):
     """The event listener for the workplace checkboxes."""
     if event.IsChecked():
-      # remove the turnus from restrictions
+      # remove the workplace to the person
       self.person.add_workplace(event.GetEventObject().element)
     else:
-      # add the restriction
+      # add remove the workplace from the person
       self.person.remove_workplace(event.GetEventObject().element)
       
     # reload permissions - vacation to turnus sync
     self.__set_permissions()
+    
+  def __title_edited(self, event):
+    """The event listener for the title checkboxes."""
+    if event.IsChecked():
+      # add the title to the person
+      self.person.add_title(event.GetEventObject().element)
+    else:
+      # remove the title from the person
+      self.person.remove_title(event.GetEventObject().element)
+    
+    # reload parmissions  
+    self.__set_permissions()
+      
+    
     
   def __packet_night_turnuses(self, event):
     """The event listener for the packet night turnuses check box"""
@@ -202,6 +224,8 @@ class PermissionsPanel(wx.Panel):
         turnus_checker.Disable()
       for workplace_checker in self.workplaces:
         workplace_checker.Disable()
+      for title_checker in self.titles:
+        title_checker.Disable()
       self.packet_night_turnuses.Disable()
     else:
       for turnus_checker in self.turnuses:
@@ -209,6 +233,9 @@ class PermissionsPanel(wx.Panel):
           
       for workplace_checker in self.workplaces:
         workplace_checker.Enable()
+        
+      for title_checker in self.titles:
+        title_checker.Enable()
         
       self.packet_night_turnuses.Enable()
       self.packet_night_turnuses.SetValue(self.person.packet_night_turnuses)
@@ -227,6 +254,13 @@ class PermissionsPanel(wx.Panel):
           workplace_checker.SetValue(True)
         else:
           workplace_checker.SetValue(False)
+          
+      # set the correct titles
+      for title_checker in self.titles:
+        if title_checker.element in self.person.titles:
+          title_checker.SetValue(True)
+        else:
+          title_checker.SetValue(False)
           
     
       

@@ -7,16 +7,16 @@ from utils import time_conversion
 
 class Doctor:
 
-  HEADERS = ["MAT. STEV.", "IME", "PRIIMEK", "NAZIV", "ROJSTNI DAN"]
+  HEADERS = ["MAT. STEV.", "IME", "PRIIMEK", "ROJSTNI DAN"]
 
-  def __init__(self, work_id, name, surname, birthday, title='', employment_type=None, workplaces=None):
+  def __init__(self, work_id, name, surname, birthday, titles=set(), employment_type=None, workplaces=None):
     """
     This is the constructor.
       work_id: is the unique work id
       name: is the doctor's name
       surname: is the doctor's surname
       birthday: is the doctor's birthday
-      title: is the doctor's title
+      title: is a set of all the doctor's titles
       employment_type: is the employment type of the doctor
       workplaces: a sequence of workplaces, in which the doctor works
     """
@@ -24,7 +24,7 @@ class Doctor:
     self.work_id = work_id 
     self.name = name
     self.surname = surname
-    self.title = title
+    self.titles = titles
     self.birthday = birthday
     
     # tells if the night turnuses are scheduled in packages
@@ -66,7 +66,7 @@ class Doctor:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.work_id, self.name, self.surname, self.title, time_conversion.date_to_string(self.birthday)]
+    return [self.work_id, self.name, self.surname, time_conversion.date_to_string(self.birthday)]
   
   def add_allowed_turnus(self, turnus):
     """
@@ -144,6 +144,15 @@ class Doctor:
     for date in self.predefined.keys():
       if self.predefined[date][1] == workplace:
         self.remove_predefined(date)
+        
+  def add_title(self, title):
+    """Adds a title to the doctor."""
+    self.titles.add(title)
+    
+  def remove_title(self, title):
+    """Removes a title from the doctor."""
+    # removing an un-added title should not be possible 
+    self.titles.remove(title)
     
   def add_predefined(self, date, turnus, workplace):
     """

@@ -7,16 +7,16 @@ from utils import time_conversion
 
 class Nurse:
 
-  HEADERS = ["MAT. STEV.", "IME", "PRIIMEK", "NAZIV", "ROJSTNI DAN"]
+  HEADERS = ["MAT. STEV.", "IME", "PRIIMEK", "ROJSTNI DAN"]
 
-  def __init__(self, work_id, name, surname, birthday, title='', employment_type=None, workplaces=None):
+  def __init__(self, work_id, name, surname, birthday, titles=None, employment_type=None, workplaces=None):
     """
     This is the constructor.
       work_id: is the unique work id
       name: is the nurse's name
       surname: is the nurse's surname
       birthday: is the nurse's birthday
-      title: is the nurse's title
+      title: is a set of all the nurses titles
       employment_type: is the employment type of the nurse
       workplaces: a sequence of workplaces, in which the nurse works
     """
@@ -24,8 +24,12 @@ class Nurse:
     self.work_id = work_id 
     self.name = name
     self.surname = surname
-    self.title = title
     self.birthday = birthday
+    
+    if titles:
+      self.titles = titles
+    else:
+      self.titles = set()
     
     # tells if the night turnuses are scheduled in packages
     self.packet_night_turnuses = False
@@ -71,7 +75,7 @@ class Nurse:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.work_id, self.name, self.surname, self.title, time_conversion.date_to_string(self.birthday)]
+    return [self.work_id, self.name, self.surname, time_conversion.date_to_string(self.birthday)]
   
   def add_allowed_turnus(self, turnus):
     """
@@ -151,6 +155,14 @@ class Nurse:
       if self.predefined[date][1] == workplace:
         self.remove_predefined(date)
 
+  def add_title(self, title):
+    """Adds a title to the doctor."""
+    self.titles.add(title)
+    
+  def remove_title(self, title):
+    """Removes a title from the doctor."""
+    # removing an un-added title should not be possible 
+    self.titles.remove(title)
     
   def add_predefined(self, date, turnus, workplace):
     """
