@@ -36,41 +36,8 @@ class SchedulerPanel(wx.Panel):
     self.shift_control.refresh()
     
   def schedule(self, event):
-    """
-    persons = self.schedule_control.get_persons()
+    """Event listener for the start button."""
     
-    #force the persons to refresh employment_types
-    #TODO: this should be done automaticly
-    for employment_type in employment_types.employment_types:
-      for person in persons:
-        if person.employment_type == employment_type:
-          # skips the built in method on purpose
-          person.employment_type = employment_type
-          
-    #force the persons to refresh workplaces
-    #TODO: this should be done automatically
-    for workplace in workplaces.workplaces:
-      for person in persons:
-        if workplace in person.workplaces:
-          person.workplaces.remove(workplace)
-          person.workplaces.add(workplace)
-    
-    static_workers, date_workers = self.shift_control.get_workers()
-    ps = person_scheduler.PersonScheduler(persons, static_workers.keys() + date_workers.keys(), self.__get_date())
-    for workplace in ps.workplaces:
-      if workplace in static_workers:
-        for turnus in static_workers[workplace]:
-          workplace.set_worker(turnus, static_workers[workplace][turnus])
-      if workplace in date_workers:
-        for date in date_workers[workplace]:
-          for turnus in date_workers[workplace][date]:
-            workplace.set_worker(turnus, date_workers[workplace][date][turnus], date)
-    
-    
-    ps.schedule()
-    #ps.start_thread()
-    self.__show_result(ps)
-    """
     persons = self.schedule_control.get_persons()
     static_workers, date_workers = self.shift_control.get_workers()
     date = self.__get_date()
@@ -78,12 +45,6 @@ class SchedulerPanel(wx.Panel):
     window = result_gui.Result(persons, static_workers, date_workers, date, None, wx.NewId(), title='Razpored')
     window.start()
 
-  """
-  def __show_result(self, scheduler):
-    dialog = result_gui.Result(scheduler, self, wx.NewId())
-    dialog.CenterOnScreen()
-    dialog.Show(True)
-  """
     
   def __get_date(self):
     """Returns a datetime.date object."""
@@ -215,13 +176,13 @@ class ShiftControl(wx.Panel):
     static_workers = {}
     
     for workplace in self.workers:
-      for turnus in self.workers[workplace]:
-        if self.workers[workplace][turnus] != 0:
-          for turnus_num in self.turnuses:
-            if turnus_num.IsEnabled and turnus_num.element == turnus:
+      for turnus_type in self.workers[workplace]:
+        if self.workers[workplace][turnus_type] != 0:
+          for turnus_type_num in self.turnus_types:
+            if turnus_type_num.IsEnabled and turnus_type_num.element == turnus_type:
               if workplace not in static_workers:
                 static_workers[workplace] = {}
-              static_workers[workplace][turnus] = self.workers[workplace][turnus]
+              static_workers[workplace][turnus_type] = self.workers[workplace][turnus_type]
               
     
     return (static_workers, self.date_workers)

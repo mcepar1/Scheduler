@@ -270,15 +270,15 @@ class Scheduler(Thread):
           person.workplaces.remove(workplace)
           person.workplaces.add(workplace)
           
-    ps = person_scheduler.PersonScheduler(persons, static_workers.keys() + date_workers.keys(), date, log=self)
+    ps = person_scheduler.PersonScheduler(persons, set(static_workers.keys() + date_workers.keys()), date, log=self)
     for workplace in ps.workplaces:
       if workplace in static_workers:
-        for turnus in static_workers[workplace]:
-          workplace.set_worker(turnus, static_workers[workplace][turnus])
+        for turnus_type in static_workers[workplace]:
+          workplace.set_worker(turnus_type, static_workers[workplace][turnus_type])
       if workplace in date_workers:
         for date in date_workers[workplace]:
-          for turnus in date_workers[workplace][date]:
-            workplace.set_worker(turnus, date_workers[workplace][date][turnus], date)
+          for turnus_type in date_workers[workplace][date]:
+            workplace.set_worker(turnus_type, date_workers[workplace][date][turnus_type], date)
             
     return ps
   

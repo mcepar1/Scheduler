@@ -82,10 +82,11 @@ class PersonScheduler:
       self.__get_previous_month(date)
       
     
-    self.workplaces = []
+    self.workplaces = set ()
     for workplace_ in workplaces:
-      self.workplaces.append(workplace_module.Workplace(workplace_))
-    
+      self.workplaces.add(workplace_module.Workplace(workplace_))
+    # transform to list again, so it can be shuffled
+    self.workplaces = list(self.workplaces)
     
     self.date = date
     
@@ -276,20 +277,20 @@ class PersonScheduler:
     for workplace in sorted(self.workplaces):
       for date in sorted(dates):
         workers = workplace.get_workers(date)
-        turnuses = workers.keys()
-        for turnus in sorted(turnuses):
-          needed = workers[turnus]
-          scheduled = self.__get_already_scheduled(workplace, turnus, date)
+        turnus_types = workers.keys()
+        for turnus_type in sorted(turnus_types):
+          needed = workers[turnus_type]
+          scheduled = self.__get_alerady_scheduled_by_type(workplace, [turnus_type], date)[turnus_type]
           if scheduled < needed or scheduled > needed:
             if workplace not in temp:
               temp[workplace] = {}
-            if turnus not in temp[workplace]:
-              temp[workplace][turnus] = {}
+            if turnus_type not in temp[workplace]:
+              temp[workplace][turnus_type] = {}
             
             if scheduled < needed:
-              temp[workplace][turnus][date] = 'Premalo:' + str(needed - scheduled)
+              temp[workplace][turnus_type][date] = 'Premalo:' + str(needed - scheduled)
             elif scheduled > needed:
-              temp[workplace][turnus][date] = 'Prevec:' + str(scheduled - needed)
+              temp[workplace][turnus_type][date] = 'Prevec:' + str(scheduled - needed)
     
     return temp
         
@@ -330,14 +331,18 @@ class PersonScheduler:
     """
     
     workers = workplace.get_workers(date)
-    turnuses = workers.keys()
+    
+    turnuses = []
+    for type in workers.keys():
+      turnuses += list(all_turnuses.get_by_type(type, workplace))
+    
     random.shuffle(turnuses)
 
     
     scheduled = False
     for turnus in turnuses:
       #if there are enough workers, schedule none
-      if self.__get_already_scheduled(workplace, turnus, date) < workers[turnus]:
+      if self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, turnus.types, date), workers):
         heuritsitc_people = self.__get_heuristic_sorted_people(people & self.workplace_people[workplace] & self.turnus_people[turnus] , date)
         while (len(heuritsitc_people) > 0):
           person = heuritsitc_people.pop(0)
@@ -577,6 +582,44 @@ class PersonScheduler:
     
     return weights.MONTH_HOURS * month_hours + weights.WEEK_HOURS * week_hours + weights.TURNUS_DISPERSION * turnus_dispersion + weights.WORKPLACE_DISPERSION * workplace_dispersion
   
+  def __can_continue_scheduling(self, scheduled_types, workers):
+    """
+    Checks, if the workplace has enough people working at it, to be considered
+    full.
+      scheduled_types: a dictionary, that maps turnus types to the number of 
+                       currently scheduled turnuses of that type
+      workers: a dictionary, that maps turnus types to the number of required
+               scheduled turnuses of that type
+      return: true, if there aren't enough people working, false otherwise
+    """
+    
+    for type in scheduled_types:
+      if scheduled_types[type] < workers[type]:
+        return True
+    
+    return False
+
+  
+  def __get_alerady_scheduled_by_type(self, workplace, types, date):
+    """
+    Return the number of currently scheduled people for the specific types
+    date and workplace
+      workplace: is the workplace
+      types: is the sequence of types
+      date: is the date
+      return: a dictionary, that maps types to thr number of scheduled turnuses
+              for each type
+    """
+    
+    map = {}
+    
+    for type in types:
+      turnuses = all_turnuses.get_by_type(type, workplace)
+      map[type] = 0
+      for turnus in turnuses:
+        map[type] += self.__get_already_scheduled(workplace, turnus, date)
+      
+    return map
   
   def __get_already_scheduled(self, workplace, turnus, date):
     """
