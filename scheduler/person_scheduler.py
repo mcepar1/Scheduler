@@ -156,12 +156,17 @@ class PersonScheduler:
     dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
     
     
+    no_ovetime_people = set()
+    for person in self.people:
+      if not person.employment_type.has_overtime:
+        no_ovetime_people.add(person)
+    
     self.log.send_message('Prva faza razvrscanja ...')
     #for each date and workplace go through each allowed turnus and add 
     #one employee, until reaching the point, where the overtime is needed
     #or enough workers are working in a turnus
     scheduled = True
-    people = set(self.people)
+    overtime_people = set(self.people) - no_ovetime_people
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)
@@ -169,20 +174,18 @@ class PersonScheduler:
       scheduled = False
       for workplace in self.workplaces:
         for date in dates:
-          scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=False)
+          scheduled = scheduled | self.__schedule_workplace(workplace, date, overtime_people, overtime=False)
           
     self.log.send_message('Druga faza razvrscanja ...')
     #repeat the process for the part-time employees
-    #people = self.employment_type_people[]
     scheduled = True
-    people = self.employment_type_people[employment_types.employment_types[2]]
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)
       scheduled = False
       for workplace in self.workplaces:
         for date in dates:
-          scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=False)
+          scheduled = scheduled | self.__schedule_workplace(workplace, date, no_ovetime_people, overtime=False)
           
     self.log.send_message('Tretja faza razvrscanja ...')
     #finally add all the people, including the ones with the overtime
