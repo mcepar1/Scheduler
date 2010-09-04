@@ -10,6 +10,7 @@ from doctor_gui import DoctorPanel
 from workplace_gui import WorkplacePanel
 from employment_type_gui import EmploymentTypePanel
 from title_gui import TitlePanel
+from turnus_type_gui import TurnusTypePanel
 
 class MainWindow(wx.Frame):
 
@@ -30,6 +31,7 @@ class MainWindow(wx.Frame):
     notebook.AddPage(VacationPanel(notebook), "Dopusti")
     notebook.AddPage(WorkplacePanel(notebook), "Delovisca")
     notebook.AddPage(TitlePanel(notebook), "Nazivi")
+    notebook.AddPage(TurnusTypePanel(notebook), "Vrste turnusov")
     
     self.sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
     

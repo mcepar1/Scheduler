@@ -4,7 +4,7 @@ import wx
 import wx_extensions
 import result_gui
 
-from global_vars import employment_types, workplaces, turnuses, nurses, doctors
+from global_vars import employment_types, workplaces, turnuses, nurses, doctors, turnus_types
 from data import employment_type
 from scheduler import person_scheduler
 
@@ -32,7 +32,7 @@ class SchedulerPanel(wx.Panel):
     self.Bind(wx.EVT_SET_FOCUS, self.refresh, self)
     self.SetSizerAndFit(main_sizer)
     
-  def refresh (self, event = None):
+  def refresh (self, event=None):
     self.shift_control.refresh()
     
   def schedule(self, event):
@@ -75,7 +75,7 @@ class SchedulerPanel(wx.Panel):
     static_workers, date_workers = self.shift_control.get_workers()
     date = self.__get_date()
     
-    window = result_gui.Result(persons, static_workers, date_workers, date, None, wx.NewId(), title = 'Razpored')
+    window = result_gui.Result(persons, static_workers, date_workers, date, None, wx.NewId(), title='Razpored')
     window.start()
 
   """
@@ -151,14 +151,14 @@ class ShiftControl(wx.Panel):
     
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     
-    self.turnuses = []
-    for turnus in turnuses.turnuses:
-      sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus) + ":"), 0, wx.ALIGN_LEFT)
-      self.turnuses.append(wx_extensions.LinkedSpinCtr(turnus, self, wx.NewId(), style=wx.SP_VERTICAL))
-      self.turnuses[-1].SetRange(0, 200)
-      self.turnuses[-1].SetValue(0)
-      self.Bind(wx.EVT_SPINCTRL, self.__number_changed, self.turnuses[-1])
-      sub_sizer.Add(self.turnuses[-1], 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
+    self.turnus_types = []
+    for turnus_type in turnus_types.turnus_types:
+      sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus_type) + ":"), 0, wx.ALIGN_LEFT)
+      self.turnus_types.append(wx_extensions.LinkedSpinCtr(turnus_type, self, wx.NewId(), style=wx.SP_VERTICAL))
+      self.turnus_types[-1].SetRange(0, 200)
+      self.turnus_types[-1].SetValue(0)
+      self.Bind(wx.EVT_SPINCTRL, self.__number_changed, self.turnus_types[-1])
+      sub_sizer.Add(self.turnus_types[-1], 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
 
     
     
@@ -178,16 +178,17 @@ class ShiftControl(wx.Panel):
   def __set_workplace(self, event):
     self.workplace = self.workplace_selector.get_value()
     
-    for turnus_spin in self.turnuses:
-      if turnus_spin.element in self.workplace.allowed_turnuses:
-        turnus_spin.Enable()
+    for turnus_type_spin in self.turnus_types:
+      # if the workplace has at least one turnus of the specified type
+      if len (turnuses.get_by_type(turnus_type_spin.element) & self.workplace.allowed_turnuses):
+        turnus_type_spin.Enable()
         #load spins with correct numbers
         try:
-          turnus_spin.SetValue(self.workers[self.workplace][turnus_spin.element])
+          turnus_type_spin.SetValue(self.workers[self.workplace][turnus_type_spin.element])
         except:
-          turnus_spin.SetValue(0)
+          turnus_type_spin.SetValue(0)
       else:
-        turnus_spin.Disable()
+        turnus_type_spin.Disable()
     
         
   def __number_changed(self, event):
@@ -197,7 +198,7 @@ class ShiftControl(wx.Panel):
     if self.workplace not in self.date_workers:
       self.date_workers[self.workplace] = {}
     
-    dialog = DateShiftControl(self.workplace, self.workers[self.workplace], self.date_workers[self.workplace], self, wx.NewId(), title = str(self.workplace))
+    dialog = DateShiftControl(self.workplace, self.workers[self.workplace], self.date_workers[self.workplace], self, wx.NewId(), title=str(self.workplace))
     dialog.CenterOnScreen()
     dialog.ShowModal()
     
@@ -242,15 +243,15 @@ class DateShiftControl(wx.Dialog):
     
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     
-    self.turnuses = []
-    for turnus in turnuses.turnuses:
-      sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus) + ":"), 0, wx.ALIGN_LEFT)
-      self.turnuses.append(wx_extensions.LinkedSpinCtr(turnus, self, wx.NewId(), style=wx.SP_VERTICAL))
-      self.turnuses[-1].SetRange(0, 200)
-      self.turnuses[-1].SetValue(0)
-      self.turnuses[-1].Disable()
-      self.Bind(wx.EVT_SPINCTRL, self.__number_changed, self.turnuses[-1])
-      sub_sizer.Add(self.turnuses[-1], 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
+    self.turnus_types = []
+    for turnus_type in turnus_types.turnus_types:
+      sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus_type) + ":"), 0, wx.ALIGN_LEFT)
+      self.turnus_types.append(wx_extensions.LinkedSpinCtr(turnus_type, self, wx.NewId(), style=wx.SP_VERTICAL))
+      self.turnus_types[-1].SetRange(0, 200)
+      self.turnus_types[-1].SetValue(0)
+      self.turnus_types[-1].Disable()
+      self.Bind(wx.EVT_SPINCTRL, self.__number_changed, self.turnus_types[-1])
+      sub_sizer.Add(self.turnus_types[-1], 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
     
     
     sizer.Add(sub_sizer, 0, wx.ALIGN_LEFT)
@@ -266,34 +267,34 @@ class DateShiftControl(wx.Dialog):
     
   def __number_changed(self, event):
     number = event.GetEventObject().GetValue()
-    turnus = event.GetEventObject().element
+    turnus_type = event.GetEventObject().element
     
     if self.calendar.PyGetDate() not in self.date_workers:
       self.date_workers[self.calendar.PyGetDate()] = {}
-    self.date_workers[self.calendar.PyGetDate()][turnus] = number
+    self.date_workers[self.calendar.PyGetDate()][turnus_type] = number
     
   def __update_date(self, event):
     date = self.calendar.PyGetDate()
     
-    for turnus_spin in self.turnuses:
-      if turnus_spin.element in self.workplace.allowed_turnuses:
-        turnus_spin.Enable()
+    for turnus_type_spin in self.turnus_types:
+      if len (turnuses.get_by_type(turnus_type_spin.element, self.workplace)):
+        turnus_type_spin.Enable()
       else:
-        turnus_spin.Disable()
+        turnus_type_spin.Disable()
     
     if date not in self.date_workers:
       self.date_workers[date] = {}
-      for turnus_spin in self.turnuses:
-        if turnus_spin.IsEnabled() and turnus_spin.element in self.workers:
-          self.date_workers[date][turnus_spin.element] = self.workers[turnus_spin.element]
+      for turnus_type_spin in self.turnus_types:
+        if turnus_type_spin.IsEnabled() and turnus_type_spin.element in self.workers:
+          self.date_workers[date][turnus_type_spin.element] = self.workers[turnus_type_spin.element]
         else:
-          self.date_workers[date][turnus_spin.element] = 0
+          self.date_workers[date][turnus_type_spin.element] = 0
     
     turnus_workers = self.date_workers[date]
-    for turnus in turnus_workers:
-      for turnus_spin in self.turnuses:
-        if turnus_spin.IsEnabled() and turnus == turnus_spin.element:
-          turnus_spin.SetValue(self.date_workers[date][turnus])
+    for turnus_type in turnus_workers:
+      for turnus_type_spin in self.turnus_types:
+        if turnus_type_spin.IsEnabled() and turnus_type == turnus_type_spin.element:
+          turnus_type_spin.SetValue(self.date_workers[date][turnus_type])
       
       
     
