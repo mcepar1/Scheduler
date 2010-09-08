@@ -228,10 +228,7 @@ class Doctor:
       if self.work_id == other.work_id:
         if self.surname == other.surname:
           if self.name == other.name:
-            if self.title == other.title:
-              return cmp (self.birthday, other.birthday)
-            else:
-              return cmp(self.title, other.title)
+            return cmp (self.birthday, other.birthday)
           else:
             return cmp(self.name, other.name)
         else:

@@ -78,14 +78,13 @@ class Nurse (nurse.Nurse):
       turnus: is the turnus
       workplace: is the workplace in which the nurse will work  
     """
-      
-    if self.scheduled_turnus[date] or self.scheduled_workplace[date]:
-      raise Exception("Trying to override an already scheduled date")
-      
-      
+    
     #if new month
     if date not in self.scheduled_turnus or date not in self.scheduled_workplace:
       self.add_month (date)
+    
+    if self.scheduled_turnus[date] or self.scheduled_workplace[date]:
+      raise Exception("Trying to override an already scheduled date")
         
     
     self.scheduled_turnus[date] = turnus
@@ -171,12 +170,12 @@ class Nurse (nurse.Nurse):
       vacation: is the type of the vacation
     """
     
-    if self.scheduled_turnus[date]:
-      raise Exception ("Trying to override an already scheduled date")
-    
     #if new month
     if date not in self.scheduled_turnus:
       self.add_month(date)
+    
+    if self.scheduled_turnus[date]:
+      raise Exception ("Trying to override an already scheduled date")
 
     self.scheduled_turnus[date] = vacation
     self.scheduled_workplace[date] = ''
@@ -457,7 +456,7 @@ class Doctor (doctor.Doctor):
       data_doctor: an instance of the data.doctor.Doctor class
     """
       
-    doctor.Doctor.__init__(self, data_doctor.work_id, data_doctor.name, data_doctor.surname, data_doctor.birthday, data_doctor.title, data_doctor.employment_type)
+    doctor.Doctor.__init__(self, data_doctor.work_id, data_doctor.name, data_doctor.surname, data_doctor.birthday, data_doctor.titles, data_doctor.employment_type)
     
     self.allowed_turnuses = data_doctor.allowed_turnuses
     self.forbidden_turnuses = data_doctor.forbidden_turnuses

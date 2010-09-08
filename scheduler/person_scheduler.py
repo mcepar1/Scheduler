@@ -69,7 +69,7 @@ class PersonScheduler:
     
     self.people = []
     for person in people:
-      if person.allowed_turnuses:
+      if person.allowed_turnuses or input_raw:
         if schedule_doctors:
           self.people.append(person_module.Doctor(person))
         if schedule_nurses:
