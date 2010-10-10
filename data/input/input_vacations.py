@@ -5,6 +5,7 @@ from data.vacation import Vacation, VacationContainer
 import os
 import sys
 import csv
+from utils import time_conversion
   
   
 def input_vacations():
@@ -22,6 +23,7 @@ def input_vacations():
   vacations = []
   for row in reader:
     sys.stdout.write('\tUstvarjanje dopusta: ' + str(row) + '...')
+    row[2]=time_conversion.time_to_timedelta(time_conversion.string_to_time(row[2]))
     vacations.append(Vacation(*row))
     sys.stdout.write('OK\n')
   

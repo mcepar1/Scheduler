@@ -1,26 +1,32 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import cPickle as pickle
 import os
 
 class Vacation:
   
-  HEADERS = ["OZNAKA", "VRSTA DOPUSTA"]
+  HEADERS = ["OZNAKA", "VRSTA DOPUSTA", "OBRACUNAN CAS"]
   
-  def __init__(self, code, label):
+  def __init__(self, code, label, duration):
     """
     This is the constructor.
       code: is the code of the vacation (X, L, T, ...)
       label: is the label of the vacation (državni praznik, ...)
+      duration: is the number of hours, as if the person was working
     """
       
     self.code = code
     self.label = label
+    self.start = datetime.time(hour = 0, minute = 0)
+    self.end = datetime.time(hour = 23, minute = 59)
+    self.blockade = datetime.timedelta()
+    self.duration = duration
       
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.code, self.label]
+    return [self.code, self.label, str(self.duration)]
     
   def __str__(self):
     return self.code + " - " + self.label

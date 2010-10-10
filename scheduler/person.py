@@ -1,6 +1,8 @@
 from data import nurse, doctor, turnus, vacation
 
-from utils.time_conversion import timedelta_to_hours 
+from utils.time_conversion import timedelta_to_hours
+from utils.holiday import is_holiday
+from scheduler import constants
 
 import calendar
 import datetime
@@ -196,7 +198,7 @@ class Nurse (nurse.Nurse):
     """
     Checks if the date is a vacation.
       date: is the date being checked
-      return: true, if the date is a vacation, flase otherwise
+      return: true, if the date is a vacation, false otherwise
     """
     
     if date in self.scheduled_turnus:
@@ -290,14 +292,17 @@ class Nurse (nurse.Nurse):
     
     current_hours = datetime.timedelta()
     week = self.__get_week(date)
-    
     for date_ in week:
       if self.scheduled_turnus[date_]:
-        #TODO: VACATIONS
         if isinstance(self.scheduled_turnus[date_], turnus.Turnus):
           current_hours += self.scheduled_turnus[date_].duration
         elif isinstance(self.scheduled_turnus[date_], vacation.Vacation):
-          current_hours += datetime.timedelta(hours=7)
+          current_hours += self.scheduled_turnus[date_].duration
+        elif is_holiday(date_) and date_.weekday() != 6:
+          current_hours += constants.HOLIDAY_HOURS
+      elif is_holiday(date_) and date_.weekday() != 6:
+          current_hours += constants.HOLIDAY_HOURS
+          
     
     current_hours = timedelta_to_hours(current_hours)
     
@@ -316,11 +321,14 @@ class Nurse (nurse.Nurse):
     for day in self.__get_days(date):
       date_ = datetime.date(day=day, month=date.month, year=date.year)
       if self.scheduled_turnus[date_]:
-        #TODO: VACATIONS
         if isinstance(self.scheduled_turnus[date_], turnus.Turnus):
           current_hours += self.scheduled_turnus[date_].duration
         elif isinstance(self.scheduled_turnus[date_], vacation.Vacation):
-          current_hours += datetime.timedelta(hours=7)
+          current_hours += self.scheduled_turnus[date_].duration
+        elif is_holiday(date_) and date_.weekday() != 6:
+          current_hours += constants.HOLIDAY_HOURS
+      elif is_holiday(date_) and date_.weekday() != 6:
+          current_hours += constants.HOLIDAY_HOURS
         
         
     current_hours = timedelta_to_hours(current_hours)
@@ -733,11 +741,10 @@ class Doctor (doctor.Doctor):
     
     for date_ in week:
       if self.scheduled_turnus[date_]:
-        #TODO: VACATIONS
         if isinstance(self.scheduled_turnus[date_], turnus.Turnus):
           current_hours += self.scheduled_turnus[date_].duration
-        elif isinstance(self.scheduled_turnus[date_], vacation.Vacation):
-          current_hours += datetime.timedelta(hours=7)
+        if isinstance(self.scheduled_turnus[date_], vacation.Vacation):
+          current_hours += self.scheduled_turnus[date_].duration
     
     current_hours = timedelta_to_hours(current_hours)
     
@@ -756,11 +763,10 @@ class Doctor (doctor.Doctor):
     for day in self.__get_days(date):
       date_ = datetime.date(day=day, month=date.month, year=date.year)
       if self.scheduled_turnus[date_]:
-        #TODO: VACATIONS
         if isinstance(self.scheduled_turnus[date_], turnus.Turnus):
           current_hours += self.scheduled_turnus[date_].duration
-        elif isinstance(self.scheduled_turnus[date_], vacation.Vacation):
-          current_hours += datetime.timedelta(hours=7)
+        if isinstance(self.scheduled_turnus[date_], vacation.Vacation):
+          current_hours += self.scheduled_turnus[date_].duration
         
         
     current_hours = timedelta_to_hours(current_hours)

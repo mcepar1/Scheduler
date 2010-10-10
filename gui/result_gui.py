@@ -236,11 +236,11 @@ class Scheduler(Thread):
     """
     
     self.running = True
-    try:
-      self.scheduler = self.__initialize_scheduler(persons, static_workers, date_workers, date)
-      self.scheduler.schedule()
-    except Exception as e:
-      self.send_message(message=str(e), running=False, error=True)
+    #try:
+    self.scheduler = self.__initialize_scheduler(persons, static_workers, date_workers, date)
+    self.scheduler.schedule()
+    #except Exception as e:
+    #  self.send_message(message=str(e), running=False, error=True)
           
     self.send_message('Razvrscevanje koncano.', running=False, error=False)
     self.running = False

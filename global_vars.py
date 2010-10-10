@@ -8,7 +8,7 @@ To set their initial values use the vnos_zacetnih_podatkov.py script.
 from data import turnus, vacation, nurse, doctor, workplace, employment_type, title, turnus_type
 
 # init the turnus types
-turnus_types = turnus_type.load()
+turnus_types = turnus_type.load ()
 
 # init the turnuses
 turnuses = turnus.load ()
