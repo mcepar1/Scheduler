@@ -17,7 +17,7 @@ HOLIDAYS = {
               7: [],
               8: [15], # Marijino vnebovzetje
               9: [],
-              10: [5,31], # dan reformacije
+              10: [31], # dan reformacije
               11: [1], # dan spomina na mrtve
               12: [25, 26] # božič, dan samostojnosti
             }
