@@ -7,6 +7,7 @@ from scheduler import weights
 from scheduler import prescheduler
 from global_vars import employment_types, turnuses as all_turnuses, workplaces as all_workplaces
 from utils import time_conversion, holiday
+from data import turnus_type
 
 import random
 import datetime
@@ -168,6 +169,9 @@ class PersonScheduler:
     #or enough workers are working in a turnus
     scheduled = True
     overtime_people = set(self.people) - no_ovetime_people
+    
+    self.__preschedule_workfree_days(overtime_people, overtime=False)
+    
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)
@@ -180,6 +184,9 @@ class PersonScheduler:
     self.log.send_message('Druga faza razvrscanja ...')
     #repeat the process for the part-time employees
     scheduled = True
+    
+    self.__preschedule_workfree_days(no_ovetime_people, overtime=False)
+    
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)
@@ -192,6 +199,9 @@ class PersonScheduler:
     #finally add all the people, including the ones with the overtime
     scheduled = True
     people = set(self.people)
+    
+    self.__preschedule_workfree_days(people, overtime=True)
+    
     while (scheduled):
       #start with workplaces
       random.shuffle(self.workplaces)
@@ -393,7 +403,77 @@ class PersonScheduler:
       return True
     else:
       return False
+
+  def __preschedule_workfree_days(self, people, overtime=False):
+    """
+    Schedules the special holidays rule workplaces outside the normal scheduling
+    procedure.
+      people: a sequence of people, that will be scheduled
+      overtime: allows, people to go into overtime (if true)
+    """
+    #This is not included in the prescheduler, because it is not prescheduled.
+    #It is scheduled automatically, only outside the normal scheduling scope.
     
+    dates = []
+    for day in self.__get_days():
+      date = datetime.date(day=day, month=self.date.month, year=self.date.year)
+      
+      if holiday.is_workfree(date):
+        dates.append(date)
+    
+    workplaces = []
+    for workplace in self.workplaces:
+      if workplace.holiday_rule:
+        workplaces.append(workplace)
+        
+    pre_holiday_turnuses = []
+    for turnus in all_turnuses.turnuses:
+      if turnus_type.TurnusType('Popoldanski') in turnus.types:
+        pre_holiday_turnuses.append(turnus)
+        
+    holiday_turnuses = []
+    for turnus in all_turnuses.turnuses:
+      if turnus.holiday:
+        holiday_turnuses.append(turnus)
+    
+    random.shuffle(workplaces)  
+    for workplace in workplaces:
+      for holiday_date in dates:
+        pre_holiday_date = holiday_date - datetime.timedelta(days=1)
+        
+        pre_holiday_workers = workplace.get_workers(pre_holiday_date)
+        holiday_workers = workplace.get_workers(holiday_date)
+        
+        random.shuffle(pre_holiday_turnuses)
+        random.shuffle(holiday_turnuses)
+        
+        for pre_holiday_turnus in pre_holiday_turnuses:
+          for holiday_turnus in holiday_turnuses:
+            
+            scheduled = True
+            
+            while self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, pre_holiday_turnus.types, pre_holiday_date), pre_holiday_workers) \
+            and self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, holiday_turnus.types, holiday_date), holiday_workers) \
+            and scheduled:
+            
+              scheduled = False
+            
+              #does not take into account both days
+              heuristic_people = self.__get_heuristic_sorted_people(people & self.workplace_people[workplace] & self.turnus_people[holiday_turnus], holiday_date)
+              
+              for person in heuristic_people:
+                if self.__is_valid_move(workplace, pre_holiday_turnus, pre_holiday_date, person, overtime) \
+                and self.__is_valid_move(workplace, holiday_turnus, holiday_date, person, overtime):
+                  person.schedule_turnus(pre_holiday_date, pre_holiday_turnus, workplace)
+                  person.schedule_turnus(holiday_date, holiday_turnus, workplace)
+                  scheduled = True
+                  break
+        
+        
+      
+      
+      
+      
 
   def __is_valid_move(self, workplace, turnus, date, person, overtime, depth=0, check_turnuses=[]):
     """
@@ -440,7 +520,7 @@ class PersonScheduler:
         return False
       
     if holiday.is_workfree(date):
-      # check if this a turnus, that can be scheduled in the a workfree day
+      # check if this a turnus, that can be scheduled in a workfree day
       if not turnus.holiday:
         return False
       
@@ -512,9 +592,9 @@ class PersonScheduler:
       else:
         raise Exception('Napaka pri preverjanju, ali je mozno razvrstiti osebo.')
         
-    
-          
+              
     return True
+
   
   def __add_free_day(self, person, date):
     """
