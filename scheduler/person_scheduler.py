@@ -430,6 +430,8 @@ class PersonScheduler:
     for turnus in all_turnuses.turnuses:
       if turnus_type.TurnusType('Popoldanski') in turnus.types:
         pre_holiday_turnuses.append(turnus)
+      if turnus_type.TurnusType('Celodnevni') in turnus.types:
+        pre_holiday_turnuses.append(turnus)
         
     holiday_turnuses = []
     for turnus in all_turnuses.turnuses:
@@ -462,8 +464,10 @@ class PersonScheduler:
               heuristic_people = self.__get_heuristic_sorted_people(people & self.workplace_people[workplace] & self.turnus_people[holiday_turnus], holiday_date)
               
               for person in heuristic_people:
-                if self.__is_valid_move(workplace, pre_holiday_turnus, pre_holiday_date, person, overtime) \
-                and self.__is_valid_move(workplace, holiday_turnus, holiday_date, person, overtime):
+                if \
+                self.__is_valid_move_preschedule(workplace, pre_holiday_turnus, pre_holiday_date, person, overtime) \
+                and \
+                self.__is_valid_move_preschedule(workplace, holiday_turnus, holiday_date, person, overtime):
                   person.schedule_turnus(pre_holiday_date, pre_holiday_turnus, workplace)
                   person.schedule_turnus(holiday_date, holiday_turnus, workplace)
                   scheduled = True
@@ -472,7 +476,106 @@ class PersonScheduler:
         
       
       
+  def __is_valid_move_preschedule(self, workplace, turnus, date, person, overtime, depth=0, check_turnuses=[]):
+    """
+    Checks, if the person is allowed to work, on the combination of attributes. This function
+    is identical to the is_valid_move function. The only difference is that it does not
+    check the holiday workplace rule.
+      workplace: is the workplace checked
+      turnus: is the turnus checked
+      date: is the date checked
+      person: is the person checked
+      overtime: if the overtime is allowed for the person
+      depth: depth of the recursion. Never set this parameter when calling the method 
+            form the outside
+      check_turnuses: is a list of turnuses. This list contains turnuses that were 
+                      checked in the previous recursions. They are needed for calculating
+                      the potential overtime. Never set this parameter when calling the
+                      method from the outside.
+    """
+    
+    if turnus not in person.allowed_turnuses:
+      return False
+    
+    if person.is_turnus_forbidden(turnus, date):
+      return False
+    
+    if person.is_blocked(date, turnus):
+      return False
+    
+    #block the workfree night turnus, if the day is not workfree
+    if turnus.holiday and turnus.code[0] == 'N' and not holiday.is_workfree(date):
+      return False
+    
+    #also check the people's employment type
+    if not overtime or not person.employment_type.has_overtime:
+      mh = person.get_monthly_hours_difference(date)
+      wh = person.get_weekly_hours_difference(date)
       
+      duration = time_conversion.timedelta_to_hours(turnus.duration)
+      for prev_turnus in check_turnuses:
+        duration += time_conversion.timedelta_to_hours(prev_turnus.duration)
+      
+      if mh - duration < 0:
+        return False
+      if wh - duration < 0:
+        return False
+      
+    if holiday.is_workfree(date):
+      # check if this a turnus, that can be scheduled in a workfree day
+      if not turnus.holiday:
+        return False
+      
+      #check for free days
+      #check previous week
+      week = self.__get_previous_week(date)
+      for date_ in week:
+        if person.is_free_day(date_):
+          break
+      else:
+        #if there was no free day the previous week, perhaps there is in the next
+        week = self.__get_next_week(date)
+        for date_ in week:
+          if person.is_free_day(date_):
+            break
+        else:
+          # no free day was found
+          return False
+      
+    
+    # if the person schedules night turnuses in packages: 
+    #  (Monday + Tuesday)
+    #  (Tuesday + Wednesday)
+    #  (Wednesday + Thursday)
+    #  (Friday + Saturday + Sunday)
+    if person.packet_night_turnuses and turnus.code[0] == 'N':
+      if depth == 0:
+        return self.__is_valid_move(workplace, turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
+      #if this is the second day in the packet continue validation only if it is a Saturday
+      elif depth == 1 and date.weekday() == 5:
+        # TODO: allow only one holiday turnus per shift type (document this)
+        sunday_night_turnus = None
+        for alternative_turnus in all_turnuses.turnuses:
+          if alternative_turnus.holiday and alternative_turnus.code[0] == 'N':
+            sunday_night_turnus = alternative_turnus
+            break
+        else:
+          return False
+        
+        return self.__is_valid_move(workplace, sunday_night_turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
+      #Thursday to Friday combination does not exist
+      elif depth == 1 and date.weekday() == 4:
+        return False
+      elif depth == 1:
+        return True
+      elif depth == 2:
+        return True
+      
+      else:
+        raise Exception('Napaka pri preverjanju, ali je mozno razvrstiti osebo.')
+        
+              
+    return True
       
 
   def __is_valid_move(self, workplace, turnus, date, person, overtime, depth=0, check_turnuses=[]):
@@ -549,8 +652,9 @@ class PersonScheduler:
           prev_turnus = person.get_turnus(prev_date) 
           if prev_turnus:
             # all afternoon codes start with P
+            # all double shift codes start with C
             # TODO: document this
-            if prev_turnus.code[0] != 'P':
+            if prev_turnus.code[0] != 'P' or prev_turnus.code[0] != 'C':
               return False
           else:
             return False
