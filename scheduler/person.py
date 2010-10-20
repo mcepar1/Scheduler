@@ -122,9 +122,14 @@ class Nurse (nurse.Nurse):
           current_start = instance.combine(date, turnus.start)
           if (prev_turnus_end + prev_turnus.blockade) < current_start:
             return False
-        if not self.is_free_day(next_date):
+        if self.can_be_scheduled(next_date):
           #check if there is a hard-coded date in the next-date
-          next_turnus = self.scheduled_turnus[next_date]
+          if self.scheduled_turnus[next_date]:
+            next_turnus = self.scheduled_turnus[next_date]
+            next_start = instance.combine(next_date, next_turnus.start)
+          else:
+            next_start = datetime.datetime(day=1, month=1, year=3000)
+            
           instance = datetime.datetime(year=date.year, month=date.month, day=date.day)
           this_turnus_start = instance.combine(date, turnus.start)
           this_turnus_end = instance.combine(date, turnus.end)
@@ -133,7 +138,7 @@ class Nurse (nurse.Nurse):
           if this_turnus_end < this_turnus_start:
             this_turnus_end += datetime.timedelta(days=1)
             
-          next_start = instance.combine(next_date, next_turnus.start)
+          
           if (this_turnus_end + turnus.blockade) < next_start:
             return False
     
@@ -222,6 +227,17 @@ class Nurse (nurse.Nurse):
         return False
     else:
       return True
+  
+  def can_be_scheduled(self, date):
+    """
+    Check, if is possible, that a turnus can be scheduled that day.
+      date: is the date checked
+      return: true, if the day can support a turnus, false otherwise
+    """
+    if date == self.birthday:
+      return False
+    else:
+      return not self.is_scheduled(date)
     
     
   def get_turnus_dispersion(self):
@@ -397,6 +413,18 @@ class Nurse (nurse.Nurse):
     del self.scheduled_turnus[date]
     del self.scheduled_workplace[date]
     
+  def clear_date(self, date):
+    """
+    Clears whatever was scheduled in the schedule.
+      date: the date that will be cleared
+    """
+    
+    if date not in self.scheduled_turnus or date not in self.scheduled_workplace:
+      raise Exception ('Datuma ni bilo mogoce odstraniti.')
+    
+    self.scheduled_turnus[date] = ''
+    self.scheduled_workplace[date] = ''
+    
     
     
     
@@ -568,7 +596,7 @@ class Doctor (doctor.Doctor):
           current_start = instance.combine(date, turnus.start)
           if (prev_turnus_end + prev_turnus.blockade) < current_start:
             return False
-        if not self.is_free_day(next_date):
+        if self.can_be_scheduled(next_date):
           #check if there is a hard-coded date in the next-date
           next_turnus = self.scheduled_turnus[next_date]
           instance = datetime.datetime(year=date.year, month=date.month, day=date.day)
@@ -668,6 +696,17 @@ class Doctor (doctor.Doctor):
         return False
     else:
       return True
+    
+  def can_be_scheduled(self, date):
+    """
+    Check, if is possible, that a turnus can be scheduled that day.
+      date: is the date checked
+      return: true, if the day can support a turnus, false otherwise
+    """
+    if date == self.birthday:
+      return False
+    else:
+      return not self.is_scheduled(date)
     
     
   def get_turnus_dispersion(self):

@@ -3,21 +3,25 @@ import calendar
 import datetime
 import random
 
-class PreScheduler:
-  def __init__(self, people, date):
+class PreSchedulerPlugin:
+  def __init__(self, people, workplaces, turnuses, date, logger):
     """
-    The default constructor.
+    The default constructor. Only the parameters listed bellow are used, the rest are 
+    discarded.
       people: a sequence of people, that will be pre-scheduled
       date: an instance of the datetime.date object, that has the correct month and year
     """
     
     self.people = people
     self.date = date
+    self.already_prescheduled = False
     
-  def pre_schedule(self):
-    """Schedules all the predefined constraints."""
-    self.__pre_schedule_constraints()
-    self.__pre_schedule_free_weekends()
+  def perform_task(self, overtime=False):
+    """Schedules all the predefined constraints. Ignores the parameter."""
+    if not self.already_prescheduled:
+      self.__pre_schedule_constraints()
+      self.__pre_schedule_free_weekends()
+      self.already_prescheduled = True
 
   def __pre_schedule_constraints(self):
     """Schedules the vacations and manually added constraints into the person."""

@@ -4,7 +4,8 @@ from data import nurse, doctor
 from scheduler import person as person_module
 from scheduler import workplace as workplace_module
 from scheduler import weights
-from scheduler import prescheduler
+from scheduler import plugins
+
 from global_vars import employment_types, turnuses as all_turnuses, workplaces as all_workplaces
 from utils import time_conversion, holiday
 from data import turnus_type
@@ -22,6 +23,12 @@ PersonScheduler
 class DummyLog:
   def send_message(self, *args, **kwargs):
     print args, kwargs
+    
+"""
+Contains the plug-ins, that will be used in this scheduler.
+The order is important!
+"""    
+PLUG_INS = [plugins.PreSchedulerPlugin, plugins.HolidayRulePlugin]
 
 class PersonScheduler:
   FILES_DIR = os.path.join("persistence", "scheduler")
@@ -126,9 +133,11 @@ class PersonScheduler:
         self.turnus_people[turnus].add(person)
      
     # no auto execution, when inputing raw_data
+    self.active_plugins = []
     if not input_raw:    
-      pre_scheduler = prescheduler.PreScheduler(self.people, self.date)
-      pre_scheduler.pre_schedule()
+      for plug_in in PLUG_INS:
+        self.active_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.turnuses, self.date, self.log))
+        
       
       
     
@@ -164,13 +173,16 @@ class PersonScheduler:
         no_ovetime_people.add(person)
     
     self.log.send_message('Prva faza razvrscanja ...')
+    #invoke the plugins
+    for plugin in self.active_plugins:
+      plugin.perform_task (overtime=False) 
+    
     #for each date and workplace go through each allowed turnus and add 
     #one employee, until reaching the point, where the overtime is needed
     #or enough workers are working in a turnus
     scheduled = True
     overtime_people = set(self.people) - no_ovetime_people
     
-    self.__preschedule_workfree_days(overtime_people, overtime=False)
     
     while (scheduled):
       #start with workplaces
@@ -183,9 +195,13 @@ class PersonScheduler:
           
     self.log.send_message('Druga faza razvrscanja ...')
     #repeat the process for the part-time employees
+    
+    #invoke the plugins
+    for plugin in self.active_plugins:
+      plugin.perform_task (overtime=False)
+    
     scheduled = True
     
-    self.__preschedule_workfree_days(no_ovetime_people, overtime=False)
     
     while (scheduled):
       #start with workplaces
@@ -197,10 +213,14 @@ class PersonScheduler:
           
     self.log.send_message('Tretja faza razvrscanja ...')
     #finally add all the people, including the ones with the overtime
+    
+    #invoke the plugins
+    for plugin in self.active_plugins:
+      plugin.perform_task (overtime=True)
+    
     scheduled = True
     people = set(self.people)
     
-    self.__preschedule_workfree_days(people, overtime=True)
     
     while (scheduled):
       #start with workplaces
@@ -403,179 +423,6 @@ class PersonScheduler:
       return True
     else:
       return False
-
-  def __preschedule_workfree_days(self, people, overtime=False):
-    """
-    Schedules the special holidays rule workplaces outside the normal scheduling
-    procedure.
-      people: a sequence of people, that will be scheduled
-      overtime: allows, people to go into overtime (if true)
-    """
-    #This is not included in the prescheduler, because it is not prescheduled.
-    #It is scheduled automatically, only outside the normal scheduling scope.
-    
-    dates = []
-    for day in self.__get_days():
-      date = datetime.date(day=day, month=self.date.month, year=self.date.year)
-      
-      if holiday.is_workfree(date):
-        dates.append(date)
-    
-    workplaces = []
-    for workplace in self.workplaces:
-      if workplace.holiday_rule:
-        workplaces.append(workplace)
-        
-    pre_holiday_turnuses = []
-    for turnus in all_turnuses.turnuses:
-      if turnus_type.TurnusType('Popoldanski') in turnus.types:
-        pre_holiday_turnuses.append(turnus)
-      if turnus_type.TurnusType('Celodnevni') in turnus.types:
-        pre_holiday_turnuses.append(turnus)
-        
-    holiday_turnuses = []
-    for turnus in all_turnuses.turnuses:
-      if turnus.holiday:
-        holiday_turnuses.append(turnus)
-    
-    random.shuffle(workplaces)  
-    for workplace in workplaces:
-      for holiday_date in dates:
-        pre_holiday_date = holiday_date - datetime.timedelta(days=1)
-        
-        pre_holiday_workers = workplace.get_workers(pre_holiday_date)
-        holiday_workers = workplace.get_workers(holiday_date)
-        
-        random.shuffle(pre_holiday_turnuses)
-        random.shuffle(holiday_turnuses)
-        
-        for pre_holiday_turnus in pre_holiday_turnuses:
-          for holiday_turnus in holiday_turnuses:
-            
-            scheduled = True
-            
-            while self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, pre_holiday_turnus.types, pre_holiday_date), pre_holiday_workers) \
-            and self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, holiday_turnus.types, holiday_date), holiday_workers) \
-            and scheduled:
-            
-              scheduled = False
-            
-              #does not take into account both days
-              heuristic_people = self.__get_heuristic_sorted_people(people & self.workplace_people[workplace] & self.turnus_people[holiday_turnus], holiday_date)
-              
-              for person in heuristic_people:
-                if \
-                self.__is_valid_move_preschedule(workplace, pre_holiday_turnus, pre_holiday_date, person, overtime) \
-                and \
-                self.__is_valid_move_preschedule(workplace, holiday_turnus, holiday_date, person, overtime):
-                  person.schedule_turnus(pre_holiday_date, pre_holiday_turnus, workplace)
-                  person.schedule_turnus(holiday_date, holiday_turnus, workplace)
-                  scheduled = True
-                  break
-        
-        
-      
-      
-  def __is_valid_move_preschedule(self, workplace, turnus, date, person, overtime, depth=0, check_turnuses=[]):
-    """
-    Checks, if the person is allowed to work, on the combination of attributes. This function
-    is identical to the is_valid_move function. The only difference is that it does not
-    check the holiday workplace rule.
-      workplace: is the workplace checked
-      turnus: is the turnus checked
-      date: is the date checked
-      person: is the person checked
-      overtime: if the overtime is allowed for the person
-      depth: depth of the recursion. Never set this parameter when calling the method 
-            form the outside
-      check_turnuses: is a list of turnuses. This list contains turnuses that were 
-                      checked in the previous recursions. They are needed for calculating
-                      the potential overtime. Never set this parameter when calling the
-                      method from the outside.
-    """
-    
-    if turnus not in person.allowed_turnuses:
-      return False
-    
-    if person.is_turnus_forbidden(turnus, date):
-      return False
-    
-    if person.is_blocked(date, turnus):
-      return False
-    
-    #block the workfree night turnus, if the day is not workfree
-    if turnus.holiday and turnus.code[0] == 'N' and not holiday.is_workfree(date):
-      return False
-    
-    #also check the people's employment type
-    if not overtime or not person.employment_type.has_overtime:
-      mh = person.get_monthly_hours_difference(date)
-      wh = person.get_weekly_hours_difference(date)
-      
-      duration = time_conversion.timedelta_to_hours(turnus.duration)
-      for prev_turnus in check_turnuses:
-        duration += time_conversion.timedelta_to_hours(prev_turnus.duration)
-      
-      if mh - duration < 0:
-        return False
-      if wh - duration < 0:
-        return False
-      
-    if holiday.is_workfree(date):
-      # check if this a turnus, that can be scheduled in a workfree day
-      if not turnus.holiday:
-        return False
-      
-      #check for free days
-      #check previous week
-      week = self.__get_previous_week(date)
-      for date_ in week:
-        if person.is_free_day(date_):
-          break
-      else:
-        #if there was no free day the previous week, perhaps there is in the next
-        week = self.__get_next_week(date)
-        for date_ in week:
-          if person.is_free_day(date_):
-            break
-        else:
-          # no free day was found
-          return False
-      
-    
-    # if the person schedules night turnuses in packages: 
-    #  (Monday + Tuesday)
-    #  (Tuesday + Wednesday)
-    #  (Wednesday + Thursday)
-    #  (Friday + Saturday + Sunday)
-    if person.packet_night_turnuses and turnus.code[0] == 'N':
-      if depth == 0:
-        return self.__is_valid_move(workplace, turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
-      #if this is the second day in the packet continue validation only if it is a Saturday
-      elif depth == 1 and date.weekday() == 5:
-        # TODO: allow only one holiday turnus per shift type (document this)
-        sunday_night_turnus = None
-        for alternative_turnus in all_turnuses.turnuses:
-          if alternative_turnus.holiday and alternative_turnus.code[0] == 'N':
-            sunday_night_turnus = alternative_turnus
-            break
-        else:
-          return False
-        
-        return self.__is_valid_move(workplace, sunday_night_turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
-      #Thursday to Friday combination does not exist
-      elif depth == 1 and date.weekday() == 4:
-        return False
-      elif depth == 1:
-        return True
-      elif depth == 2:
-        return True
-      
-      else:
-        raise Exception('Napaka pri preverjanju, ali je mozno razvrstiti osebo.')
-        
-              
-    return True
       
 
   def __is_valid_move(self, workplace, turnus, date, person, overtime, depth=0, check_turnuses=[]):
@@ -671,7 +518,7 @@ class PersonScheduler:
     #  (Wednesday + Thursday)
     #  (Friday + Saturday + Sunday)
     if person.packet_night_turnuses and turnus.code[0] == 'N':
-      if depth == 0:
+      if depth == 0 and (date.weekday() == 0 or date.weekday() == 2 or date.weekday() == 4):
         return self.__is_valid_move(workplace, turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
       #if this is the second day in the packet continue validation only if it is a Saturday
       elif depth == 1 and date.weekday() == 5:
@@ -694,7 +541,7 @@ class PersonScheduler:
         return True
       
       else:
-        raise Exception('Napaka pri preverjanju, ali je mozno razvrstiti osebo.')
+        return False
         
               
     return True
