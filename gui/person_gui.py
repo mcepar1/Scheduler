@@ -5,7 +5,7 @@ import wx.grid
 import wx.calendar
 import wx_extensions
 
-from global_vars import turnuses, vacations, workplaces, titles
+from global_vars import turnuses, vacations, workplaces, titles, roles
 
 class PersonPanel(wx.Panel):
   
@@ -125,6 +125,7 @@ class PermissionsPanel(wx.Panel):
     turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
     workplaceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Delovisca"), wx.VERTICAL)
     titlesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Nazivi"), wx.VERTICAL)
+    rolesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
     specialCaseSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Posebne lastnosti"), wx.VERTICAL)
     
     #set the turnuses
@@ -137,15 +138,22 @@ class PermissionsPanel(wx.Panel):
     #set the workplaces
     self.workplaces = []
     for workplace in workplaces.workplaces:
-        self.workplaces.append(wx_extensions.LinkedCheckBox(workplace, self, wx.NewId(), str(workplace)))
-        self.Bind(wx.EVT_CHECKBOX, self.__workplace_edited, self.workplaces[-1])
-        workplaceSizer.Add(self.workplaces[-1], 0, wx.ALIGN_LEFT)
+      self.workplaces.append(wx_extensions.LinkedCheckBox(workplace, self, wx.NewId(), str(workplace)))
+      self.Bind(wx.EVT_CHECKBOX, self.__workplace_edited, self.workplaces[-1])
+      workplaceSizer.Add(self.workplaces[-1], 0, wx.ALIGN_LEFT)
         
     self.titles = []
     for title in titles.titles:
-        self.titles.append(wx_extensions.LinkedCheckBox(title, self, wx.NewId(), str(title)))
-        self.Bind(wx.EVT_CHECKBOX, self.__title_edited, self.titles[-1])
-        titlesSizer.Add(self.titles[-1], 0, wx.ALIGN_LEFT)
+      self.titles.append(wx_extensions.LinkedCheckBox(title, self, wx.NewId(), str(title)))
+      self.Bind(wx.EVT_CHECKBOX, self.__title_edited, self.titles[-1])
+      titlesSizer.Add(self.titles[-1], 0, wx.ALIGN_LEFT)
+        
+    self.roles = []
+    for role in roles.roles:
+      self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
+      self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
+      rolesSizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
+      
         
     self.packet_night_turnuses = wx.CheckBox(self, wx.NewId(), label='Zdruzuj nocne turnuse')
     self.Bind(wx.EVT_CHECKBOX, self.__packet_night_turnuses, self.packet_night_turnuses)
@@ -157,6 +165,7 @@ class PermissionsPanel(wx.Panel):
     topSizer.Add(turnusSizer, 0, wx.ALIGN_LEFT)
     topSizer.Add(titlesSizer, 0, wx.ALIGN_LEFT)
     topSizer.Add(workplaceSizer, 0, wx.ALIGN_LEFT)
+    topSizer.Add(rolesSizer, 0, wx.ALIGN_LEFT)
     topSizer.Add(specialCaseSizer, 0 , wx.ALIGN_LEFT)
     
     self.SetSizerAndFit(topSizer)
@@ -180,6 +189,18 @@ class PermissionsPanel(wx.Panel):
     else:
       # add the restriction
       self.person.remove_allowed_turnus(event.GetEventObject().element)
+      
+    # reload permissions
+    self.__set_permissions()
+    
+  def __role_edited(self, event):
+    """The event listener for the roles checkboxes."""
+    if event.IsChecked():
+      # add the role
+      self.person.add_role (event.GetEventObject().element)
+    else:
+      # remove the role
+      self.person.remove_role (event.GetEventObject().element)
       
     # reload permissions
     self.__set_permissions()
@@ -226,6 +247,8 @@ class PermissionsPanel(wx.Panel):
         workplace_checker.Disable()
       for title_checker in self.titles:
         title_checker.Disable()
+      for role_checker in self.roles:
+        role_checker.Disable()
       self.packet_night_turnuses.Disable()
     else:
       for turnus_checker in self.turnuses:
@@ -236,6 +259,9 @@ class PermissionsPanel(wx.Panel):
         
       for title_checker in self.titles:
         title_checker.Enable()
+        
+      for role_checker in self.roles:
+        role_checker.Enable()
         
       self.packet_night_turnuses.Enable()
       self.packet_night_turnuses.SetValue(self.person.packet_night_turnuses)
@@ -262,7 +288,12 @@ class PermissionsPanel(wx.Panel):
         else:
           title_checker.SetValue(False)
           
-    
+      # set the correct roles
+      for role_checker in self.roles:
+        if role_checker.element in self.person.roles:
+          role_checker.SetValue(True)
+        else:
+          role_checker.SetValue(False)
       
     
     

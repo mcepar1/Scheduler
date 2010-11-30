@@ -9,14 +9,15 @@ class Nurse:
 
   HEADERS = ["MAT. STEV.", "IME", "PRIIMEK", "ROJSTNI DAN"]
 
-  def __init__(self, work_id, name, surname, birthday, titles=None, employment_type=None, workplaces=None):
+  def __init__(self, work_id, name, surname, birthday, titles=None, roles=None, employment_type=None, workplaces=None):
     """
     This is the constructor.
       work_id: is the unique work id
       name: is the nurse's name
       surname: is the nurse's surname
       birthday: is the nurse's birthday
-      title: is a set of all the nurses titles
+      titles: is a set of all the nurse's titles
+      roles: is a set of all the nurse's roles
       employment_type: is the employment type of the nurse
       workplaces: a sequence of workplaces, in which the nurse works
     """
@@ -30,6 +31,11 @@ class Nurse:
       self.titles = titles
     else:
       self.titles = set()
+      
+    if roles:
+      self.roles = roles
+    else:
+      self.roles = set()
     
     # tells if the night turnuses are scheduled in packages
     self.packet_night_turnuses = False
@@ -156,13 +162,22 @@ class Nurse:
         self.remove_predefined(date)
 
   def add_title(self, title):
-    """Adds a title to the doctor."""
+    """Adds a title to the nurse."""
     self.titles.add(title)
     
   def remove_title(self, title):
-    """Removes a title from the doctor."""
+    """Removes a title from the nurse."""
     # removing an un-added title should not be possible 
     self.titles.remove(title)
+    
+  def add_role(self, role):
+    """Adds a role to the nurse"""
+    self.roles.add(role)
+    
+  def remove_role(self, role):
+    """Removes a role from the nurse."""
+    # removing an un-added role should not be possible
+    self.roles.remove(role)
     
   def add_predefined(self, date, turnus, workplace):
     """
@@ -253,7 +268,7 @@ class Nurse:
     
     
 class NurseContainer:
-  """Contains methods, that deal with multiple instences of the Nurse
+  """Contains methods, that deal with multiple instances of the Nurse
   class at once (loading, saving, representing as a table, ...)"""
   
   FILES_DIR = os.path.join("persistence", "data")

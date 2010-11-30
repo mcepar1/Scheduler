@@ -6,6 +6,7 @@ import input_workplaces as iworkplaces
 import input_employment_types as iemployment_types
 import input_titles as ititles
 import input_turnus_types as iturnus_types
+import input_roles as iroles
 
 def input_doctors():
   idoctors.input_doctors()
@@ -30,4 +31,7 @@ def input_titles():
 
 def input_turnus_types():
   iturnus_types.input_turnus_types()
+  
+def input_roles():
+  iroles.input_roles()
   

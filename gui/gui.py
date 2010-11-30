@@ -11,6 +11,7 @@ from workplace_gui import WorkplacePanel
 from employment_type_gui import EmploymentTypePanel
 from title_gui import TitlePanel
 from turnus_type_gui import TurnusTypePanel
+from role_gui import RolePanel
 
 class MainWindow(wx.Frame):
 
@@ -32,6 +33,7 @@ class MainWindow(wx.Frame):
     notebook.AddPage(WorkplacePanel(notebook), "Delovisca")
     notebook.AddPage(TitlePanel(notebook), "Nazivi")
     notebook.AddPage(TurnusTypePanel(notebook), "Vrste turnusov")
+    notebook.AddPage(RolePanel(notebook), 'Vloge')
     
     self.sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
     
