@@ -2,7 +2,7 @@
 
 import wx
 import wx_extensions
-from global_vars import workplaces, turnuses, nurses, doctors
+from global_vars import workplaces, turnuses, roles, nurses, doctors
 
 class WorkplacePanel(wx.Panel):
   
@@ -14,10 +14,17 @@ class WorkplacePanel(wx.Panel):
     self.grid = wx.grid.Grid(self, wx.NewId())
     self.fill_grid()
     
+    panelSizer = wx.BoxSizer(wx.VERTICAL)
+    
     sizer.Add(self.grid, 1, wx.CENTER | wx.EXPAND)
     
-    self.person = TurnusPanel(self)
-    sizer.Add(self.person, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
+    self.turnuses = TurnusPanel(self)
+    panelSizer.Add(self.turnuses, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
+    
+    self.roles = RolePanel(self)
+    panelSizer.Add(self.roles, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
+    
+    sizer.Add(panelSizer, 0, wx.ALIGN_LEFT)
     
     self.SetSizerAndFit(sizer)
     
@@ -43,11 +50,13 @@ class WorkplacePanel(wx.Panel):
   def workplace_selected(self, event):
     if event.GetCol() == -1:
       if event.GetRow() < 0:
-        self.person.set_workplace(None)
+        self.turnuses.set_workplace(None)
+        self.roles.set_workplace(None)
         self.grid.ClearSelection()
       else:
         self.grid.SelectRow(event.GetRow())
-        self.person.set_workplace(workplaces.get_element(event.GetRow()))
+        self.turnuses.set_workplace(workplaces.get_element(event.GetRow()))
+        self.roles.set_workplace(workplaces.get_element(event.GetRow()))
 
         
 class TurnusPanel(wx.Panel):
@@ -117,5 +126,56 @@ class TurnusPanel(wx.Panel):
       for turnus in self.turnuses:
         turnus.Disable ()
         
+class RolePanel(wx.Panel):
+  
+  def __init__(self, *args, **kwargs):
+    wx.Panel.__init__(self, *args, **kwargs)
+    
+    self.workplace = None
         
+    topSizer = wx.BoxSizer(wx.HORIZONTAL)
+    
+    roleSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
+    
+    #set the roles
+    self.roles = []
+    for role in roles.roles:
+      self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
+      self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
+      roleSizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
+    
+
+    #set the initial roles
+    self.__set_permissions ()
+    
+    topSizer.Add(roleSizer, 0, wx.ALIGN_RIGHT)
+    
+    self.SetSizerAndFit(topSizer)
+    
+  def set_workplace (self, workplace):
+    self.workplace = workplace
+    self.__set_permissions ()
+    
+  def __role_edited (self, event):
+    
+    if event.IsChecked():
+      # add a role
+      self.workplace.add_role(event.GetEventObject().element)
+    else:
+      # remove a role
+      self.workplace.remove_role(event.GetEventObject().element)
+      
+  def __set_permissions (self):
+    """Checks and unchecks the checker according to the current state."""
+    
+    if self.workplace:
+      for role in self.roles:
+        role.Enable ()
+        if role.element in self.workplace.roles:
+          role.SetValue (True)
+        else:
+          role.SetValue (False)
+    else:
+      for role in self.roles:
+        role.Disable ()
       

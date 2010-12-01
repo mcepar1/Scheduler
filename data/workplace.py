@@ -20,6 +20,9 @@ class Workplace:
     self.label = label
     self.holiday_rule = holiday_rule
     
+    # which roles can nurses assume in the workplace
+    self.roles = set()
+    
     # if the turnus is located in the set, the workplace allows that turnus
     self.allowed_turnuses = set ()
     
@@ -42,6 +45,21 @@ class Workplace:
       turnus: the turnus, that will be allowed
     """
     self.allowed_turnuses.remove (turnus)
+    
+  def add_role (self, role):
+    """
+    Adds a role to the workplace.
+      role: is the role that will be added
+    """
+    self.roles.add(role)
+    
+  def remove_role (self, role):
+    """
+    Removes the role from the workplace
+      role: the role that will be removed
+    """
+    # removing an un-added role should not be possible
+    self.roles.remove(role)
     
   def __str__(self):
     return self.label
