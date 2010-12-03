@@ -45,9 +45,10 @@ class Workplace(data_model.Workplace):
         del self.workers[type]
       
     
-  def set_worker(self, turnus_type, workers, date=None):
+  def set_worker(self, role, turnus_type, workers, date=None):
     """
     Sets the number of persons, that will work in the specified turnus_type.
+      role: is the role for which the workers will be set
       turnus_type: is the turnus
       workers: is the number of workers
       date: if given, it set's the only for the specified date. The dated number of
@@ -60,7 +61,9 @@ class Workplace(data_model.Workplace):
         if date:
           if date not in self.date_workers:
             self.date_workers[date] = {}
-          self.date_workers[date][turnus_type] = workers
+          if role not in self.date_workers[date]:
+            self.date_workers[date][role] = {}
+          self.date_workers[date][role][turnus_type] = workers
         else:
           self.workers[turnus_type] = workers
           

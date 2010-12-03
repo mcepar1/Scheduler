@@ -72,12 +72,25 @@ class WorkplaceChoice(wx.Choice):
     kwargs['choices'] = [str(workplace) for workplace in self.workplaces]
     wx.Choice.__init__(self, *args, **kwargs)
     
+  def set_workplaces(self, workplaces):
+    """Replaces the old choices with the ones specified in the list"""
+    if workplaces:
+      self.workplaces = workplaces
+      self.Clear ()
+      self.AppendItems ([str(workplace) for workplace in self.workplaces])
+      self.Select(0)
+    else:
+      self.workplaces = None
+      self.Clear()
+    
+    
+    
   def get_value(self):
     """Returns the selected instance of the workspace class"""
     if self.workplaces:
       return self.workplaces[self.GetCurrentSelection()]
     else:
-      return 'Ni delovisc'
+      raise Exception ('Ni delovisc')
     
 """
 This class behaves the same way as as a normal wxIntCtrl.

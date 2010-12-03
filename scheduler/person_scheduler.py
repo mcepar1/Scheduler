@@ -361,7 +361,11 @@ class PersonScheduler:
     """
     
     workers = workplace.get_workers(date)
+    pass
     
+    
+  
+  def __schedule_role(self, workplace, role, date, people = [], overtime=False):
     turnuses = []
     for type in workers.keys():
       turnuses += list(all_turnuses.get_by_type(type, workplace))

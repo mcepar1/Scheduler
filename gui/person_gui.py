@@ -125,7 +125,6 @@ class PermissionsPanel(wx.Panel):
     turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
     workplaceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Delovisca"), wx.VERTICAL)
     titlesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Nazivi"), wx.VERTICAL)
-    rolesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
     specialCaseSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Posebne lastnosti"), wx.VERTICAL)
     
     #set the turnuses
@@ -147,17 +146,13 @@ class PermissionsPanel(wx.Panel):
       self.titles.append(wx_extensions.LinkedCheckBox(title, self, wx.NewId(), str(title)))
       self.Bind(wx.EVT_CHECKBOX, self.__title_edited, self.titles[-1])
       titlesSizer.Add(self.titles[-1], 0, wx.ALIGN_LEFT)
-        
-    self.roles = []
-    for role in roles.roles:
-      self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
-      self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
-      rolesSizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
       
         
     self.packet_night_turnuses = wx.CheckBox(self, wx.NewId(), label='Zdruzuj nocne turnuse')
     self.Bind(wx.EVT_CHECKBOX, self.__packet_night_turnuses, self.packet_night_turnuses)
     specialCaseSizer.Add(self.packet_night_turnuses, 0, wx.ALIGN_LEFT)
+    
+    self.roles = RolePanel (self, wx.NewId())
         
     #set the initial permissions  
     self.__set_permissions()
@@ -165,7 +160,7 @@ class PermissionsPanel(wx.Panel):
     topSizer.Add(turnusSizer, 0, wx.ALIGN_LEFT)
     topSizer.Add(titlesSizer, 0, wx.ALIGN_LEFT)
     topSizer.Add(workplaceSizer, 0, wx.ALIGN_LEFT)
-    topSizer.Add(rolesSizer, 0, wx.ALIGN_LEFT)
+    topSizer.Add(self.roles, 0, wx.ALIGN_LEFT)
     topSizer.Add(specialCaseSizer, 0 , wx.ALIGN_LEFT)
     
     self.SetSizerAndFit(topSizer)
@@ -179,6 +174,7 @@ class PermissionsPanel(wx.Panel):
     
 
     self.person = person
+    self.roles.set_unit(self.person)
     self.__set_permissions()
     
   def __turnus_edited(self, event):
@@ -193,17 +189,6 @@ class PermissionsPanel(wx.Panel):
     # reload permissions
     self.__set_permissions()
     
-  def __role_edited(self, event):
-    """The event listener for the roles checkboxes."""
-    if event.IsChecked():
-      # add the role
-      self.person.add_role (event.GetEventObject().element)
-    else:
-      # remove the role
-      self.person.remove_role (event.GetEventObject().element)
-      
-    # reload permissions
-    self.__set_permissions()
     
   def __workplace_edited(self, event):
     """The event listener for the workplace checkboxes."""
@@ -216,6 +201,9 @@ class PermissionsPanel(wx.Panel):
       
     # reload permissions - vacation to turnus sync
     self.__set_permissions()
+    
+    # refresh the role panel
+    self.roles.refresh()
     
   def __title_edited(self, event):
     """The event listener for the title checkboxes."""
@@ -247,8 +235,6 @@ class PermissionsPanel(wx.Panel):
         workplace_checker.Disable()
       for title_checker in self.titles:
         title_checker.Disable()
-      for role_checker in self.roles:
-        role_checker.Disable()
       self.packet_night_turnuses.Disable()
     else:
       for turnus_checker in self.turnuses:
@@ -259,9 +245,6 @@ class PermissionsPanel(wx.Panel):
         
       for title_checker in self.titles:
         title_checker.Enable()
-        
-      for role_checker in self.roles:
-        role_checker.Enable()
         
       self.packet_night_turnuses.Enable()
       self.packet_night_turnuses.SetValue(self.person.packet_night_turnuses)
@@ -288,12 +271,87 @@ class PermissionsPanel(wx.Panel):
         else:
           title_checker.SetValue(False)
           
-      # set the correct roles
-      for role_checker in self.roles:
-        if role_checker.element in self.person.roles:
-          role_checker.SetValue(True)
-        else:
-          role_checker.SetValue(False)
+          
+class RolePanel (wx.Panel):
+  
+  def __init__(self, *args, **kwargs):
+    wx.Panel.__init__(self, *args, **kwargs)
+    
+    self.person = None
+    
+    rolesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
+    
+    self.workplaces = wx_extensions.WorkplaceChoice (workplaces.workplaces, self, wx.NewId())
+    self.Bind(wx.EVT_CHOICE, self.__workplace_selected, self.workplaces)
+    rolesSizer.Add(self.workplaces, 0, wx.ALIGN_LEFT)
+    
+    self.roles = []
+    for role in roles.roles:
+      self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
+      self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
+      rolesSizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
+      
+    self.SetSizerAndFit(rolesSizer)
+      
+    self.__set_permissions()
+      
+  def set_unit(self, person):
+    """Sets the person for which the roles will be edited"""
+    if person:
+      self.person = person
+      self.workplaces.set_workplaces (sorted (self.person.workplaces))
+    else:
+      self.person = None
+      self.workplaces.set_workplaces([])
+      
+    self.__set_permissions()
+    
+  def refresh(self):
+    """Redraws the whole panel"""
+    self.set_unit(self.person)
+      
+  def __role_edited(self, event):
+    """The event listener for the roles checkboxes."""
+    if event.IsChecked():
+      # add the role
+      self.person.add_role (self.workplaces.get_value(), event.GetEventObject().element)
+    else:
+      # remove the role
+      self.person.remove_role (self.workplaces.get_value(), event.GetEventObject().element)
+      
+    # reload permissions
+    self.__set_permissions()
+    
+  def __workplace_selected(self, event):
+    """The event listener for the workplaces drop-down."""
+    self.__set_permissions()
+    
+  def __set_permissions(self):
+    """Keeps the GUI in sync with the data"""
+    if not self.person:
+      self.workplaces.Disable()
+      for role in self.roles:
+        role.SetValue(False)
+        role.Disable()
+    else:
+      try:
+        self.workplaces.Enable()
+        workplace = self.workplaces.get_value()
+        roles = self.person.roles[workplace]
+        for role_checker in self.roles:
+          if role_checker.element in workplace.roles:
+            role_checker.Enable()
+            role_checker.SetValue(role_checker.element in roles)
+          else:
+            role_checker.SetValue(False)
+            role_checker.Disable()
+      except:
+        self.workplaces.Disable()
+        for role in self.roles:
+          role.SetValue(False)
+          role.Disable()
+        
+    
       
     
     

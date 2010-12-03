@@ -17,7 +17,8 @@ class Nurse:
       surname: is the nurse's surname
       birthday: is the nurse's birthday
       titles: is a set of all the nurse's titles
-      roles: is a set of all the nurse's roles
+      roles: is dictionary that maps workplaces a set of roles that the has at the
+             workplace
       employment_type: is the employment type of the nurse
       workplaces: a sequence of workplaces, in which the nurse works
     """
@@ -35,7 +36,7 @@ class Nurse:
     if roles:
       self.roles = roles
     else:
-      self.roles = set()
+      self.roles = dict()
     
     # tells if the night turnuses are scheduled in packages
     self.packet_night_turnuses = False
@@ -151,10 +152,13 @@ class Nurse:
   def add_workplace(self, workplace):
     """Adds a workplace to the nurse."""
     self.workplaces.add(workplace)
+    self.roles[workplace] = set ()
     
   def remove_workplace(self, workplace):
     """Removes a workplace from the nurse"""
     self.workplaces.remove(workplace)
+    # removing an unadded workplace should not be possible
+    del self.roles[workplace]
     
     # do not forget to clean the predefined entries
     for date in self.predefined.keys():
@@ -170,14 +174,14 @@ class Nurse:
     # removing an un-added title should not be possible 
     self.titles.remove(title)
     
-  def add_role(self, role):
+  def add_role(self, workplace, role):
     """Adds a role to the nurse"""
-    self.roles.add(role)
+    self.roles[workplace].add(role)
     
-  def remove_role(self, role):
+  def remove_role(self, workplace, role):
     """Removes a role from the nurse."""
     # removing an un-added role should not be possible
-    self.roles.remove(role)
+    self.roles[workplace].remove(role)
     
   def add_predefined(self, date, turnus, workplace):
     """
