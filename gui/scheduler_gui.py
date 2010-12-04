@@ -108,7 +108,7 @@ class ShiftControl(wx.Panel):
     
     shift_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Stevilo zaposlenih v izmeni"), wx.VERTICAL)
     
-    self.workplace_selector = wx_extensions.WorkplaceChoice(workplaces.workplaces, self, wx.NewId())
+    self.workplace_selector = wx_extensions.LinkedChoice(workplaces.workplaces, self, wx.NewId())
     self.Bind(wx.EVT_CHOICE, self.__set_workplace, self.workplace_selector)
     shift_sizer.Add(self.workplace_selector, 0, wx.CENTER)
     

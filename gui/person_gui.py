@@ -281,7 +281,7 @@ class RolePanel (wx.Panel):
     
     rolesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
     
-    self.workplaces = wx_extensions.WorkplaceChoice (workplaces.workplaces, self, wx.NewId())
+    self.workplaces = wx_extensions.LinkedChoice (workplaces.workplaces, self, wx.NewId())
     self.Bind(wx.EVT_CHOICE, self.__workplace_selected, self.workplaces)
     rolesSizer.Add(self.workplaces, 0, wx.ALIGN_LEFT)
     
@@ -299,10 +299,10 @@ class RolePanel (wx.Panel):
     """Sets the person for which the roles will be edited"""
     if person:
       self.person = person
-      self.workplaces.set_workplaces (sorted (self.person.workplaces))
+      self.workplaces.set_elements (sorted (self.person.workplaces))
     else:
       self.person = None
-      self.workplaces.set_workplaces([])
+      self.workplaces.set_elements([])
       
     self.__set_permissions()
     
@@ -377,9 +377,13 @@ class DatePermissionsPanel(wx.Panel):
       turnusSizer.Add(self.turnuses[-1], 0, wx.ALIGN_LEFT)
       
     #set the preschedule options
-    self.workplaces = wx_extensions.WorkplaceChoice(person.workplaces, self, wx.NewId())
-    self.Bind(wx.EVT_CHOICE, self.__set_permissions_wrapper, self.workplaces)
+    self.workplaces = wx_extensions.LinkedChoice(person.workplaces, self, wx.NewId())
+    self.Bind(wx.EVT_CHOICE, self.__workplace_changed, self.workplaces)
     preScheduleSizer.Add(self.workplaces, 0, wx.CENTER)
+    
+    self.roles = wx_extensions.LinkedChoice([], self, wx.NewId())
+    self.Bind(wx.EVT_CHOICE, self.__set_permissions_wrapper, self.roles)
+    preScheduleSizer.Add(self.roles, 0, wx.CENTER) 
     
     self.pre_turnuses = []
     for turnus in self.person.allowed_turnuses:
@@ -398,8 +402,10 @@ class DatePermissionsPanel(wx.Panel):
       vacationSizer.Add(self.vacations[-1], 0, wx.ALIGN_LEFT)
           
     
-    #set the initial permissions  
+    # set the initial permissions  
     self.__set_permissions()
+    # set the initial roles
+    self.__workplace_changed(None)
     
     topSizer.Add(turnusSizer, 0, wx.ALIGN_RIGHT)
     topSizer.Add(preScheduleSizer, 0, wx.ALIGN_RIGHT)
@@ -451,12 +457,18 @@ class DatePermissionsPanel(wx.Panel):
     """The event listener for the predefined checkboxes."""
     if event.IsChecked():
       # overwrite any existing schedule
-      self.person.add_predefined(self.date, event.GetEventObject().element, self.workplaces.get_value())
+      self.person.add_predefined(self.date, event.GetEventObject().element, self.workplaces.get_value(), self.roles.get_value())
     else:
       # remove the prescheduled
       self.person.remove_predefined(self.date)
       
     # reload permissions - synchronizes everything
+    self.__set_permissions()
+    
+  def __workplace_changed(self, event):
+    """Event listener for the workplace choice"""
+    
+    self.roles.set_elements(self.workplaces.get_value().roles & self.person.roles[self.workplaces.get_value()])
     self.__set_permissions()
     
   def __set_permissions_wrapper(self, event):
@@ -472,6 +484,9 @@ class DatePermissionsPanel(wx.Panel):
         turnus_checker.Disable()
       for vacation_checker in self.vacations:
         vacation_checker.Disable()
+      self.workplaces.Disable()
+      self.roles.set_elements([])
+      self.roles.Disable()
     else:
       for turnus_checker in self.turnuses:
         if turnus_checker.element in self.person.get_allowed_turnuses():
@@ -507,20 +522,29 @@ class DatePermissionsPanel(wx.Panel):
           vacation_checker.SetValue(False)
           
       # disable / enable the correct turnuses for prescheduling
-      allowed_turnuses = set()
-      for turnus in self.workplaces.get_value().allowed_turnuses & self.person.allowed_turnuses:
-        if not self.person.is_turnus_forbidden(turnus, self.date):
-          allowed_turnuses.add(turnus)
+      roles = self.workplaces.get_value().roles & self.person.roles[self.workplaces.get_value()]
+      if roles:
+        self.roles.Enable()
+        allowed_turnuses = set()
+        for turnus in self.workplaces.get_value().allowed_turnuses & self.person.allowed_turnuses:
+          if not self.person.is_turnus_forbidden(turnus, self.date):
+            allowed_turnuses.add(turnus)
           
-      # set the permissions
-      for turnus_checker in self.pre_turnuses:
-        if turnus_checker.element in allowed_turnuses:
-          turnus_checker.Enable()
-          if self.person.is_predefined(self.date):
-            turnus_checker.SetValue(self.person.predefined[self.date][0] == turnus_checker.element and self.person.predefined[self.date][1] == self.workplaces.get_value())
+        # set the permissions
+        for turnus_checker in self.pre_turnuses:
+          if turnus_checker.element in allowed_turnuses:
+            turnus_checker.Enable()
+            if self.person.is_predefined(self.date):
+              turnus_checker.SetValue(self.person.predefined[self.date][0] == turnus_checker.element and self.person.predefined[self.date][1] == self.workplaces.get_value() and self.person.predefined[self.date][2] == self.roles.get_value())
+            else:
+              turnus_checker.SetValue(False)
           else:
             turnus_checker.SetValue(False)
-        else:
+            turnus_checker.Disable()
+      else:
+        self.roles.Disable()
+        for turnus_checker in self.pre_turnuses:
+          turnus_checker.SetValue (False)
           turnus_checker.Disable()
       
           

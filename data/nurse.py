@@ -183,14 +183,15 @@ class Nurse:
     # removing an un-added role should not be possible
     self.roles[workplace].remove(role)
     
-  def add_predefined(self, date, turnus, workplace):
+  def add_predefined(self, date, turnus, workplace, role):
     """
     Adds a predefined date in the schedule.
       date: the date that will be added
       turnus: the turnus, that will be added
       workplace: the workplace, that will be added
+      role: the role that will be added
     """
-    self.predefined[date] = (turnus, workplace)
+    self.predefined[date] = (turnus, workplace, role)
     
   def remove_predefined(self, date):
     """

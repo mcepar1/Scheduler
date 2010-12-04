@@ -62,35 +62,40 @@ class MonthChoice(wx.Choice):
 
 """
 This class behaves the same way as as a normal wxChoice.
-The only difference is that it handles workplaces 
+The only difference is that it handles elements 
 internally.
 """  
-class WorkplaceChoice(wx.Choice):
-  def __init__(self, workplaces, *args, **kwargs):
-    self.workplaces = sorted(workplaces)
+class LinkedChoice(wx.Choice):
+  def __init__(self, elements, *args, **kwargs):
+    """
+    Same constructor as the wxChoice. The only difference is that it has on additional
+    parameter. It also overrides any existing choices.
+      elements: a list of elements that will be displayed in the choice menu.
+    """
+    self.elements = sorted(elements)
     
-    kwargs['choices'] = [str(workplace) for workplace in self.workplaces]
+    kwargs['choices'] = [str(element) for element in self.elements]
     wx.Choice.__init__(self, *args, **kwargs)
     
-  def set_workplaces(self, workplaces):
+  def set_elements(self, elements):
     """Replaces the old choices with the ones specified in the list"""
-    if workplaces:
-      self.workplaces = workplaces
+    if elements:
+      self.elements = sorted(elements)
       self.Clear ()
-      self.AppendItems ([str(workplace) for workplace in self.workplaces])
+      self.AppendItems ([str(element) for element in self.elements])
       self.Select(0)
     else:
-      self.workplaces = None
+      self.elements = None
       self.Clear()
     
     
     
   def get_value(self):
     """Returns the selected instance of the workspace class"""
-    if self.workplaces:
-      return self.workplaces[self.GetCurrentSelection()]
+    if self.elements:
+      return self.elements[self.GetCurrentSelection()]
     else:
-      raise Exception ('Ni delovisc')
+      raise Exception ('Ni elmentov!')
     
 """
 This class behaves the same way as as a normal wxIntCtrl.
