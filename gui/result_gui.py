@@ -129,10 +129,12 @@ class TreeWarnings(wx.TreeCtrl):
     
     for workplace in sorted(warnings.keys()):
       w_item = self.AppendItem(root, str(workplace))
-      for turnus in sorted(warnings[workplace].keys()):
-        t_item = self.AppendItem(w_item, str(turnus))
-        for date in sorted(warnings[workplace][turnus].keys()):
-          self.AppendItem(t_item, time_conversion.date_to_string(date) + ': ' + warnings[workplace][turnus][date])
+      for role in sorted(warnings[workplace].keys()):
+        r_item = self.AppendItem(w_item, str(role))
+        for turnus in sorted(warnings[workplace][role].keys()):
+          t_item = self.AppendItem(r_item, str(turnus))
+          for date in sorted(warnings[workplace][role][turnus].keys()):
+            self.AppendItem(t_item, time_conversion.date_to_string(date) + ': ' + warnings[workplace][role][turnus][date])
 
     
 """
@@ -274,12 +276,14 @@ class Scheduler(Thread):
     ps = person_scheduler.PersonScheduler(persons, set(static_workers.keys() + date_workers.keys()), date, log=self)
     for workplace in ps.workplaces:
       if workplace in static_workers:
-        for turnus_type in static_workers[workplace]:
-          workplace.set_worker(turnus_type, static_workers[workplace][turnus_type])
+        for role in static_workers[workplace]:
+          for turnus_type in static_workers[workplace][role]:
+            workplace.set_worker(role, turnus_type, static_workers[workplace][role][turnus_type])
       if workplace in date_workers:
-        for date in date_workers[workplace]:
-          for turnus_type in date_workers[workplace][date]:
-            workplace.set_worker(turnus_type, date_workers[workplace][date][turnus_type], date)
+        for role in date_workers[workplace]:
+          for date in date_workers[workplace][role]:
+            for turnus_type in date_workers[workplace][role][date]:
+              workplace.set_worker(role, turnus_type, date_workers[workplace][role][date][turnus_type], date)
             
     return ps
   

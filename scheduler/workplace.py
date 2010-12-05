@@ -8,6 +8,7 @@ class Workplace(data_model.Workplace):
     data_model.Workplace.__init__(self, data_workplace.label, data_workplace.holiday_rule)
     
     self.allowed_turnuses = data_workplace.allowed_turnuses
+    self.roles = data_workplace.roles
     
     self.workers = {}
     self.date_workers = {}
@@ -16,9 +17,11 @@ class Workplace(data_model.Workplace):
     for turnus in self.allowed_turnuses:
       for type in turnus.types:
         allowed_types.add(type)
-        
-    for type in allowed_types:
-      self.workers[type] = 0
+    
+    for role in self.roles:
+      self.workers[role] = {}    
+      for type in allowed_types:
+        self.workers[role][type] = 0
       
   def add_allowed_turnus (self, turnus):
     """
@@ -55,6 +58,9 @@ class Workplace(data_model.Workplace):
             workers always takes priority.
     """
     
+    if role not in self.roles:
+      raise Exception('To delovisce nima izbrane vloge!')
+    
     #discover, if there is a turnus of the specified type
     for turnus in self.allowed_turnuses:
       if turnus_type in turnus.types:
@@ -65,7 +71,9 @@ class Workplace(data_model.Workplace):
             self.date_workers[date][role] = {}
           self.date_workers[date][role][turnus_type] = workers
         else:
-          self.workers[turnus_type] = workers
+          if role not in self.workers:
+            self.workers[role] = {}
+          self.workers[role][turnus_type] = workers
           
         break
     # because date specific adding does not have any filtering, it may try to

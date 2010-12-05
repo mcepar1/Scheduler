@@ -177,6 +177,7 @@ class PersonScheduler:
     for plugin in self.active_plugins:
       plugin.perform_task (overtime=False) 
     
+    """
     #for each date and workplace go through each allowed turnus and add 
     #one employee, until reaching the point, where the overtime is needed
     #or enough workers are working in a turnus
@@ -196,12 +197,12 @@ class PersonScheduler:
     self.log.send_message('Druga faza razvrscanja ...')
     #repeat the process for the part-time employees
     
+    
     #invoke the plugins
     for plugin in self.active_plugins:
       plugin.perform_task (overtime=False)
     
     scheduled = True
-    
     
     while (scheduled):
       #start with workplaces
@@ -213,11 +214,11 @@ class PersonScheduler:
           
     self.log.send_message('Tretja faza razvrscanja ...')
     #finally add all the people, including the ones with the overtime
-    
+    """
     #invoke the plugins
     for plugin in self.active_plugins:
       plugin.perform_task (overtime=True)
-    
+    """
     scheduled = True
     people = set(self.people)
     
@@ -229,6 +230,7 @@ class PersonScheduler:
       for workplace in self.workplaces:
         for date in dates:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=True)
+    """
           
     
     
@@ -247,7 +249,7 @@ class PersonScheduler:
       scheduled[person] = []
       for date in dates:
         temp = person.get_scheduled(date)
-        scheduled[person].append(temp[0] + '-' + temp[1])
+        scheduled[person].append(temp[0] + ' || ' + temp[1] + ' || ' + temp[2])
         
     headers = ['Oseba']
     for date in dates:
@@ -295,8 +297,8 @@ class PersonScheduler:
   def get_workplace_warnings(self):
     """
     Returns workplace warnings.
-      returns: a nested dictionary that maps workplaces to turnuses, turnuses to dates 
-               and dates to warning messages
+      returns: a nested dictionary that maps workplaces to roles, roles to turnuses, 
+               turnuses to dates and dates to warning messages
     """
     
     dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
@@ -307,20 +309,25 @@ class PersonScheduler:
     for workplace in sorted(self.workplaces):
       for date in sorted(dates):
         workers = workplace.get_workers(date)
-        turnus_types = workers.keys()
-        for turnus_type in sorted(turnus_types):
-          needed = workers[turnus_type]
-          scheduled = self.__get_alerady_scheduled_by_type(workplace, [turnus_type], date)[turnus_type]
-          if scheduled < needed or scheduled > needed:
-            if workplace not in temp:
-              temp[workplace] = {}
-            if turnus_type not in temp[workplace]:
-              temp[workplace][turnus_type] = {}
-            
-            if scheduled < needed:
-              temp[workplace][turnus_type][date] = 'Premalo:' + str(needed - scheduled)
-            elif scheduled > needed:
-              temp[workplace][turnus_type][date] = 'Prevec:' + str(scheduled - needed)
+        #turnus_types = workers.keys()
+        roles = workers.keys()
+        for role in sorted(roles):
+          turnus_types = workers[role].keys()
+          for turnus_type in sorted(turnus_types):
+            needed = workers[role][turnus_type]
+            scheduled = self.__get_alerady_scheduled_by_type(workplace, role, [turnus_type], date)[turnus_type]
+            if scheduled < needed or scheduled > needed:
+              if workplace not in temp:
+                temp[workplace] = {}
+              if role not in temp[workplace]:
+                temp[workplace][role] = {}
+              if turnus_type not in temp[workplace][role]:
+                temp[workplace][role][turnus_type] = {}
+              
+              if scheduled < needed:
+                temp[workplace][role][turnus_type][date] = 'Premalo:' + str(needed - scheduled)
+              elif scheduled > needed:
+                temp[workplace][role][turnus_type][date] = 'Prevec:' + str(scheduled - needed)
     
     return temp
         
@@ -635,11 +642,12 @@ class PersonScheduler:
     return False
 
   
-  def __get_alerady_scheduled_by_type(self, workplace, types, date):
+  def __get_alerady_scheduled_by_type(self, workplace, role, types, date):
     """
     Return the number of currently scheduled people for the specific types
     date and workplace
       workplace: is the workplace
+      role: is the role
       types: is the sequence of types
       date: is the date
       return: a dictionary, that maps types to thr number of scheduled turnuses
@@ -652,15 +660,16 @@ class PersonScheduler:
       turnuses = all_turnuses.get_by_type(type, workplace)
       map[type] = 0
       for turnus in turnuses:
-        map[type] += self.__get_already_scheduled(workplace, turnus, date)
+        map[type] += self.__get_already_scheduled(workplace, role, turnus, date)
       
     return map
   
-  def __get_already_scheduled(self, workplace, turnus, date):
+  def __get_already_scheduled(self, workplace, role, turnus, date):
     """
     Returns the number of currently scheduled people, for the specific turnus, 
     date and workplace.
       workplace: is the workplace
+      role: is the role
       turnus: is the turnus
       date: is the date
       return: the number of people
@@ -668,7 +677,7 @@ class PersonScheduler:
     
     number = 0
     for person in self.people:
-      if person.is_scheduled_exact(workplace, turnus, date):
+      if person.is_scheduled_exact(workplace, role, turnus, date):
         number += 1
     
     return number

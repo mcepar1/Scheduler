@@ -97,9 +97,17 @@ class DateDialog(wx.Dialog):
     self.permissions = DatePermissionsPanel(person, self.__get_date(), self, wx.NewId())
     sizer.Add(self.permissions, 0, wx.ALIGN_LEFT)
     
+    self.close = wx.Button(self, wx.ID_CLOSE)
+    self.Bind(wx.EVT_BUTTON, self.__close, self.close)
+    sizer.Add(self.close, 0, wx.ALIGN_RIGHT)
+    
     self.SetSizerAndFit(sizer)
       
     self.permissions.set_unit(self.__get_date())
+    
+  def __close(self, event):
+    """Closes the window."""
+    self.Close()
       
   def __update_date(self, event):
     """Event listener of the calendar object"""
@@ -400,6 +408,7 @@ class DatePermissionsPanel(wx.Panel):
       self.vacations.append(wx_extensions.LinkedCheckBox(vacation, self, wx.NewId(), str(vacation)))
       self.Bind(wx.EVT_CHECKBOX, self.__vacation_edited, self.vacations[-1])
       vacationSizer.Add(self.vacations[-1], 0, wx.ALIGN_LEFT)
+      
           
     
     # set the initial permissions  
@@ -428,6 +437,7 @@ class DatePermissionsPanel(wx.Panel):
       self.date = None
     
     self.__set_permissions()
+    
     
   def __turnus_edited(self, event):
     """The event listener for the turnus checkboxes."""

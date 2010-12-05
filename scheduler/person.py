@@ -19,7 +19,7 @@ class Nurse (nurse.Nurse):
       data_nurse: an instance of the data.nurse.Nurse class
     """
       
-    nurse.Nurse.__init__(self, data_nurse.work_id, data_nurse.name, data_nurse.surname, data_nurse.birthday, data_nurse.titles, data_nurse.employment_type)
+    nurse.Nurse.__init__(self, data_nurse.work_id, data_nurse.name, data_nurse.surname, data_nurse.birthday, data_nurse.titles, data_nurse.roles, data_nurse.employment_type)
     
     self.allowed_turnuses = data_nurse.allowed_turnuses
     self.forbidden_turnuses = data_nurse.forbidden_turnuses
@@ -34,6 +34,8 @@ class Nurse (nurse.Nurse):
     self.scheduled_turnus = {}
     #this field maps a date to the workplace
     self.scheduled_workplace = {}
+    #this field maps a date to the role
+    self.scheduled_role = {}
     
     
     
@@ -51,6 +53,7 @@ class Nurse (nurse.Nurse):
     if self == old_nurse:
       self.scheduled_turnus.update(old_nurse.scheduled_turnus)
       self.scheduled_workplace.update(old_nurse.scheduled_workplace)
+      self.scheduled_role.update(old_nurse.scheduled_role)
       
     else:
       raise Exception('Napaka pri nalaganju prejsnjega meseca.')
@@ -62,9 +65,10 @@ class Nurse (nurse.Nurse):
     """
 
     for date_ in self.__get_affected_dates(date):
-      if date_ not in self.scheduled_turnus and date_ not in self.scheduled_workplace:
+      if date_ not in self.scheduled_turnus and date_ not in self.scheduled_workplace and date_ not in self.scheduled_role:
         self.scheduled_turnus[date_] = ''
         self.scheduled_workplace[date_] = ''
+        self.scheduled_role[date_] = ''
         
   def schedule_constraints(self):
     """Schedules vacations and manually added constraints into the person."""
@@ -73,24 +77,26 @@ class Nurse (nurse.Nurse):
   
         
     
-  def schedule_turnus (self, date, turnus, workplace):
+  def schedule_turnus (self, date, turnus, workplace, role):
     """
     Schedules a new turnus.
       date: is the date of the turnus
       turnus: is the turnus
-      workplace: is the workplace in which the nurse will work  
+      workplace: is the workplace in which the nurse will work
+      role: is the role, that the nurse will assume  
     """
     
     #if new month
-    if date not in self.scheduled_turnus or date not in self.scheduled_workplace:
+    if date not in self.scheduled_turnus or date not in self.scheduled_workplace or date not in self.scheduled_role:
       self.add_month (date)
     
-    if self.scheduled_turnus[date] or self.scheduled_workplace[date]:
+    if self.scheduled_turnus[date] or self.scheduled_workplace[date] or self.scheduled_role[date]:
       raise Exception("Trying to override an already scheduled date")
         
     
     self.scheduled_turnus[date] = turnus
     self.scheduled_workplace[date] = workplace
+    self.scheduled_role[date] = role
     
   def is_blocked(self, date, turnus):
     """
@@ -153,22 +159,23 @@ class Nurse (nurse.Nurse):
       return: true, if scheduled, false otherwise
     """
     
-    if self.scheduled_turnus[date] or self.scheduled_workplace[date]:
+    if self.scheduled_turnus[date] or self.scheduled_workplace[date] or self.scheduled_role[date]:
       return True
     else:
       return False
     
     
-  def is_scheduled_exact(self, workplace, turnus, date):
+  def is_scheduled_exact(self, workplace, role, turnus, date):
     """
     Checks if the combination is scheduled.
-      workplace: is tha workplace that is checked
+      workplace: is the workplace that is checked
+      role: is the role that is checked
       turnus: is the turnus that is checked
-      date: is date for against the turnus and workplaces are checked
+      date: is date for against the turnus, workplace and role are checked
       return: true if they are scheduled, false otherwise
     """
         
-    return self.scheduled_turnus[date] == turnus and self.scheduled_workplace[date] == workplace
+    return self.scheduled_turnus[date] == turnus and self.scheduled_workplace[date] == workplace and self.scheduled_role[date] == role
     
   def schedule_vacation (self, date, vacation):
     """
@@ -186,6 +193,7 @@ class Nurse (nurse.Nurse):
 
     self.scheduled_turnus[date] = vacation
     self.scheduled_workplace[date] = ''
+    self.scheduled_role[date] = ''
     
   def add_free_day(self, date):
     """
@@ -351,18 +359,24 @@ class Nurse (nurse.Nurse):
     
     return self.employment_type.monthly_hours - current_hours
   
-  def get_turnus(self, date, workplace=None):
+  def get_turnus(self, date, workplace=None, role=None):
     """
     Return the turnus at the specified date.
       date: is the date of the desired turnus
       workplace: if this paramter is given, the person must also be
                  scheduled in the correct workplace
+      role: if this parameter is given, the person must also be 
+            scheduled in the correct role
       return: a turnus, if exists, None otherwise
     """
     if isinstance(self.scheduled_turnus[date], turnus.Turnus):
-      if workplace and self.scheduled_workplace[date] == workplace:
+      if workplace and role and self.scheduled_workplace[date] == workplace and self.scheduled_role[date] == role:
         return self.scheduled_turnus[date]
-      elif not workplace:
+      elif not workplace and role and self.scheduled_role[date] == role:
+        return self.scheduled_turnus[date]
+      elif not role and workplace and self.scheduled_workplace[date] == workplace:
+        return self.scheduled_turnus[date]
+      elif not role and not workplace:
         return self.scheduled_turnus[date]
       else:
         return None
@@ -372,8 +386,8 @@ class Nurse (nurse.Nurse):
   def get_scheduled(self, date):
     """
     Returns a tuple, that represents the scheduled object.
-      return: a 2-tuple of strings, the first string is the turnus/vacation, the second
-              is the workplace
+      return: a 3-tuple of strings, the first string is the turnus/vacation, the second
+              is the workplace, the third is the role
     """
     
     if date not in self.scheduled_turnus or date not in self.scheduled_workplace:
@@ -381,11 +395,11 @@ class Nurse (nurse.Nurse):
     else:
       if self.scheduled_turnus[date]:
         if self.scheduled_turnus[date] == FREE_DAY_SIGN:
-          return ('', str(self.scheduled_workplace[date]))
+          return ('', str(self.scheduled_workplace[date]), str(self.scheduled_role[date]))
         else:
-          return (str(self.scheduled_turnus[date]), str(self.scheduled_workplace[date]))
+          return (str(self.scheduled_turnus[date]), str(self.scheduled_workplace[date]), str(self.scheduled_role[date]))
       else:
-        return (str(self.scheduled_turnus[date]), str(self.scheduled_workplace[date]))
+        return (str(self.scheduled_turnus[date]), str(self.scheduled_workplace[date]), str(self.scheduled_role[date]))
       
   def get_scheduled_dates(self):
     """
@@ -393,10 +407,11 @@ class Nurse (nurse.Nurse):
     """
     turnus_dates = self.scheduled_turnus.keys()
     workplace_dates = self.scheduled_workplace.keys()
+    role_dates = self.scheduled_role.keys()
     
-    dates = set(turnus_dates) & set(workplace_dates)
+    dates = set(turnus_dates) & set(workplace_dates) & set(role_dates)
     
-    if len(dates) != len(turnus_dates) or len(dates) != len(workplace_dates):
+    if len(dates) != len(turnus_dates) or len(dates) != len(workplace_dates) or len(dates) != len(role_dates):
       raise Exception ('Oseba ima napacno razvrscene turnuse ali delovisca.')
     
     return sorted(dates)
@@ -407,11 +422,12 @@ class Nurse (nurse.Nurse):
       date: the date that will be deleted
     """ 
     
-    if date not in self.scheduled_turnus or date not in self.scheduled_workplace:
+    if date not in self.scheduled_turnus or date not in self.scheduled_workplace or date not in self.scheduled_role:
       raise Exception ('Datuma ni bilo mogoce odstraniti.')
     
     del self.scheduled_turnus[date]
     del self.scheduled_workplace[date]
+    del self.scheduled_role[date]
     
   def clear_date(self, date):
     """
@@ -419,11 +435,12 @@ class Nurse (nurse.Nurse):
       date: the date that will be cleared
     """
     
-    if date not in self.scheduled_turnus or date not in self.scheduled_workplace:
+    if date not in self.scheduled_turnus or date not in self.scheduled_workplace or date not in self.scheduled_role:
       raise Exception ('Datuma ni bilo mogoce odstraniti.')
     
     self.scheduled_turnus[date] = ''
     self.scheduled_workplace[date] = ''
+    self.scheduled_role[date] = ''
     
     
     
@@ -481,7 +498,7 @@ class Nurse (nurse.Nurse):
       except one turnus per day.."""
     
     for date in self.predefined:
-      self.schedule_turnus(date, self.predefined[date][0], self.predefined[date][1])
+      self.schedule_turnus(date, self.predefined[date][0], self.predefined[date][1], self.predefined[date][2])
       
       
 class Doctor (doctor.Doctor):
