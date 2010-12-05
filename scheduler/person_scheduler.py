@@ -131,6 +131,15 @@ class PersonScheduler:
         if turnus not in self.turnus_people:
           self.turnus_people[turnus] = set()
         self.turnus_people[turnus].add(person)
+        
+    # maps roles to people    
+    self.role_people = {}
+    for person in self.people:
+      for workplace in person.roles:
+        for role in person.roles[workplace]:
+          if role not in self.role_people:
+            self.role_people[role] = set()
+          self.role_people[role].add (person)
      
     # no auto execution, when inputing raw_data
     self.active_plugins = []
@@ -177,7 +186,7 @@ class PersonScheduler:
     for plugin in self.active_plugins:
       plugin.perform_task (overtime=False) 
     
-    """
+    
     #for each date and workplace go through each allowed turnus and add 
     #one employee, until reaching the point, where the overtime is needed
     #or enough workers are working in a turnus
@@ -214,11 +223,11 @@ class PersonScheduler:
           
     self.log.send_message('Tretja faza razvrscanja ...')
     #finally add all the people, including the ones with the overtime
-    """
+    
     #invoke the plugins
     for plugin in self.active_plugins:
       plugin.perform_task (overtime=True)
-    """
+    
     scheduled = True
     people = set(self.people)
     
@@ -230,7 +239,7 @@ class PersonScheduler:
       for workplace in self.workplaces:
         for date in dates:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=True)
-    """
+    
           
     
     
@@ -266,8 +275,9 @@ class PersonScheduler:
   
   def get_workplace_matrix(self):
     """
-    Returns a dictionary, that maps workplaces to a schedule matrix, that contains only persons
-    and turnuses, that were scheduled into this workplace.
+    Returns a dictionary, that maps workplaces to roles and roles to a schedule matrix, 
+    that contains only persons and turnuses, that were scheduled into this role - 
+    workplace pair.
     """
     map = {}
     dates = sorted([datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()])
@@ -277,18 +287,25 @@ class PersonScheduler:
       headers.append(time_conversion.date_to_string(date))
     
     for workplace in self.workplaces:
-      map[workplace] = [headers] 
-      people = self.workplace_people[workplace]
-      
-      for person in people:
-        person_schedule = [str(person)]
-        for date in dates:
-            turnus = person.get_turnus(date, workplace)
-            if turnus:
-              person_schedule.append(turnus.code[0])
-            else:
-              person_schedule.append('')
-        map[workplace].append(person_schedule)
+      map[workplace] = {}
+      for role in workplace.roles:
+        
+        map[workplace][role] = [headers] 
+        people = []
+        if role in self.role_people and workplace in self.workplace_people:
+          for person in self.workplace_people[workplace] & self.role_people[role]:
+            if workplace in person.roles and role in person.roles[workplace]:
+              people.append(person)
+        
+        for person in people:
+          person_schedule = [str(person)]
+          for date in dates:
+              turnus = person.get_turnus(date, workplace, role)
+              if turnus:
+                person_schedule.append(turnus.code[0])
+              else:
+                person_schedule.append('')
+          map[workplace][role].append(person_schedule)
     
     return map
             
@@ -359,7 +376,7 @@ class PersonScheduler:
     
   def __schedule_workplace(self, workplace, date, people=[], overtime=False):
     """
-    Schedules a single person into each allowed workplace's turnus.
+    Schedules a single person into each allowed workplace's roles and turnuses.
       workplace: the workplace, that will be scheduled
       date: the date for which the scheduling will occur
       people: a collection of people to chose form, default value is an empty list
@@ -368,11 +385,29 @@ class PersonScheduler:
     """
     
     workers = workplace.get_workers(date)
-    pass
     
+    roles = list(workers.keys())
+    random.shuffle(roles)
     
-  
-  def __schedule_role(self, workplace, role, date, people = [], overtime=False):
+    scheduled = False
+    for role in roles:
+      if self.__schedule_role(workplace, role, date, workers[role], people, overtime):
+        scheduled = True
+        
+    return scheduled
+    
+  def __schedule_role(self, workplace, role, date, workers, people=[], overtime=False):
+    """
+    Schedules a single person into the workplace - role pair.
+      workplace: is the workplace
+      role: is the role
+      date:is the date
+      workers: are role specific workers
+      people: a list of people to choose from, default value is an empty list
+      overtime: allow scheduling people with overtime, default value is false
+      return: false, if no person was scheduled, true if at least one person was scheduled
+    """
+
     turnuses = []
     for type in workers.keys():
       turnuses += list(all_turnuses.get_by_type(type, workplace))
@@ -383,11 +418,11 @@ class PersonScheduler:
     scheduled = False
     for turnus in turnuses:
       #if there are enough workers, schedule none
-      if self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, turnus.types, date), workers):
-        heuritsitc_people = self.__get_heuristic_sorted_people(people & self.workplace_people[workplace] & self.turnus_people[turnus] , date)
+      if self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, role, turnus.types, date), workers):
+        heuritsitc_people = self.__get_heuristic_sorted_people(people & self.workplace_people[workplace] & self.turnus_people[turnus] & self.role_people[role] , date)
         while (len(heuritsitc_people) > 0):
           person = heuritsitc_people.pop(0)
-          if self.__schedule_person(workplace, turnus, date, person, overtime):
+          if self.__schedule_person(workplace, role, turnus, date, person, overtime):
             scheduled = scheduled | True
             break
           else:
@@ -396,11 +431,13 @@ class PersonScheduler:
         scheduled = scheduled | False
         
     return scheduled
+    
       
-  def __schedule_person(self, workplace, turnus, date, person, overtime):
+  def __schedule_person(self, workplace, role, turnus, date, person, overtime):
     """
     Tries to schedule the person.
       workplace: is the workplace, that we want scheduled
+      role: is the role, that we want scheduled
       turnus: is the turnus, that we want scheduled
       date: is the turnus, that we want scheduled
       person: is the person, that we want scheduled
@@ -408,13 +445,13 @@ class PersonScheduler:
       return: true: if the person was scheduled, false otherwise
     """
     
-    if self.__is_valid_move(workplace, turnus, date, person, overtime):
-      person.schedule_turnus (date, turnus, workplace)
+    if self.__is_valid_move(workplace, role, turnus, date, person, overtime):
+      person.schedule_turnus (date, turnus, workplace, role)
       # the is valid move has taken care of any potential violations, so that you
       # can just schedule turnuses
       if person.packet_night_turnuses and turnus.code[0] == 'N':
         next_date = date + datetime.timedelta(days=1)
-        person.schedule_turnus (next_date, turnus, workplace)
+        person.schedule_turnus (next_date, turnus, workplace, role)
         #if it is Saturday, schedule one more
         if next_date.weekday() == 5:
           next_date += datetime.timedelta(days=1)
@@ -426,7 +463,7 @@ class PersonScheduler:
               break
           else:
             raise Exception ('Napaka pri dodajanju osebe z zdruzenimi nocnimi turnusi.')
-          person.schedule_turnus(next_date, night_turnus, workplace)
+          person.schedule_turnus(next_date, night_turnus, workplace, role)
             
       
       if holiday.is_workfree(date):
@@ -436,10 +473,11 @@ class PersonScheduler:
       return False
       
 
-  def __is_valid_move(self, workplace, turnus, date, person, overtime, depth=0, check_turnuses=[]):
+  def __is_valid_move(self, workplace, role, turnus, date, person, overtime, depth=0, check_turnuses=[]):
     """
     Checks, if the person is allowed to work, on the combination of attributes.
       workplace: is the workplace checked
+      role: is the role checked
       turnus: is the turnus checked
       date: is the date checked
       person: is the person checked
@@ -464,6 +502,10 @@ class PersonScheduler:
     
     #block the workfree night turnus, if the day is not workfree
     if turnus.holiday and turnus.code[0] == 'N' and not holiday.is_workfree(date):
+      return False
+    
+    #check the role
+    if role not in workplace.roles or workplace not in person.roles or role not in person.roles[workplace]:
       return False
     
     #also check the people's employment type
@@ -530,7 +572,7 @@ class PersonScheduler:
     #  (Friday + Saturday + Sunday)
     if person.packet_night_turnuses and turnus.code[0] == 'N':
       if depth == 0 and (date.weekday() == 0 or date.weekday() == 2 or date.weekday() == 4):
-        return self.__is_valid_move(workplace, turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
+        return self.__is_valid_move(workplace, role, turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
       #if this is the second day in the packet continue validation only if it is a Saturday
       elif depth == 1 and date.weekday() == 5:
         # TODO: allow only one holiday turnus per shift type (document this)
@@ -542,7 +584,7 @@ class PersonScheduler:
         else:
           return False
         
-        return self.__is_valid_move(workplace, sunday_night_turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
+        return self.__is_valid_move(workplace, role, sunday_night_turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
       #Thursday to Friday combination does not exist
       elif depth == 1 and date.weekday() == 4:
         return False
