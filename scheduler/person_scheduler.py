@@ -30,6 +30,11 @@ The order is important!
 """    
 PLUG_INS = [plugins.PreSchedulerPlugin, plugins.HolidayRulePlugin]
 
+"""
+Contains the plug-ins, that are used after the scheduling phase.
+"""
+CLEAN_UP = [plugins.FillHours]
+
 class PersonScheduler:
   FILES_DIR = os.path.join("persistence", "scheduler")
   DOCTOR_DIR = 'doctors'
@@ -143,9 +148,13 @@ class PersonScheduler:
      
     # no auto execution, when inputing raw_data
     self.active_plugins = []
+    self.clean_up_plugins = []
     if not input_raw:    
       for plug_in in PLUG_INS:
         self.active_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.turnuses, self.date, self.log))
+      for plug_in in CLEAN_UP:
+        self.clean_up_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.turnuses, self.date, self.log))
+    
         
       
       
@@ -173,6 +182,7 @@ class PersonScheduler:
           
 
   def schedule(self):
+    """
     dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
     
     
@@ -241,9 +251,10 @@ class PersonScheduler:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=True)
     
           
-    
-    
-          
+    """
+    self.log.send_message('Zadnja faza razvrscanja ...')
+    for plugin in self.clean_up_plugins:
+      plugin.perform_task (overtime=True)      
     #self.print_human_readable_output()
     
   def get_schedule_matrix(self):

@@ -19,7 +19,7 @@ class MainWindow(wx.Frame):
   PARENT = None
 
   def __init__(self):
-    wx.Frame.__init__(self, MainWindow.PARENT, title = MainWindow.TITLE)
+    wx.Frame.__init__(self, MainWindow.PARENT, title = MainWindow.TITLE, style = wx.DEFAULT_FRAME_STYLE)
     
     self.sizer = wx.BoxSizer(wx.VERTICAL)
     
