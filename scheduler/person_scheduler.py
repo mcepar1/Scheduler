@@ -182,7 +182,6 @@ class PersonScheduler:
           
 
   def schedule(self):
-    """
     dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
     
     
@@ -251,7 +250,7 @@ class PersonScheduler:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=True)
     
           
-    """
+    
     self.log.send_message('Zadnja faza razvrscanja ...')
     for plugin in self.clean_up_plugins:
       plugin.perform_task (overtime=True)      
@@ -458,6 +457,13 @@ class PersonScheduler:
     
     if self.__is_valid_move(workplace, role, turnus, date, person, overtime):
       person.schedule_turnus (date, turnus, workplace, role)
+      
+      #block the previous and next days, if it was the night turnus
+      if turnus.code[0] == 'N' and not person.is_blocked(date - datetime.timedelta(days=1), turnus):
+        person.add_invalid_turnus(date - datetime.timedelta(days=1), turnus)
+        person.add_invalid_turnus(date + datetime.timedelta(days=1), turnus)
+        
+      
       # the is valid move has taken care of any potential violations, so that you
       # can just schedule turnuses
       if person.packet_night_turnuses and turnus.code[0] == 'N':
@@ -475,7 +481,11 @@ class PersonScheduler:
           else:
             raise Exception ('Napaka pri dodajanju osebe z zdruzenimi nocnimi turnusi.')
           person.schedule_turnus(next_date, night_turnus, workplace, role)
-            
+          if turnus.code[0] == 'N' and not person.is_blocked(next_date + datetime.timedelta(days=1), turnus):
+            person.add_invalid_turnus(next_date + datetime.timedelta(days=1), turnus)
+        else:
+          if turnus.code[0] == 'N' and not person.is_blocked(next_date + datetime.timedelta(days=1), turnus):
+            person.add_invalid_turnus(next_date + datetime.timedelta(days=1), turnus)
       
       if holiday.is_workfree(date):
         self.__add_free_day(person, date)

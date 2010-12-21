@@ -119,7 +119,8 @@ class Nurse:
       turnus: is the invalid turnus
     """
     
-    self.forbidden_turnuses[date].remove(turnus)
+    if date in self.forbidden_turnuses:
+      self.forbidden_turnuses[date].remove(turnus)
       
     if date in self.vacations:
       del self.vacations[date]

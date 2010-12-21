@@ -207,6 +207,8 @@ class HolidayRulePlugin:
                 for person in heuristic_people:
                   if self.__is_valid_move_preschedule_packet(workplace, role, pre_holiday_night_turnus, date_pack[0], person, overtime):
                     person.schedule_turnus(date_pack[0], pre_holiday_night_turnus, workplace, role)
+                    if not person.is_blocked (date_pack[0] - datetime.timedelta(days=1), pre_holiday_night_turnus):
+                      person.add_invalid_turnus(date_pack[0] - datetime.timedelta(days=1),pre_holiday_night_turnus)
                     
                     if self.__is_valid_move_preschedule_packet(workplace, role, pre_holiday_night_turnus, date_pack[1], person, overtime):
                       person.schedule_turnus(date_pack[1], pre_holiday_night_turnus, workplace, role)
@@ -214,14 +216,20 @@ class HolidayRulePlugin:
                       if self.__is_valid_move_preschedule_packet(workplace, role, holiday_night_turnus, date_pack[2], person, overtime):
                         person.schedule_turnus(date_pack[2], holiday_night_turnus, workplace, role)
                         scheduled = True
+                        
+                        if not person.is_blocked (date_pack[2] + datetime.timedelta(days=1), pre_holiday_night_turnus):
+                          person.add_invalid_turnus(date_pack[2] + datetime.timedelta(days=1),pre_holiday_night_turnus)
                         break
                         
                       else:
                         person.clear_date(date_pack[0])
                         person.clear_date(date_pack[1])
+                        
+                        person.remove_invalid_turnus(date_pack[2] + datetime.timedelta(days=1),pre_holiday_night_turnus)
                       
                     else:
                       person.clear_date(date_pack[0])
+                      person.remove_invalid_turnus(date_pack[0] - datetime.timedelta(days=1),pre_holiday_night_turnus)
         
       
       

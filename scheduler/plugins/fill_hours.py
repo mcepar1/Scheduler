@@ -49,6 +49,12 @@ class FillHours:
           for turnus in self.__get_possible_turnuses(workplace, role, date, person):
             if self.__is_valid_move(workplace, role, turnus, date, person, True):
               person.schedule_turnus (date, turnus, workplace, role)
+              
+              #block the previous day, if it was the night turnus
+              prev_date = date - datetime.timedelta(days=1)
+              if turnus.code[0] == 'N' and not person.is_blocked(prev_date, turnus):
+                person.add_invalid_turnus(prev_date, turnus)
+                
               # the is valid move has taken care of any potential violations, so that you
               # can just schedule turnuses
               if person.packet_night_turnuses and turnus.code[0] == 'N':
@@ -66,7 +72,11 @@ class FillHours:
                   else:
                     raise Exception ('Napaka pri dodajanju osebe z zdruzenimi nocnimi turnusi.')
                   person.schedule_turnus(next_date, night_turnus, workplace, role)
-                    
+                  if turnus.code[0] == 'N' and not person.is_blocked(next_date + datetime.timedelta(days=1), turnus):
+                    person.add_invalid_turnus(next_date + datetime.timedelta(days=1), turnus)
+                else:
+                  if turnus.code[0] == 'N' and not person.is_blocked(next_date + datetime.timedelta(days=1), turnus):
+                    person.add_invalid_turnus(next_date + datetime.timedelta(days=1), turnus)        
               
               if holiday.is_workfree(date):
                 self.__add_free_day(person, date)
