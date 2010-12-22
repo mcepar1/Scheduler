@@ -1,3 +1,4 @@
 from prescheduler import PreSchedulerPlugin
 from holidayrule import HolidayRulePlugin
 from fill_hours import FillHours
+from week_morning import WeekMorning

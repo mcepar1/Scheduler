@@ -26,6 +26,7 @@ class Nurse (nurse.Nurse):
     self.vacations = data_nurse.vacations
     self.workplaces = data_nurse.workplaces
     self.predefined = data_nurse.predefined
+    self.week_morning = data_nurse.week_morning
     
     # tells if the night turnuses are scheduled in packages
     self.packet_night_turnuses = data_nurse.packet_night_turnuses

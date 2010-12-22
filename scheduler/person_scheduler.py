@@ -33,7 +33,7 @@ PLUG_INS = [plugins.PreSchedulerPlugin, plugins.HolidayRulePlugin]
 """
 Contains the plug-ins, that are used after the scheduling phase.
 """
-CLEAN_UP = [plugins.FillHours]
+CLEAN_UP = [plugins.WeekMorning]#[plugins.FillHours]
 
 class PersonScheduler:
   FILES_DIR = os.path.join("persistence", "scheduler")
@@ -182,7 +182,7 @@ class PersonScheduler:
           
 
   def schedule(self):
-    dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
+    """dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
     
     
     no_ovetime_people = set()
@@ -250,7 +250,7 @@ class PersonScheduler:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=True)
     
           
-    
+    """
     self.log.send_message('Zadnja faza razvrscanja ...')
     for plugin in self.clean_up_plugins:
       plugin.perform_task (overtime=True)      

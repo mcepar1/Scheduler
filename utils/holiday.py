@@ -59,3 +59,12 @@ def is_workfree(date):
   
   return date.weekday() == 6 or is_holiday(date)
 
+def is_weekend(date):
+  """
+  Checks if the date is in a weekend.
+    date: an instance of the datetime.date class
+    return: true, if the date is in a weekend, false otherwise
+  """
+  
+  return date.weekday() == 5 or date.weekday() == 6
+

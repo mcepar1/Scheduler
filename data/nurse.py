@@ -41,6 +41,9 @@ class Nurse:
     # tells if the night turnuses are scheduled in packages
     self.packet_night_turnuses = False
     
+    # tells if the nurse only works in weekedays and morning shifts
+    self.week_morning = False
+    
     # this field should never be changed directly
     # use set_employment_type instead
     if employment_type:

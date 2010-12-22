@@ -160,6 +160,10 @@ class PermissionsPanel(wx.Panel):
     self.Bind(wx.EVT_CHECKBOX, self.__packet_night_turnuses, self.packet_night_turnuses)
     specialCaseSizer.Add(self.packet_night_turnuses, 0, wx.ALIGN_LEFT)
     
+    self.week_morning = wx.CheckBox(self,wx.NewId(), label = 'Dela samo med tednom dopoldne')
+    self.Bind(wx.EVT_CHECKBOX, self.__week_morning, self.week_morning)
+    specialCaseSizer.Add(self.week_morning, 0, wx.ALIGN_LEFT)
+    
     self.roles = RolePanel (self, wx.NewId())
         
     #set the initial permissions  
@@ -230,6 +234,12 @@ class PermissionsPanel(wx.Panel):
   def __packet_night_turnuses(self, event):
     """The event listener for the packet night turnuses check box"""
     self.person.packet_night_turnuses = event.IsChecked()
+    self.__set_permissions()
+    
+  def __week_morning(self, event):
+    """The event listener for the moring weekaday check box"""
+    self.person.week_morning = event.IsChecked() 
+    self.__set_permissions()
     
     
   def __set_permissions(self):
@@ -244,6 +254,7 @@ class PermissionsPanel(wx.Panel):
       for title_checker in self.titles:
         title_checker.Disable()
       self.packet_night_turnuses.Disable()
+      self.week_morning.Disable()
     else:
       for turnus_checker in self.turnuses:
         turnus_checker.Enable()
@@ -256,6 +267,9 @@ class PermissionsPanel(wx.Panel):
         
       self.packet_night_turnuses.Enable()
       self.packet_night_turnuses.SetValue(self.person.packet_night_turnuses)
+      
+      self.week_morning.Enable()
+      self.week_morning.SetValue(self.person.week_morning)
         
       # select correct turnus permissons
       for turnus_checker in self.turnuses:
