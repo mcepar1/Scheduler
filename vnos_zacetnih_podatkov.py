@@ -11,13 +11,12 @@ import data.input
 
 
 def parse():
-  error_ret = (False, False, False, False, False, False, False, False, False, True)
+  error_ret = (False, False, False, False, False, False, False, False, True)
   
   try:
-    options, _ = getopt.gnu_getopt(sys.argv[1:], 'szptdevnarl', ['medicinske_sestre', 'zdravniki', 'pomoc', 'turnusi', 'dopusti', 'delovisca', 'zaposlitve', 'nazivi', 'vsi', 'vrste_turnusov', 'vloge'])
+    options, _ = getopt.gnu_getopt(sys.argv[1:], 'sptdevnarl', ['medicinske_sestre', 'pomoc', 'turnusi', 'dopusti', 'delovisca', 'zaposlitve', 'nazivi', 'vsi', 'vrste_turnusov', 'vloge'])
     
     insert_nurses = False
-    insert_doctors = False
     insert_turnuses = False
     insert_vacations = False
     insert_workplaces = False
@@ -34,8 +33,6 @@ def parse():
     for option, _ in options:
       if option in ('-s', '--medicinske_sestre'):
         insert_nurses = True
-      if option in ('-z', '--zdravniki'):
-        insert_doctors = True
       if option in ('-t', '--turnusi'):
         insert_turnuses = True
       if option in ('-p', '--pomoc'):
@@ -54,7 +51,6 @@ def parse():
         insert_roles = True
       if option in ('-a', '--vsi'):
         insert_nurses = True
-        insert_doctors = True
         insert_turnuses = True
         insert_vacations = True
         insert_workplaces = True
@@ -62,14 +58,14 @@ def parse():
         insert_titles = True
         insert_turnus_types = True
         print_help = False
-    return insert_doctors, insert_nurses, insert_turnuses, insert_vacations, insert_workplaces, insert_employment_types, insert_titles, insert_turnus_types, insert_roles, print_help
+    return insert_nurses, insert_turnuses, insert_vacations, insert_workplaces, insert_employment_types, insert_titles, insert_turnus_types, insert_roles, print_help
       
   except getopt.GetoptError:
     print 'Podali ste napacne parametre.\n'
   
   return error_ret
 
-def load_inports(insert_doctors=False, insert_nurses=False, insert_turnuses=False, insert_vacations=False, insert_workplaces=False, insert_employment_types=False, insert_titles=False, insert_turnus_types=False, insert_roles=False, print_help=True):
+def load_inports(insert_nurses=False, insert_turnuses=False, insert_vacations=False, insert_workplaces=False, insert_employment_types=False, insert_titles=False, insert_turnus_types=False, insert_roles=False, print_help=True):
   
   if print_help:
     help()
@@ -99,8 +95,6 @@ def load_inports(insert_doctors=False, insert_nurses=False, insert_turnuses=Fals
     if insert_nurses:
       data.input.input_nurses()
     
-    if insert_doctors:
-      data.input.input_doctors()
   except IOError as e:
     print '\n\nManjka datoteka: ' + str(e.filename)
 
@@ -111,8 +105,6 @@ def help():
   Parametri:
     -s ali --medicinske_sestre:
       izbrise obstojece medicinske sestre in vnese nove
-    -z ali --zdravniki:
-      izbrise obstojece zdravnike in vnese nove
     -t ali --turnusi:
       izbrise obstojece turnuse in vnese nove
     -d ali --dopusti:

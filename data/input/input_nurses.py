@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 from data.nurse import Nurse, NurseContainer
 from utils import time_conversion

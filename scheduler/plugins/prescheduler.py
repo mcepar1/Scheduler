@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 import calendar
 import datetime
 import random

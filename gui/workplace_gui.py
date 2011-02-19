@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 import wx
 import wx_extensions
-from global_vars import workplaces, turnuses, roles, nurses, doctors
+from global_vars import workplaces, turnuses, roles, nurses
 
 class WorkplacePanel(wx.Panel):
   

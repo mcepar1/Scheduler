@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 import wx
 from global_vars import employment_types

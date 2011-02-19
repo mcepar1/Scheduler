@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 import wx
 import wx_extensions
 import result_gui
 
-from global_vars import employment_types, workplaces, turnuses, nurses, doctors, turnus_types,roles
+from global_vars import employment_types, workplaces, turnuses, nurses, turnus_types,roles
 from data import employment_type
 from scheduler import person_scheduler
 

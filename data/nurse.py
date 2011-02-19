@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 import cPickle as pickle
 import os
@@ -7,7 +7,7 @@ from utils import time_conversion
 
 class Nurse:
 
-  HEADERS = ["MAT. STEV.", "IME", "PRIIMEK", "ROJSTNI DAN"]
+  HEADERS = ["MAT. ŠTEV.", "IME", "PRIIMEK", "ROJSTNI DAN"]
 
   def __init__(self, work_id, name, surname, birthday, titles=None, roles=None, employment_type=None, workplaces=None):
     """
@@ -16,7 +16,8 @@ class Nurse:
       name: is the nurse's name
       surname: is the nurse's surname
       birthday: is the nurse's birthday
-      titles: is a set of all the nurse's titles
+      titles: is a list of two lists. The first list contains the prefix titles, the second list contains suffix
+              titles. Both are ordered.
       roles: is dictionary that maps workplaces a set of roles that the has at the
              workplace
       employment_type: is the employment type of the nurse
@@ -31,7 +32,7 @@ class Nurse:
     if titles:
       self.titles = titles
     else:
-      self.titles = set()
+      self.titles = [[],[]]
       
     if roles:
       self.roles = roles

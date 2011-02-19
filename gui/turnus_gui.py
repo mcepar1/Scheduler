@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 import wx
 import wx.grid
 import wx_extensions
 
-from global_vars import turnuses, turnus_types, nurses, doctors
+from global_vars import turnuses, turnus_types, nurses
 
 class TurnusPanel(wx.Panel):
   def __init__(self, parent):

@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
+
 """This script contaions methods that ease the conversion beetween the time and string objects"""
 
 import datetime
@@ -15,7 +16,8 @@ def string_to_time(string):
   try:
     date = datetime.datetime.strptime(string, TIME_FORMAT)
     return datetime.time(hour=date.hour, minute=date.minute)
-  except Exception:
+  except Exception as e:
+    print e
     raise Exception(u"Cas mora biti oblike " + TIME_FORMAT + ". Ura je lahko 0-23, minute pa 0-59")
 
 def date_to_string (date):

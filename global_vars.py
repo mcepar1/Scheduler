@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 """
 This script contains global variables, that are accessed throughout the whole GUI.
@@ -29,7 +29,7 @@ titles = title.load ()
 nurses = nurse.load ()
 
 # init the doctors
-doctors = doctor.load ()
+# doctors = doctor.load ()
 
 # init the roles
 roles = role.load()
@@ -41,7 +41,7 @@ def save():
   turnuses.save()
   vacations.save()
   nurses.save()
-  doctors.save()
+  #doctors.save()
   workplaces.save()
   employment_types.save()
   titles.save()

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 import wx
 
@@ -6,7 +6,7 @@ from scheduler_gui import SchedulerPanel
 from turnus_gui import TurnusPanel
 from vacation_gui import VacationPanel
 from nurse_gui import NursePanel
-from doctor_gui import DoctorPanel
+#from doctor_gui import DoctorPanel
 from workplace_gui import WorkplacePanel
 from employment_type_gui import EmploymentTypePanel
 from title_gui import TitlePanel
@@ -26,11 +26,11 @@ class MainWindow(wx.Frame):
     notebook = wx.Notebook(self)
     notebook.AddPage(SchedulerPanel(notebook), "Urnik")
     notebook.AddPage(NursePanel(notebook), "Medicinske sestre")
-    notebook.AddPage(DoctorPanel(notebook), "Zdravniki")
+    #notebook.AddPage(DoctorPanel(notebook), "Zdravniki")
     notebook.AddPage(EmploymentTypePanel(notebook), "Vrste zaposlitve")
     notebook.AddPage(TurnusPanel(notebook), "Turnusi")
     notebook.AddPage(VacationPanel(notebook), "Dopusti")
-    notebook.AddPage(WorkplacePanel(notebook), "Delovisca")
+    notebook.AddPage(WorkplacePanel(notebook), "Delovišèa")
     notebook.AddPage(TitlePanel(notebook), "Nazivi")
     notebook.AddPage(TurnusTypePanel(notebook), "Vrste turnusov")
     notebook.AddPage(RolePanel(notebook), 'Vloge')

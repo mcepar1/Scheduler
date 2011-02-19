@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 from data.workplace import Workplace, WorkplaceContainer
 

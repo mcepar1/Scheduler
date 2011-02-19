@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
+
 from data import nurse, doctor
 
 from scheduler import person as person_module

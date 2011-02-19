@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 import cPickle as pickle
 import os
 
 class Turnus:
   
-  HEADERS = ["OZNAKA", "TIP DELA", "ZACETEK", "KONEC", "TRAJANJE", "BLOKADA", "NA PROST DAN"]
+  HEADERS = ["OZNAKA", "TIP DELA", "ZAÈETEK", "KONEC", "TRAJANJE", "BLOKADA", "NA PROST DAN"]
   
   def __init__(self, code, label, start, end, duration, blockade, holiday, types=None):
     """

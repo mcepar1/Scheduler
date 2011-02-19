@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
+
 from global_vars import employment_types, workplaces
 from scheduler import person_scheduler
 from utils import time_conversion, exporter

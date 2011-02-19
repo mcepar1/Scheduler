@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 from data.turnus_type import TurnusType
 from utils import holiday, time_conversion
 

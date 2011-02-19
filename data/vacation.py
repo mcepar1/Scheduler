@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 import datetime
 import cPickle as pickle
@@ -6,7 +6,7 @@ import os
 
 class Vacation:
   
-  HEADERS = ["OZNAKA", "VRSTA DOPUSTA", "OBRACUNAN CAS"]
+  HEADERS = ["OZNAKA", "VRSTA DOPUSTA", "OBRAÈUNAN ÈAS"]
   
   def __init__(self, code, label, duration):
     """

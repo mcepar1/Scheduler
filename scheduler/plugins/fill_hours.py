@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
+
 from global_vars import turnuses
 from utils import holiday, time_conversion
 

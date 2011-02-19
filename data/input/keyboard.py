@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
+
 from utils import time_conversion
 from global_vars import turnuses, workplaces
 

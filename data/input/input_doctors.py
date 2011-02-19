@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 from data.doctor import Doctor, DoctorContainer
 from utils import time_conversion

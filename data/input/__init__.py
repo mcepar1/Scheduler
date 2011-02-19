@@ -1,4 +1,3 @@
-import input_doctors as idoctors
 import input_nurses as inurses
 import input_turnuses as iturnuses
 import input_vacations as ivacations
@@ -8,8 +7,8 @@ import input_titles as ititles
 import input_turnus_types as iturnus_types
 import input_roles as iroles
 
-def input_doctors():
-  idoctors.input_doctors()
+#def input_doctors():
+#  idoctors.input_doctors()
   
 def input_nurses():
   inurses.input_nurses()

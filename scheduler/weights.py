@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: Cp1250 -*-
 
 MONTH_HOURS = 1
 WEEK_HOURS  = 1
