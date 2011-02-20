@@ -170,14 +170,23 @@ class Nurse:
       if self.predefined[date][1] == workplace:
         self.remove_predefined(date)
 
-  def add_title(self, title):
-    """Adds a title to the nurse."""
-    self.titles.add(title)
+  def get_titles(self):
+    """
+    Returns two lists. The first is an ordered list of prefix titles, the second is an ordered list of suffix
+    titles.
+    return: two lists
+    """
     
-  def remove_title(self, title):
-    """Removes a title from the nurse."""
-    # removing an un-added title should not be possible 
-    self.titles.remove(title)
+    return self.titles[0], self.titles[1]
+  
+  def set_titles(self, prefixes, suffixes):
+    """
+    Sets the person's titles.
+      prefixes: an ordered list of prefix titles
+      suffixes: an ordered list of suffix titles
+    """
+    self.titles[0] = prefixes
+    self.titles[1] = suffixes 
     
   def add_role(self, workplace, role):
     """Adds a role to the nurse"""

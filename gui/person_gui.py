@@ -5,6 +5,7 @@ import wx.grid
 import wx.calendar
 import wx_extensions
 
+import global_vars
 from global_vars import turnuses, vacations, workplaces, titles, roles
 
 class PersonPanel(wx.Panel):
@@ -131,9 +132,9 @@ class PermissionsPanel(wx.Panel):
     topSizer = wx.FlexGridSizer(cols=2)
     
     turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
-    workplaceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Delovisca"), wx.VERTICAL)
+    workplaceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Delovišèa"), wx.VERTICAL)
     titlesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Nazivi"), wx.VERTICAL)
-    specialCaseSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Posebne lastnosti"), wx.VERTICAL)
+    specialCaseSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Ostalo"), wx.VERTICAL)
     
     #set the turnuses
     self.turnuses = []
@@ -149,14 +150,16 @@ class PermissionsPanel(wx.Panel):
       self.Bind(wx.EVT_CHECKBOX, self.__workplace_edited, self.workplaces[-1])
       workplaceSizer.Add(self.workplaces[-1], 0, wx.ALIGN_LEFT)
         
-    self.titles = []
-    for title in titles.titles:
-      self.titles.append(wx_extensions.LinkedCheckBox(title, self, wx.NewId(), str(title)))
-      self.Bind(wx.EVT_CHECKBOX, self.__title_edited, self.titles[-1])
-      titlesSizer.Add(self.titles[-1], 0, wx.ALIGN_LEFT)
+    #self.titles = []
+    #for title in titles.titles:
+    #  self.titles.append(wx_extensions.LinkedCheckBox(title, self, wx.NewId(), str(title)))
+    #  self.Bind(wx.EVT_CHECKBOX, self.__title_edited, self.titles[-1])
+    #  titlesSizer.Add(self.titles[-1], 0, wx.ALIGN_LEFT)
+    self.titles = TitlePanel (self, wx.NewId ())
+    titlesSizer.Add(self.titles, 0, wx.ALIGN_LEFT)
       
         
-    self.packet_night_turnuses = wx.CheckBox(self, wx.NewId(), label='Zdruzuj nocne turnuse')
+    self.packet_night_turnuses = wx.CheckBox(self, wx.NewId(), label='Združuj noène turnuse')
     self.Bind(wx.EVT_CHECKBOX, self.__packet_night_turnuses, self.packet_night_turnuses)
     specialCaseSizer.Add(self.packet_night_turnuses, 0, wx.ALIGN_LEFT)
     
@@ -187,6 +190,7 @@ class PermissionsPanel(wx.Panel):
 
     self.person = person
     self.roles.set_unit(self.person)
+    self.titles.set_unit(self.person)
     self.__set_permissions()
     
   def __turnus_edited(self, event):
@@ -251,8 +255,8 @@ class PermissionsPanel(wx.Panel):
         turnus_checker.Disable()
       for workplace_checker in self.workplaces:
         workplace_checker.Disable()
-      for title_checker in self.titles:
-        title_checker.Disable()
+      #for title_checker in self.titles:
+      #  title_checker.Disable()
       self.packet_night_turnuses.Disable()
       self.week_morning.Disable()
     else:
@@ -262,8 +266,8 @@ class PermissionsPanel(wx.Panel):
       for workplace_checker in self.workplaces:
         workplace_checker.Enable()
         
-      for title_checker in self.titles:
-        title_checker.Enable()
+      #for title_checker in self.titles:
+      #  title_checker.Enable()
         
       self.packet_night_turnuses.Enable()
       self.packet_night_turnuses.SetValue(self.person.packet_night_turnuses)
@@ -287,12 +291,112 @@ class PermissionsPanel(wx.Panel):
           workplace_checker.SetValue(False)
           
       # set the correct titles
-      for title_checker in self.titles:
-        if title_checker.element in self.person.titles:
-          title_checker.SetValue(True)
-        else:
-          title_checker.SetValue(False)
+      #for title_checker in self.titles:
+      #  if title_checker.element in self.person.titles:
+      #    title_checker.SetValue(True)
+      #  else:
+      #    title_checker.SetValue(False)
+
+class TitlePanel (wx.Panel):
+  
+  class MyTextDropTarget(wx.TextDropTarget):
+    def __init__(self, object):
+      wx.TextDropTarget.__init__(self)
+      self.object = object
+
+    def OnDropText(self, x, y, data):
+      index, flag = self.object.HitTest (wx.Point(x,y))
+      if flag == wx.LIST_HITTEST_NOWHERE:
+        self.object.InsertStringItem(self.object.GetItemCount(), data)
+      else:
+        self.object.InsertStringItem(index, data)
+  
+  def __init__ (self, *args, **kwargs):
+    wx.Panel.__init__(self, *args, **kwargs)
+    
+    self.person = None
+    
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    
+    self.all_titles = wx.ListCtrl (self, wx.NewId(), style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_NO_HEADER | wx.LC_HRULES)
+    self.all_titles.InsertColumn (0,'')
+    for i, title in enumerate (global_vars.titles.titles):
+      self.all_titles.InsertStringItem(i, unicode (title))
+    self.all_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+      
+    
+    self.person_titles = wx.ListCtrl (self, wx.NewId(), style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_NO_HEADER | wx.LC_HRULES)
+    self.person_titles.InsertColumn (0,'')
+    dt = TitlePanel.MyTextDropTarget(self.person_titles)
+    self.person_titles.SetDropTarget(dt)
+    self.person_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+    self.Bind(wx.EVT_LIST_BEGIN_DRAG, self.InsertDrag, self.all_titles)
+    self.Bind(wx.EVT_LIST_BEGIN_DRAG, self.OrderDrag,  self.person_titles)
+    
+    self.__set_permissions ( )
+    
+    sizer.Add (self.all_titles)
+    sizer.Add (self.person_titles)
+    
+    self.SetSizerAndFit (sizer)
+    
+  def InsertDrag(self, event):
+    text = self.all_titles.GetItemText(event.GetIndex())
+    tdo = wx.TextDataObject(text)
+    tds = wx.DropSource(self.person_titles)
+    tds.SetData(tdo)
+    tds.DoDragDrop(True)
+    
+  def OrderDrag(self, event):
+    text = self.person_titles.GetItemText(event.GetIndex())
+    self.person_titles.DeleteItem(event.GetIndex())
+    
+    tdo = wx.TextDataObject(text)
+    tds = wx.DropSource(self.person_titles)
+    tds.SetData(tdo)
+    tds.DoDragDrop(True)
+    
+  def set_unit(self, person):
+    """
+    Titles are always set on a person basis. This method sets the person.
+      person: is the person for which the permissions will be edited.
+    """
+    self.person_titles.DeleteAllItems ( )
+    self.person = person
+    self.__set_permissions()
+
+    
+  def __set_permissions (self):
+    """Set's the correct permissions."""
+    if self.person:
+      self.all_titles.Enable()
+      self.person_titles.Enable()
+      
+      i = -1
+      prefixes, suffixes = self.person.get_titles ( )
+      
+      if prefixes:
+        for i, title in enumerate (prefixes):
+          self.person_titles.InsertStringItem (i, unicode (title))
+      
+      i += 1    
+      self.person_titles.InsertStringItem(i, unicode (self.person))
+      item = self.person_titles.GetItem(i)
+      item.SetTextColour(wx.BLUE)
+      self.person_titles.SetItem(item)
+      
+      if suffixes:
+        for i, title in enumerate (suffixes):
+          self.person_titles.InsertStringItem (i + len (prefixes), unicode (title))
           
+      self.person_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+      
+    else:
+      self.person_titles.DeleteAllItems()
+      self.person_titles.Disable()
+      self.all_titles.Disable()
+      
+    
           
 class RolePanel (wx.Panel):
   
