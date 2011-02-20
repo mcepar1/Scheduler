@@ -20,9 +20,6 @@ class Result(wx.Frame):
   def __init__(self, persons, static_workers, date_workers, date, *args, **kwargs):
     wx.Frame.__init__(self, *args, **kwargs)
     
-    self.SetMaxSize((1280,800))
-    
-    
     self.progress_dialog = NonModalProgressDialog(self, wx.NewId(), title="Razvrscanje ...")
     
     self.scheduler = Scheduler(self, persons, static_workers, date_workers, date)

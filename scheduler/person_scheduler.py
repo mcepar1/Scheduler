@@ -173,7 +173,8 @@ class PersonScheduler:
     try:
       old_people = pickle.load(file(os.path.join(self.file_dir, filename), 'rb'))
     except Exception:
-      raise Exception('Ni podatkov o prejsnjem mesecu v aplikaciji.')
+      #raise Exception('Ni podatkov o prejsnjem mesecu v aplikaciji.')
+      old_people = []
     
     for person in self.people:
       for old_person in old_people:
@@ -183,7 +184,7 @@ class PersonScheduler:
           
 
   def schedule(self):
-    """dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
+    dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
     
     
     no_ovetime_people = set()
@@ -251,7 +252,7 @@ class PersonScheduler:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=True)
     
           
-    """
+    
     self.log.send_message('Zadnja faza razvrscanja ...')
     for plugin in self.clean_up_plugins:
       plugin.perform_task (overtime=True)      

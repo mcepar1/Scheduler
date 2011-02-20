@@ -214,6 +214,11 @@ class ShiftControl(wx.Panel):
           turnus_type_spin.Disable()
         
   def __number_changed(self, event):
+    #might happen, if the workplace was changed during the runtime
+    if self.workplace not in self.workers:
+      self.workers[self.workplace] = {}
+    if self.role not in self.workers[self.workplace]:
+      self.workers[self.workplace][self.role] = {}
     self.workers[self.workplace][self.role][event.GetEventObject().element] = event.GetEventObject().GetValue()
     
   def __show_date_specific(self, event):

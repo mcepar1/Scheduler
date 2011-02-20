@@ -1,3 +1,5 @@
+# -*- coding: Cp1250 -*-
+
 """
 This plugin is responsible for properly scheduling the special holiday rule
 workplaces
@@ -163,7 +165,7 @@ class HolidayRulePlugin:
     pre_holiday_night_turnuses = []
     holiday_night_turnuses = []
     for turnus in self.turnuses:
-      if turnus_type.TurnusType('Nocni') in turnus.types:
+      if turnus_type.TurnusType('Noèni') in turnus.types:
         if turnus.holiday:
           holiday_night_turnuses.append(turnus)
         else:

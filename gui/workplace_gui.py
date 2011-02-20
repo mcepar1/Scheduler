@@ -104,10 +104,6 @@ class TurnusPanel(wx.Panel):
       if self.workplace in nurse.workplaces:
         nurse.remove_workplace(self.workplace)
         nurse.add_workplace(self.workplace)
-    for doctor in doctors.doctors:
-      if self.workplace in doctor.workplaces:
-        doctor.remove_workplace(self.workplace)
-        doctor.add_workplace(self.workplace)
       
         
     
