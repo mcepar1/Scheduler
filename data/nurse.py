@@ -258,6 +258,19 @@ class Nurse:
     
     return False
     
+  def get_academic_name(self):
+    """
+    Returns an unicode object, representing the person's full academic name
+    """
+    prefixes_t, suffixes_t = self.get_titles ( )
+    prefixes_s = []
+    suffixes_s = []
+    for title in prefixes_t:
+      prefixes_s.append(unicode (title))
+    for title in suffixes_t:
+      suffixes_s.append(unicode (title))
+      
+    return unicode (u', '.join(prefixes_s) + u' ' + unicode (self) + u' ' + ', '.join(suffixes_s))
     
   def __str__(self):
     return self.name + " " + self.surname

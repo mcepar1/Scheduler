@@ -255,8 +255,6 @@ class PermissionsPanel(wx.Panel):
         turnus_checker.Disable()
       for workplace_checker in self.workplaces:
         workplace_checker.Disable()
-      #for title_checker in self.titles:
-      #  title_checker.Disable()
       self.packet_night_turnuses.Disable()
       self.week_morning.Disable()
     else:
@@ -265,9 +263,6 @@ class PermissionsPanel(wx.Panel):
           
       for workplace_checker in self.workplaces:
         workplace_checker.Enable()
-        
-      #for title_checker in self.titles:
-      #  title_checker.Enable()
         
       self.packet_night_turnuses.Enable()
       self.packet_night_turnuses.SetValue(self.person.packet_night_turnuses)
@@ -289,13 +284,6 @@ class PermissionsPanel(wx.Panel):
           workplace_checker.SetValue(True)
         else:
           workplace_checker.SetValue(False)
-          
-      # set the correct titles
-      #for title_checker in self.titles:
-      #  if title_checker.element in self.person.titles:
-      #    title_checker.SetValue(True)
-      #  else:
-      #    title_checker.SetValue(False)
 
 class TitlePanel (wx.Panel):
   
@@ -347,14 +335,20 @@ class TitlePanel (wx.Panel):
     tds.SetData(tdo)
     tds.DoDragDrop(True)
     
+    self.__set_titles()
+    
   def OrderDrag(self, event):
     text = self.person_titles.GetItemText(event.GetIndex())
-    self.person_titles.DeleteItem(event.GetIndex())
     
-    tdo = wx.TextDataObject(text)
-    tds = wx.DropSource(self.person_titles)
-    tds.SetData(tdo)
-    tds.DoDragDrop(True)
+    if text != unicode (self.person):
+      self.person_titles.DeleteItem(event.GetIndex())
+      
+      tdo = wx.TextDataObject(text)
+      tds = wx.DropSource(self.person_titles)
+      tds.SetData(tdo)
+      tds.DoDragDrop(True)
+      
+      self.__set_titles()
     
   def set_unit(self, person):
     """
@@ -364,10 +358,36 @@ class TitlePanel (wx.Panel):
     self.person_titles.DeleteAllItems ( )
     self.person = person
     self.__set_permissions()
+    
+  def __set_titles (self):
+    """
+    Sets the persons titles, as defined in the person_titles field.
+    """
+    #TODO: add the appropriate method into the container
+    from Scheduler.data.title import Title
+    prefixes = []
+    suffixes = []
+    i = 0
+    
+    while i < self.person_titles.GetItemCount ( ):
+      if self.person_titles.GetItemText (i) == unicode (self.person):
+        break
+      prefixes.append(Title (self.person_titles.GetItemText (i)))
+      i += 1
+      
+    i += 1 # skip the person
+    
+    while i < self.person_titles.GetItemCount ( ):
+      suffixes.append(Title (self.person_titles.GetItemText (i)))
+      i += 1
+      
+    self.person.set_titles (prefixes, suffixes)
+    self.__set_permissions ( )
 
     
   def __set_permissions (self):
     """Set's the correct permissions."""
+    self.person_titles.DeleteAllItems()
     if self.person:
       self.all_titles.Enable()
       self.person_titles.Enable()
@@ -387,12 +407,11 @@ class TitlePanel (wx.Panel):
       
       if suffixes:
         for i, title in enumerate (suffixes):
-          self.person_titles.InsertStringItem (i + len (prefixes), unicode (title))
+          self.person_titles.InsertStringItem (i + 1 + len (prefixes), unicode (title))
           
       self.person_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
       
     else:
-      self.person_titles.DeleteAllItems()
       self.person_titles.Disable()
       self.all_titles.Disable()
       

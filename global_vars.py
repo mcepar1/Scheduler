@@ -5,7 +5,7 @@ This script contains global variables, that are accessed throughout the whole GU
 To set their initial values use the vnos_zacetnih_podatkov.py script. 
 """
 
-from data import turnus, vacation, nurse, doctor, workplace, employment_type, title, turnus_type, role
+from data import turnus, vacation, nurse, workplace, employment_type, title, turnus_type, role
 
 # init the turnus types
 turnus_types = turnus_type.load ()
