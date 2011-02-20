@@ -90,7 +90,7 @@ class Result(wx.Frame):
         
   def __save(self, event):
     """Saves the schedule"""
-    dlg = wx.FileDialog(self, message="Shrani datoteko ...", defaultDir=os.getenv("HOME"), defaultFile="razpored.csv", wildcard="CSV datoteka (*.csv)|*.csv|", style=wx.SAVE | wx.FD_OVERWRITE_PROMPT)
+    dlg = wx.FileDialog(self, message="Shrani datoteko ...", defaultDir=os.path.expanduser("~"), defaultFile="razpored.csv", wildcard="CSV datoteka (*.csv)|*.csv|", style=wx.SAVE | wx.FD_OVERWRITE_PROMPT)
     if dlg.ShowModal() == wx.ID_OK:
       path = dlg.GetPath()
       #force the csv appendix

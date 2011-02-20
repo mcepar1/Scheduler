@@ -34,7 +34,7 @@ PLUG_INS = [plugins.PreSchedulerPlugin, plugins.HolidayRulePlugin]
 """
 Contains the plug-ins, that are used after the scheduling phase.
 """
-CLEAN_UP = [plugins.WeekMorning]#[plugins.FillHours]
+CLEAN_UP = [plugins.WeekMorning, plugins.FillHours]
 
 class PersonScheduler:
   FILES_DIR = os.path.join("persistence", "scheduler")
