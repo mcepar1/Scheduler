@@ -96,10 +96,6 @@ class TurnusTypePanel(wx.Panel):
       if self.turnus in nurse.allowed_turnuses:
         nurse.remove_allowed_turnus(self.turnus)
         nurse.add_allowed_turnus(self.turnus)
-    for doctor in doctors.doctors:
-      if self.turnus in doctor.allowed_turnuses:
-        doctor.remove_allowed_turnus(self.turnus)
-        doctor.add_allowed_turnus(self.turnus)
       
         
     

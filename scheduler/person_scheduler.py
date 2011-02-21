@@ -232,6 +232,7 @@ class PersonScheduler:
         for date in dates:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, no_ovetime_people, overtime=False)
           
+          
     self.log.send_message('Tretja faza razvrscanja ...')
     #finally add all the people, including the ones with the overtime
     

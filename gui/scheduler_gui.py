@@ -208,7 +208,10 @@ class ShiftControl(wx.Panel):
           try:
             turnus_type_spin.SetValue(self.workers[self.workplace][self.role][turnus_type_spin.element])
           except:
-            turnus_type_spin.SetValue(0)
+            if self.role not in self.workers[self.workplace]:
+              self.workers[self.workplace][self.role] = {}
+            self.workers[self.workplace][self.role][turnus_type_spin.element] = 0
+            turnus_type_spin.SetValue(self.workers[self.workplace][self.role][turnus_type_spin.element])
         else:
           turnus_type_spin.SetValue(0)
           turnus_type_spin.Disable()
