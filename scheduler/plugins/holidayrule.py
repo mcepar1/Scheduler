@@ -133,6 +133,12 @@ class HolidayRulePlugin:
           for pre_holiday_turnus in pre_holiday_turnuses:
             for holiday_turnus in holiday_turnuses:
               
+              # there is no guarantee that a workplace will have all holiday and preholdiay turnuses
+              if not (set (pre_holiday_turnus.types) & set (pre_holiday_workers[role])):
+                continue
+              if not (set (holiday_turnus.types) & set (holiday_workers[role])):
+                continue
+              
               scheduled = True
               
               while self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, role, pre_holiday_turnus.types, pre_holiday_date), pre_holiday_workers[role]) \
@@ -193,6 +199,14 @@ class HolidayRulePlugin:
         for role in roles:
           for pre_holiday_night_turnus in pre_holiday_night_turnuses:
             for holiday_night_turnus in holiday_night_turnuses:
+              
+              # there is no guarantee that a workplace will have all holiday and preholdiay turnuses
+              if not (set (pre_holiday_night_turnus.types) & set (workers[0][role])):
+                continue
+              if not (set (pre_holiday_night_turnus.types) & set (workers[1][role])):
+                continue
+              if not (set (holiday_night_turnus.types) & set (workers[2][role])):
+                continue
               
               scheduled = True
               
@@ -314,7 +328,7 @@ class HolidayRulePlugin:
     #  (Friday + Saturday + Sunday)
     if person.packet_night_turnuses and turnus.code[0] == 'N':
       if depth == 0:
-        return self.__is_valid_move_preschedule(workplace, turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
+        return self.__is_valid_move_preschedule(workplace, role, turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
       #if this is the second day in the packet continue validation only if it is a Saturday
       elif depth == 1 and date.weekday() == 5:
         # TODO: allow only one holiday turnus per shift type (document this)
@@ -326,7 +340,7 @@ class HolidayRulePlugin:
         else:
           return False
         
-        return self.__is_valid_move_preschedule(workplace, sunday_night_turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
+        return self.__is_valid_move_preschedule(workplace, role, sunday_night_turnus, date + datetime.timedelta(days=1), person, overtime, depth + 1, check_turnuses + [turnus])
       #Thursday to Friday combination does not exist
       elif depth == 1 and date.weekday() == 4:
         return False
