@@ -57,29 +57,16 @@ class ScheduleControl(wx.Panel):
     
     self.persons = nurses.nurses
     
-    main_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Razvrscanje"), wx.VERTICAL)
+    main_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Razvršèanje"), wx.HORIZONTAL)
     
     self.month_picker = wx_extensions.MonthChoice(self, wx.NewId())
     main_sizer.Add(self.month_picker, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-    
-    self.select_persons = wx.RadioBox(self, wx.NewId(), 'Izberi za razvrscanje', choices=['Razvrsti medicinske setsre', 'Razvrsti zdravnike'], majorDimension=1, style=wx.RA_SPECIFY_COLS)
-    self.Bind(wx.EVT_RADIOBOX, self.__select_persons, self.select_persons)
-    main_sizer.Add(self.select_persons, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
     
     self.start_button = wx.Button(self, wx.NewId(), 'Start')
     self.Bind(wx.EVT_BUTTON, self.Parent.schedule, self.start_button)
     main_sizer.Add(self.start_button, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
     
     self.SetSizerAndFit(main_sizer)
-  
-  def __select_persons(self, event):
-    """Event listener for the radiobox."""
-    if event.GetInt() == 0:
-      self.persons = nurses.nurses
-    elif event.GetInt() == 1:
-      self.persons = doctors.doctors
-    else:
-      raise Exception('Neveljavna izbira.')
     
   def get_persons(self):
     """Returns the persons, that are set to be scheduled."""
@@ -106,7 +93,7 @@ class ShiftControl(wx.Panel):
         for turnus in workplace.allowed_turnuses:
           self.workers[workplace][role][turnus] = 0
     
-    shift_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Stevilo zaposlenih v izmeni"), wx.VERTICAL)
+    shift_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Število zaposlenih v izmeni"), wx.VERTICAL)
     
     self.workplace_selector = wx_extensions.LinkedChoice(workplaces.workplaces, self, wx.NewId())
     self.Bind(wx.EVT_CHOICE, self.__set_workplace, self.workplace_selector)
@@ -342,7 +329,7 @@ class MothlyHoursControl(wx.Panel):
   def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
     
-    hours_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), 'Stevilo ur v mesecu'), wx.VERTICAL)
+    hours_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), 'Število ur v mesecu'), wx.VERTICAL)
     
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     self.employment_type_hours = []
