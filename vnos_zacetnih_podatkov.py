@@ -57,6 +57,7 @@ def parse():
         insert_employment_types = True
         insert_titles = True
         insert_turnus_types = True
+        insert_roles = True
         print_help = False
     return insert_nurses, insert_turnuses, insert_vacations, insert_workplaces, insert_employment_types, insert_titles, insert_turnus_types, insert_roles, print_help
       
