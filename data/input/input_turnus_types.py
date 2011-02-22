@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from data.turnus_type import TurnusType, TurnusTypeContainer
+from Scheduler.data.turnus_type import TurnusType
+from Scheduler.data.general     import locations, Container
 
 import os
 import sys
@@ -27,7 +28,7 @@ def input_turnus_types():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih vrst turnusov ...')
-  tc = TurnusTypeContainer(sorted(turnus_types))
+  tc = Container(locations.TURNUS_TYPE_DATA, TurnusType.HEADERS, sorted(turnus_types))
   tc.save()
   sys.stdout.write('OK\n')
   

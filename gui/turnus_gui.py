@@ -65,7 +65,7 @@ class TurnusTypePanel(wx.Panel):
     
     #set the turnus types
     self.turnus_types = []
-    for turnus_type in turnus_types.turnus_types:
+    for turnus_type in turnus_types.get_all ( ):
       self.turnus_types.append(wx_extensions.LinkedCheckBox(turnus_type, self, wx.NewId(), str(turnus_type)))
       self.Bind(wx.EVT_CHECKBOX, self.__turnus_type_edited, self.turnus_types[-1])
       turnusSizer.Add(self.turnus_types[-1], 0, wx.ALIGN_LEFT)
@@ -92,7 +92,7 @@ class TurnusTypePanel(wx.Panel):
       self.turnus.remove_type(event.GetEventObject().element)
          
     #update every single person - needed for synchronization
-    for nurse in nurses.nurses:
+    for nurse in nurses.get_all ( ):
       if self.turnus in nurse.allowed_turnuses:
         nurse.remove_allowed_turnus(self.turnus)
         nurse.add_allowed_turnus(self.turnus)

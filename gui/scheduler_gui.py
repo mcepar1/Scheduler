@@ -55,7 +55,7 @@ class ScheduleControl(wx.Panel):
   def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.persons = nurses.nurses
+    self.persons = nurses.get_all ( )
     
     main_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Razvršèanje"), wx.HORIZONTAL)
     
@@ -86,7 +86,7 @@ class ShiftControl(wx.Panel):
     self.workplace = None
     self.role = None
     
-    for workplace in workplaces.workplaces:
+    for workplace in workplaces.get_all ( ):
       self.workers[workplace] = {}
       for role in workplace.roles:
         self.workers[workplace][role] = {}
@@ -95,13 +95,13 @@ class ShiftControl(wx.Panel):
     
     shift_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Število zaposlenih v izmeni"), wx.VERTICAL)
     
-    self.workplace_selector = wx_extensions.LinkedChoice(workplaces.workplaces, self, wx.NewId())
+    self.workplace_selector = wx_extensions.LinkedChoice(workplaces.get_all ( ), self, wx.NewId())
     self.Bind(wx.EVT_CHOICE, self.__set_workplace, self.workplace_selector)
     shift_sizer.Add(self.workplace_selector, 0, wx.CENTER)
     
     roles_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
     self.roles = []
-    for role in roles.roles:
+    for role in roles.get_all ( ):
       self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
       self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
       roles_sizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
@@ -111,7 +111,7 @@ class ShiftControl(wx.Panel):
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     
     self.turnus_types = []
-    for turnus_type in turnus_types.turnus_types:
+    for turnus_type in turnus_types.get_all ( ):
       sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus_type) + ":"), 0, wx.ALIGN_LEFT)
       self.turnus_types.append(wx_extensions.LinkedSpinCtr(turnus_type, self, wx.NewId(), style=wx.SP_VERTICAL))
       self.turnus_types[-1].SetRange(0, 200)
@@ -269,7 +269,7 @@ class DateShiftControl(wx.Dialog):
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     
     self.turnus_types = []
-    for turnus_type in turnus_types.turnus_types:
+    for turnus_type in turnus_types.get_all ( ):
       sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus_type) + ":"), 0, wx.ALIGN_LEFT)
       self.turnus_types.append(wx_extensions.LinkedSpinCtr(turnus_type, self, wx.NewId(), style=wx.SP_VERTICAL))
       self.turnus_types[-1].SetRange(0, 200)
@@ -333,7 +333,7 @@ class MothlyHoursControl(wx.Panel):
     
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     self.employment_type_hours = []
-    for employment_type in employment_types.employment_types:
+    for employment_type in employment_types.get_all ( ):
       self.employment_type_hours.append(wx_extensions.LinkedIntCtrl(employment_type, self, wx.NewId(), value=employment_type.monthly_hours, min=0))
       
       sub_sizer.Add(wx.StaticText(self, wx.NewId(), label=employment_type.label + ':'), 0, wx.ALIGN_LEFT)

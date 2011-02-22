@@ -73,7 +73,7 @@ class TurnusPanel(wx.Panel):
     
     #set the turnuses
     self.turnuses = []
-    for turnus in turnuses.turnuses:
+    for turnus in turnuses.get_all ( ):
       self.turnuses.append(wx_extensions.LinkedCheckBox(turnus, self, wx.NewId(), str(turnus)))
       self.Bind(wx.EVT_CHECKBOX, self.__turnus_edited, self.turnuses[-1])
       turnusSizer.Add(self.turnuses[-1], 0, wx.ALIGN_LEFT)
@@ -100,7 +100,7 @@ class TurnusPanel(wx.Panel):
       self.workplace.remove_allowed_turnus(event.GetEventObject().element)
          
     #update every single person - needed for synchronization
-    for nurse in nurses.nurses:
+    for nurse in nurses.get_all ( ):
       if self.workplace in nurse.workplaces:
         nurse.remove_workplace(self.workplace)
         nurse.add_workplace(self.workplace)
@@ -135,7 +135,7 @@ class RolePanel(wx.Panel):
     
     #set the roles
     self.roles = []
-    for role in roles.roles:
+    for role in roles.get_all ( ):
       self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
       self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
       roleSizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)

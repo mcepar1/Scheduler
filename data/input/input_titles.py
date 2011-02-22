@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from data.title import Title, TitleContainer
+from Scheduler.data.title   import Title
+from Scheduler.data.general import locations, Container
 
 import os
 import sys
@@ -27,7 +28,7 @@ def input_titles():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih nazivov ...')
-  tc = TitleContainer(sorted(titles))
+  tc = Container(locations.TITLE_DATA, Title.HEADERS, sorted(titles))
   tc.save()
   sys.stdout.write('OK\n')
   

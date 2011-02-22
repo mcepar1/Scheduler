@@ -30,17 +30,17 @@ def get_turnus(print_choices=True):
   MESSAGE = 'Vnesi cifro: '
   
   if (print_choices):
-    for i, turnus in enumerate(turnuses.turnuses):
+    for i, turnus in enumerate(turnuses.get_all ( )):
       print str(i + 1) + ' -> ' + str(turnus)
     
   try:
     i = int(input(MESSAGE)) - 1
-    if i in range(len(turnuses.turnuses)):
+    if i in range(len(turnuses.get_all ( ))):
       print ''
-      return turnuses.turnuses[i]
+      return turnuses.get_all ( )[i]
     else:
       print ''
-      print 'Cifra mora biti med 1 in ' + str(len(turnuses.turnuses)) + '.'
+      print 'Cifra mora biti med 1 in ' + str(len(turnuses.get_all ( ))) + '.'
       return get_turnus(False)
   except EOFError:
     print ''
@@ -59,17 +59,17 @@ def get_workplace(print_choices=True):
   MESSAGE = 'Vnesi cifro: '
   
   if (print_choices):
-    for i, workplace in enumerate(workplaces.workplaces):
+    for i, workplace in enumerate(workplaces.get_all ( )):
       print str(i + 1) + ' -> ' + str(workplace)
     
   try:
     i = int(input(MESSAGE)) - 1
-    if i in range(len(workplaces.workplaces)):
+    if i in range(len(workplaces.get_all ( ))):
       print ''
-      return workplaces.workplaces[i]
+      return workplaces.get_all ( )[i]
     else:
       print ''
-      print 'Cifra mora biti med 1 in ' + str(len(workplaces.workplaces)) + '.'
+      print 'Cifra mora biti med 1 in ' + str(len(workplaces.get_all ( ))) + '.'
       return get_workplace(False)
   except EOFError:
     print ''

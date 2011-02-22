@@ -1,11 +1,13 @@
 # -*- coding: Cp1250 -*-
 
-from data.vacation import Vacation, VacationContainer
+from Scheduler.data.vacation import Vacation
+from Scheduler.data.general  import locations, Container
+from Scheduler.utils         import time_conversion
 
 import os
 import sys
 import csv
-from utils import time_conversion
+
   
   
 def input_vacations():
@@ -28,7 +30,7 @@ def input_vacations():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih dopustov ...')
-  vc = VacationContainer(sorted(vacations))
+  vc = Container(locations.VACATION_DATA, Vacation.HEADERS, sorted(vacations))
   vc.save()
   sys.stdout.write('OK\n')
   

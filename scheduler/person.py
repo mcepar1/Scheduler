@@ -1,8 +1,8 @@
-from data import nurse, doctor, turnus, vacation
+from Scheduler.data import nurse, doctor, turnus, vacation
 
-from utils.time_conversion import timedelta_to_hours
-from utils.holiday import is_holiday
-from scheduler import constants
+from Scheduler.utils.time_conversion import timedelta_to_hours
+from Scheduler.utils.holiday import is_holiday
+from Scheduler.scheduler import constants
 
 import calendar
 import datetime

@@ -139,7 +139,7 @@ class LinkedComboBox(wx.ComboBox):
     from global_vars import employment_types
     
     wx.ComboBox.__init__(self, *args, **kwargs)
-    self.employment_types = employment_types.employment_types
+    self.employment_types = employment_types.get_all ( )
     
     self.Clear()
     for employment_type in self.employment_types:

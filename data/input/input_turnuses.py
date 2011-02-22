@@ -1,11 +1,12 @@
 # -*- coding: Cp1250 -*-
 
-from data.turnus import Turnus, TurnusContainer
+from Scheduler.data.turnus import Turnus, TurnusContainer
+from Scheduler.data.general import locations
 
 import os
 import sys
 import csv
-from utils import time_conversion
+from Scheduler.utils import time_conversion
   
   
 def input_turnuses():
@@ -33,7 +34,7 @@ def input_turnuses():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih turnusov ...')
-  tc = TurnusContainer(turnuses)
+  tc = TurnusContainer(locations.TURNUS_DATA, Turnus.HEADERS, turnuses)
   tc.save()
   sys.stdout.write('OK\n')
   

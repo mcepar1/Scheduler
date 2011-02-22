@@ -62,7 +62,7 @@ def input_last_month():
   
   print 'Za potrebe razvrscanja je dovolj, ce vnesemo le zadnja dva tedna v mesecu in prva tedna v naslednjem mesecu.'
   
-  ps = person_scheduler.PersonScheduler(doctors.doctors, workplaces.workplaces, date, input_raw=True)
+  ps = person_scheduler.PersonScheduler(doctors.doctors, workplaces.get_all ( ), date, input_raw=True)
   doctor_map = {}
   for doctor in ps.people:
     doctor_map[doctor] = doctor 

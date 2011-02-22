@@ -1,7 +1,6 @@
 # -*- coding: Cp1250 -*-
 
-import cPickle as pickle
-import os
+from Scheduler.data  import general, locations
 
 class Workplace:
   
@@ -80,74 +79,12 @@ class Workplace:
     except:
       return - 1
       
-class WorkplaceContainer:
-  """Contains methods, that deal with multiple instences of the workplace
-  class at once (loading, saving, representing as a table, ...)"""
-  
-  FILES_DIR = os.path.join("persistence", "data")
-  FILE_NAME = "workplace.dat"
-  
-  def __init__(self, workplace_list=None):
-    """
-    This is the constructor
-      vacation_list: a list (or set) that contains instances of the vacation class
-    """
-    
-    self.workplaces = []
-    
-    if workplace_list:
-      self.add_all(workplace_list)
-      
-  def add_all(self, workplace_list):
-    """
-    Adds all the elements of the workplace_list into the container.
-      workplace_list: a list that contains  instances of the vacation class
-    """
-      
-    for workplace in workplace_list:
-        self.workplaces.append(workplace)
-  
-  def save(self):
-    """Saves the current state into an external file."""
-    pickle.dump(self.workplaces, file(os.path.join(WorkplaceContainer.FILES_DIR, WorkplaceContainer.FILE_NAME), 'wb'))
-    
-  def load(self):
-    """Loads the contens from the external file. The current state is LOST!!!!"""
-    self.workplaces = pickle.load(file(os.path.join(WorkplaceContainer.FILES_DIR, WorkplaceContainer.FILE_NAME), 'rb'))
-    
-  def as_table(self):
-    """Returns a table-like representation of self.
-      return: a dictionary with two string keys:
-        header: a list that contains headers of the table:
-        items: a list of lists. The external list represents rows and the intrenal one represents columns within a single row."""
-        
-    
-    rows_list = []
-    for workplace in self.workplaces:
-      rows_list.append(workplace.as_list())
-    
-    table = {}
-    table['header'] = Workplace.HEADERS  
-    table['items'] = rows_list
-   
-    return table
-    
-  def get_element(self, index):
-    """Returns the nurse at the specified index.
-      index: index of the nurse
-    """
-    
-    # TODO: verify, that the self.workplaces and the GUI table always match indexes
-    return self.workplaces[index]
-    
-  def __str__(self):
-    return ", ".join([str(workplace) for workplace in self.workplaces])
-    
+
 def load():
   """
   Loads and returns a container instance.
   """
-  el = WorkplaceContainer()
+  el = general.Container(locations.WORKPLACE_DATA, Workplace.HEADERS)
   try:
     el.load()
   except Exception as e:

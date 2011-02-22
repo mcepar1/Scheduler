@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from data.workplace import Workplace, WorkplaceContainer
+from Scheduler.data.workplace import Workplace
+from Scheduler.data.general   import locations, Container 
 
 import os
 import sys
@@ -27,7 +28,7 @@ def input_workplaces():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih delovisc ...')
-  wc = WorkplaceContainer(sorted(workplaces))
+  wc = Container(locations.WORKPLACE_DATA, Workplace.HEADERS, sorted(workplaces))
   wc.save()
   sys.stdout.write('OK\n')
   

@@ -257,7 +257,7 @@ class Scheduler(Thread):
     self.send_message('Predpriprave ...')
     #force the persons to refresh employment_types
     #TODO: this should be done automatically
-    for employment_type in employment_types.employment_types:
+    for employment_type in employment_types.get_all ( ):
       for person in persons:
         if person.employment_type == employment_type:
           # skips the built in method on purpose
@@ -265,7 +265,7 @@ class Scheduler(Thread):
           
     #force the persons to refresh workplaces
     #TODO: this should be done automatically
-    for workplace in workplaces.workplaces:
+    for workplace in workplaces.get_all ( ):
       for person in persons:
         if workplace in person.workplaces:
           person.workplaces.remove(workplace)

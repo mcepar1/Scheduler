@@ -1,9 +1,10 @@
 # -*- coding: Cp1250 -*-
 
-from data.nurse import Nurse, NurseContainer
-from utils import time_conversion
-from global_vars import nurses, workplaces
-from scheduler import person_scheduler
+from Scheduler.data.nurse   import Nurse
+from Scheduler.utils        import time_conversion
+from Scheduler.global_vars  import nurses as all_nurses, workplaces
+from Scheduler.scheduler    import person_scheduler
+from Scheduler.data.general import locations, Container 
 import keyboard
 
 import os
@@ -38,7 +39,7 @@ def input_persons():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih medicinskih sester ...')
-  nc = NurseContainer(sorted(nurses))
+  nc = Container(locations.NURSES_DATA, Nurse.HEADERS, sorted(nurses))
   nc.save()
   sys.stdout.write('OK\n')
   
@@ -61,12 +62,12 @@ def input_last_month():
   
   print 'Za potrebe razvrscanja je dovolj, ce vnesemo le zadnja dva tedna v mesecu in prva tedna v naslednjem mesecu.'
   
-  ps = person_scheduler.PersonScheduler(nurses.nurses, workplaces.workplaces, date, input_raw=True)
+  ps = person_scheduler.PersonScheduler(all_nurses.get_all ( ), workplaces.get_all ( ), date, input_raw=True)
   nurse_map = {}
   for nurse in ps.people:
     nurse_map[nurse] = nurse 
   
-  for nurse in nurses.nurses:
+  for nurse in all_nurses.get_all ( ):
     for date in sorted(set(weeks)):
         print 'Vnasamo podatke za medicinsko sestro: ' + str(nurse.as_list())
         print 'Datum: ' + time_conversion.date_to_string(date)

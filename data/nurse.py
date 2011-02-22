@@ -1,9 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-import cPickle as pickle
-import os
-
-from utils import time_conversion
+from Scheduler.utils import time_conversion
+from Scheduler.data  import general, locations
 
 class Nurse:
 
@@ -51,13 +49,13 @@ class Nurse:
       self.set_employment_type(employment_type)
     else:
       # very rare case
-      from data import employment_type
+      from Scheduler.data import employment_type
       
       try:
-        self.employment_type = employment_type.load().employment_types[1]
+        self.employment_type = employment_type.load().get_all ( )[1]
       except:
         try:
-          self.employment_type = employment_type.load().employment_types[0]
+          self.employment_type = employment_type.load().get_all ( )[0]
         except:
           raise Exception('V aplikaciji ni vrst zaposlitve.')
     
@@ -298,74 +296,11 @@ class Nurse:
     except:
       return - 1
     
-    
-class NurseContainer:
-  """Contains methods, that deal with multiple instances of the Nurse
-  class at once (loading, saving, representing as a table, ...)"""
-  
-  FILES_DIR = os.path.join("persistence", "data")
-  FILE_NAME = "nurses.dat"
-
-  def __init__(self, nurses_list=None):
-    """This is the constructor
-    nurses_list: a list (or set) that contains instances of the Nurse class"""
-    
-    self.nurses = []
-    
-    if nurses_list:
-      self.add_all(nurses_list)
-      
-  def add_all(self, nurses_list):
-    """Adds all the elements of the nurses_list into the container
-      nurses_list: a list that contains  instances of the Nurse class"""
-      
-    for nurse in nurses_list:
-      for existing_nurse in self.nurses:
-        if nurse.work_id == existing_nurse.work_id:
-          raise Exception('Oseba z maticno stevilko ' + str(nurse.work_id) + ' ze obstaja.')
-      self.nurses.append(nurse)
- 
-  def save(self):
-    """Saves the current state into an external file."""
-    pickle.dump(self.nurses, file(os.path.join(NurseContainer.FILES_DIR, NurseContainer.FILE_NAME), 'wb'))
-    
-  def load(self):
-    """Loads the contens from the external file. The current state is LOST!!!!"""
-    self.nurses = pickle.load(file(os.path.join(NurseContainer.FILES_DIR, NurseContainer.FILE_NAME), 'rb'))
-    
-  def as_table(self):
-    """Returns a table-like representation of self.
-      return: a dictionary with two string keys:
-        header: a list that contains headers of the table:
-        items: a list of lists. The external list represents rows and the intrenal one represents columns within a single row."""
-        
-    
-    rows_list = []
-    for nurse in self.nurses:
-      rows_list.append(nurse.as_list())
-    
-    table = {}
-    table['header'] = Nurse.HEADERS  
-    table['items'] = rows_list
-   
-    return table
-    
-  def get_element(self, index):
-    """Returns the nurse at the specified index.
-      index: index of the nurse
-    """
-    
-    # TODO: verify, that the self.nurses and the GUI table always match indexes
-    return self.nurses[index]
-    
-  def __str__(self):
-    return ", ".join([str(nurse) for nurse in self.nurses])
-    
 def load():
   """
   Loads and returns a container instance.
   """
-  el = NurseContainer()
+  el = general.Container(locations.NURSES_DATA, Nurse.HEADERS)
   try:
     el.load()
   except Exception as e:

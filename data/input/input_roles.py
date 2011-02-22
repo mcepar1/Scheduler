@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from data.role import Role, RoleContainer
+from Scheduler.data.role    import Role
+from Scheduler.data.general import locations, Container
 
 import os
 import sys
@@ -27,7 +28,7 @@ def input_roles():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih vlog ...')
-  tc = RoleContainer(sorted(roles))
+  tc = Container(locations.ROLE_DATA, Role.HEADERS, sorted(roles))
   tc.save()
   sys.stdout.write('OK\n')
   

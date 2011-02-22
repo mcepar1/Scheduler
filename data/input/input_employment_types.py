@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from data.employment_type import EmploymentType, EmploymentTypeContainer
+from Scheduler.data.employment_type import EmploymentType
+from Scheduler.data.general         import locations, Container 
 
 import os
 import sys
@@ -28,7 +29,7 @@ def input_emplyment_types():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih vrst zaposlitve ...')
-  ec = EmploymentTypeContainer(sorted(employment_types))
+  ec = Container(locations.EMPLOYMENT_TYPE_DATA, EmploymentType.HEADERS, sorted(employment_types))
   ec.save()
   sys.stdout.write('OK\n')
   

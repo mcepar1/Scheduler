@@ -1,15 +1,15 @@
 # -*- coding: Cp1250 -*-
 
-from data import nurse, doctor
+from Scheduler.data import nurse
 
-from scheduler import person as person_module
-from scheduler import workplace as workplace_module
-from scheduler import weights
-from scheduler import plugins
+from Scheduler.scheduler import person as person_module
+from Scheduler.scheduler import workplace as workplace_module
+from Scheduler.scheduler import weights
+from Scheduler.scheduler import plugins
 
-from global_vars import employment_types, turnuses as all_turnuses, workplaces as all_workplaces
-from utils import time_conversion, holiday
-from data import turnus_type
+from Scheduler.global_vars import employment_types, turnuses as all_turnuses, workplaces as all_workplaces
+from Scheduler.utils import time_conversion, holiday
+from Scheduler.data import turnus_type
 
 import random
 import datetime
@@ -60,23 +60,16 @@ class PersonScheduler:
       raise Exception('Ni nobene osebe za razvrscanje')
     
     schedule_nurses = False
-    schedule_doctors = False
     
     for person in people:
       if isinstance(person, nurse.Nurse):
         schedule_nurses = True
-      elif isinstance(person, doctor.Doctor):
-        schedule_doctors = True
       else:
-        raise Exception('Razvrscamo lahko le sestre in zdravnike.')
+        raise Exception('Razvrščamo lahko le medicinske sestre sestre.')
       
-    if schedule_doctors and schedule_nurses:
-      raise Exception('Ne moremo razvrscat sester in zdravnikov hkrati')
     
     # if this point is reached, the the parameters are legal
     self.file_dir = ''
-    if schedule_doctors:
-      self.file_dir = os.path.join(PersonScheduler.FILES_DIR, PersonScheduler.DOCTOR_DIR)
     if schedule_nurses:
       self.file_dir = os.path.join(PersonScheduler.FILES_DIR, PersonScheduler.NURSE_DIR)
     
@@ -84,8 +77,6 @@ class PersonScheduler:
     self.people = []
     for person in people:
       if person.allowed_turnuses or input_raw:
-        if schedule_doctors:
-          self.people.append(person_module.Doctor(person))
         if schedule_nurses:
           self.people.append(person_module.Nurse(person))
         self.people[-1].add_month (date)
@@ -108,7 +99,7 @@ class PersonScheduler:
     
     #maps workplaces to people
     self.workplace_people = {}
-    for workplace in all_workplaces.workplaces:
+    for workplace in all_workplaces.get_all ( ):
       self.workplace_people[workplace] = set()
     
     for workplace in self.workplaces:
@@ -119,7 +110,7 @@ class PersonScheduler:
         
     #maps employment types to people
     self.employment_type_people = {}
-    for employment_type in employment_types.employment_types:
+    for employment_type in employment_types.get_all ( ):
       self.employment_type_people[employment_type] = set ()
     
     for person in self.people:
@@ -129,7 +120,7 @@ class PersonScheduler:
       
     #maps turnuses to people
     self.turnus_people = {}
-    for turnus in all_turnuses.turnuses:
+    for turnus in all_turnuses.get_all ( ):
       self.turnus_people[turnus] = set ()
     
     for person in self.people:
@@ -152,9 +143,9 @@ class PersonScheduler:
     self.clean_up_plugins = []
     if not input_raw:    
       for plug_in in PLUG_INS:
-        self.active_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.turnuses, self.date, self.log))
+        self.active_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.get_all ( ), self.date, self.log))
       for plug_in in CLEAN_UP:
-        self.clean_up_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.turnuses, self.date, self.log))
+        self.clean_up_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.get_all ( ), self.date, self.log))
     
         
       
@@ -477,7 +468,7 @@ class PersonScheduler:
           next_date += datetime.timedelta(days=1)
           #find the workfree night turnus
           night_turnus = None
-          for temp_turnus in all_turnuses.turnuses:
+          for temp_turnus in all_turnuses.get_all ( ):
             if temp_turnus.holiday and temp_turnus.code[0] == 'N':
               night_turnus = temp_turnus
               break
@@ -601,7 +592,7 @@ class PersonScheduler:
       elif depth == 1 and date.weekday() == 5:
         # TODO: allow only one holiday turnus per shift type (document this)
         sunday_night_turnus = None
-        for alternative_turnus in all_turnuses.turnuses:
+        for alternative_turnus in all_turnuses.get_all ( ):
           if alternative_turnus.holiday and alternative_turnus.code[0] == 'N':
             sunday_night_turnus = alternative_turnus
             break

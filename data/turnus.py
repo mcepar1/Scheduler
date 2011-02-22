@@ -1,7 +1,6 @@
 # -*- coding: Cp1250 -*-
 
-import cPickle as pickle
-import os
+from Scheduler.data  import general, locations
 
 class Turnus:
   
@@ -62,7 +61,7 @@ class Turnus:
         
     #now we check if they match with the types first letter
     for char in chars:
-      for type in turnus_types.turnus_types:
+      for type in turnus_types.get_all ( ):
         if char == str(type)[0].upper():
           self.types.add(type)
           
@@ -96,61 +95,7 @@ class Turnus:
     except:
       return - 1
     
-class TurnusContainer:
-  """Contains methods, that deal with multiple instences of the Turnus
-  class at once (loading, saving, representing as a table, ...)"""
-  
-  FILES_DIR = os.path.join("persistence", "data")
-  FILE_NAME = "turnus.dat"
-  
-  def __init__(self, turnus_list=None):
-    """This is the constructor
-    turnus_list: a list (or set) that contains instances of the Turnus class"""
-    
-    self.turnuses = []
-    
-    if turnus_list:
-      self.add_all(turnus_list)
-        
-  def add_all(self, turnus_list):
-    """Adds all the elements of the turnus_list into the container
-      turnus_list: a list that contains  instances of the Turnus class"""
-      
-    for turnus in turnus_list:
-        self.turnuses.append(turnus)
-  
-  def save(self):
-    """Saves the current state into an external file."""
-    pickle.dump(self.turnuses, file(os.path.join(TurnusContainer.FILES_DIR, TurnusContainer.FILE_NAME), 'wb'))
-    
-  def load(self):
-    """Loads the contens from the external file. The current state is LOST!!!!"""
-    self.turnuses = pickle.load(file(os.path.join(TurnusContainer.FILES_DIR, TurnusContainer.FILE_NAME), 'rb'))
-    
-  def as_table(self):
-    """Returns a table-like representation of self.
-      return: a dictionary with two string keys:
-        header: a list that contains headers of the table:
-        items: a list of lists. The external list represents rows and the intrenal one represents columns within a single row."""
-        
-    
-    rows_list = []
-    for turnus in self.turnuses:
-      rows_list.append(turnus.as_list())
-    
-    table = {}
-    table['header'] = Turnus.HEADERS  
-    table['items'] = rows_list
-   
-    return table
-  
-  def get_element(self, index):
-    """Returns the turnus at the specified index.
-      index: index of the turnus
-    """
-    
-    # TODO: verify, that the self.workplaces and the GUI table always match indexes
-    return self.turnuses[index]
+class TurnusContainer (general.Container):
   
   def get_by_type(self, type, workplace=None):
     """
@@ -161,7 +106,7 @@ class TurnusContainer:
       return: a set of turnuses
     """
     turnuses = set()
-    for turnus in self.turnuses:
+    for turnus in self.elements:
       if type in turnus.types:
         turnuses.add(turnus)
     
@@ -177,7 +122,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = TurnusContainer()
+  el = TurnusContainer (locations.TURNUS_DATA, Turnus.HEADERS)
   try:
     el.load()
   except Exception as e:
