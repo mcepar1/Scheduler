@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.global_vars import turnuses
-from Scheduler.utils import holiday, time_conversion
+from global_vars import turnuses
+from utils import holiday, time_conversion
 
 import calendar
 import datetime

@@ -1,10 +1,10 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data.nurse   import Nurse
-from Scheduler.utils        import time_conversion
-from Scheduler.global_vars  import nurses as all_nurses, workplaces
-from Scheduler.scheduler    import person_scheduler
-from Scheduler.data.general import locations, Container 
+from data.nurse   import Nurse
+from utils        import time_conversion
+from global_vars  import nurses as all_nurses, workplaces
+from scheduler    import person_scheduler
+from data.general import locations, Container 
 import keyboard
 
 import os

@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.utils import translate
-from Scheduler.data  import general, locations
+from utils import translate
+from data  import general, locations
 
 import locale
 
@@ -51,7 +51,7 @@ class Nurse:
       self.set_employment_type(employment_type)
     else:
       # very rare case
-      from Scheduler.data import employment_type
+      from data import employment_type
       
       try:
         self.employment_type = employment_type.load().get_all ( )[1]
@@ -271,11 +271,11 @@ class Nurse:
     prefixes_s = []
     suffixes_s = []
     for title in prefixes_t:
-      prefixes_s.append(unicode (title))
+      prefixes_s.append(str (title))
     for title in suffixes_t:
-      suffixes_s.append(unicode (title))
+      suffixes_s.append(str (title))
       
-    return unicode (u', '.join(prefixes_s) + u' ' + unicode (self) + u' ' + ', '.join(suffixes_s))
+    return str (u', '.join(prefixes_s) + u' ' + unicode (self) + u' ' + ', '.join(suffixes_s))
     
   def __str__(self):
     return self.name + " " + self.surname

@@ -4,7 +4,7 @@ import locale
 import cPickle as pickle
 import os
 
-from Scheduler.data import locations
+from data import locations
 
 class Container:
   """ A generic class that handles multiple instances of the data classes. """
@@ -32,7 +32,7 @@ class Container:
     for element in elements_list:
       for existing_element in self.elements:
         if element == existing_element:
-          raise Exception(u'Element ' + unicode (element) + u' že obstaja.')
+          raise Exception(u'Element ' + str (element) + u' že obstaja.')
       self.elements.append (element)
  
   def save(self):
@@ -179,4 +179,4 @@ class Container:
     return map
     
   def __str__(self):
-    return ", ".join([unicode(element) for element in self.elements])
+    return ", ".join([str(element) for element in self.elements])

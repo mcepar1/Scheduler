@@ -1,3 +1,5 @@
+# -*- coding: Cp1250 -*-
+
 import datetime
 
 # how much hours is a non-working holiday worth

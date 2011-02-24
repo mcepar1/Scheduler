@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data.employment_type import EmploymentType
-from Scheduler.data.general         import locations, Container 
+from data.employment_type import EmploymentType
+from data.general         import locations, Container 
 
 import os
 import sys

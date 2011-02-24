@@ -1,3 +1,5 @@
+# -*- coding: Cp1250 -*-
+
 """
 This file is used to set the initial state of the application.
 If you use this way of importing data, all the already inserted data

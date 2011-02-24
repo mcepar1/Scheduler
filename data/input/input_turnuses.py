@@ -1,12 +1,12 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data.turnus import Turnus, TurnusContainer
-from Scheduler.data.general import locations
+from data.turnus import Turnus, TurnusContainer
+from data.general import locations
 
 import os
 import sys
 import csv
-from Scheduler.utils import time_conversion
+from utils import time_conversion
   
   
 def input_turnuses():

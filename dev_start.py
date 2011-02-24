@@ -1,3 +1,4 @@
+# -*- coding: Cp1250 -*-
 import wx
 
 import os
@@ -8,13 +9,13 @@ def reset_log ():
   file.flush()
   file.close()
   
-def set_path ():
-  #Append the root to the path
+def set_encoding ():
   import sys
-  sys.path.append ('..')
+  reload (sys)
+  sys.setdefaultencoding('Cp1250')
   
 reset_log()
-set_path ()
+set_encoding()
 
 import locale
 locale.setlocale(locale.LC_ALL,"")

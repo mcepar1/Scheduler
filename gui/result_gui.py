@@ -1,8 +1,8 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.global_vars import employment_types, workplaces
-from Scheduler.scheduler import person_scheduler
-from Scheduler.utils import time_conversion, exporter
+from global_vars import employment_types, workplaces
+from scheduler import person_scheduler
+from utils import time_conversion, exporter
 
 import wx
 import wx.grid
@@ -157,7 +157,7 @@ class NonModalProgressDialog(wx.Dialog):
     self.gauge.Pulse()
 
 """
-This class is just a wrapper around the PersonScheduler.
+This class is just a wrapper around the Person
 """
 class Scheduler(Thread):
   
@@ -194,28 +194,28 @@ class Scheduler(Thread):
     wx.PostEvent(self.wx_parent, evt)
     
   def get_result(self):
-    """A wrapper around the PersonScheduler.get_schedule_matrix method."""
+    """A wrapper around the Personget_schedule_matrix method."""
     if self.scheduler:
       return self.scheduler.get_schedule_matrix()
     else:
       return [[], []]
   
   def get_workplace_result(self):
-    """A wrapper around the PersonScheduler.get_workplace_matrix method."""
+    """A wrapper around the Personget_workplace_matrix method."""
     if self.scheduler:
       return self.scheduler.get_workplace_matrix ()
     else:
       return {}
     
   def get_warnings(self):
-    """A wrapper around the PersonScheduler.get_workplace_warnings function."""
+    """A wrapper around the Personget_workplace_warnings function."""
     if self.scheduler:
       return self.scheduler.get_workplace_warnings()
     else:
       raise Exception('Razpored ne obstaja')
     
   def save(self, force=False):
-    """A wrapper around the PersonScheduler.save method"""
+    """A wrapper around the Personsave method"""
     
     if self.scheduler:
       return self.scheduler.save(force=force)

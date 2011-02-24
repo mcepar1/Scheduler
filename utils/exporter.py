@@ -1,3 +1,5 @@
+# -*- coding: Cp1250 -*-
+
 import csv
 
 def exportCSV(workplace_matrix, path):

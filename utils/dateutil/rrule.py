@@ -1,3 +1,4 @@
+# -*- coding: Cp1250 -*-
 """
 Copyright (c) 2003-2010  Gustavo Niemeyer <gustavo@niemeyer.net>
 
@@ -294,7 +295,7 @@ class rrule(rrulebase):
         # byeaster
         if byeaster is not None:
             if not easter:
-                from Scheduler.utils.dateutil import easter
+                from utils.dateutil import easter
             if type(byeaster) is int:
                 self._byeaster = (byeaster,)
             else:
@@ -926,7 +927,7 @@ class _rrulestr:
     def _handle_UNTIL(self, rrkwargs, name, value, **kwargs):
         global parser
         if not parser:
-            from Scheduler.utils.dateutil import parser
+            from utils.dateutil import parser
         try:
             rrkwargs["until"] = parser.parse(value,
                                            ignoretz=kwargs.get("ignoretz"),
@@ -1051,7 +1052,7 @@ class _rrulestr:
                     for parm in parms:
                         raise ValueError, "unsupported DTSTART parm: "+parm
                     if not parser:
-                        from Scheduler.utils.dateutil import parser
+                        from utils.dateutil import parser
                     dtstart = parser.parse(value, ignoretz=ignoretz,
                                            tzinfos=tzinfos)
                 else:
@@ -1059,7 +1060,7 @@ class _rrulestr:
             if (forceset or len(rrulevals) > 1 or
                 rdatevals or exrulevals or exdatevals):
                 if not parser and (rdatevals or exdatevals):
-                    from Scheduler.utils.dateutil import parser
+                    from utils.dateutil import parser
                 set = rruleset(cache=cache)
                 for value in rrulevals:
                     set.rrule(self._parse_rfc_rrule(value, dtstart=dtstart,

@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data.turnus_type import TurnusType
-from Scheduler.data.general     import locations, Container
+from data.turnus_type import TurnusType
+from data.general     import locations, Container
 
 import os
 import sys

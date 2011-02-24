@@ -3,9 +3,9 @@
 import wx
 import wx_extensions
 
-from Scheduler.gui.common import GenericTablePanel
+from common import GenericTablePanel
 
-from Scheduler.global_vars import turnuses, turnus_types
+from global_vars import turnuses, turnus_types
 
 class TurnusPanel(GenericTablePanel):
   def __init__(self, parent):

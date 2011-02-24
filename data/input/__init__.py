@@ -1,3 +1,5 @@
+# -*- coding: Cp1250 -*-
+
 import input_nurses as inurses
 import input_turnuses as iturnuses
 import input_vacations as ivacations

@@ -3,7 +3,7 @@
 """
 This class has some useful function for translating variable values.
 """
-from Scheduler.utils import time_conversion
+from utils import time_conversion
 
 def translate_time (time):
   """
@@ -36,15 +36,14 @@ def translate_timedelata (timedelta):
     return: an unicode object
   """
   # exclude seconds
-  return unicode (timedelta)[0:-3]
+  return str (timedelta)[0:-3]
 
 def translate_string(string):
   """
   Translates string variable into slovenian language.
     return: an unicode object
   """
-  print string
-  return unicode (string)
+  return str (string)
 
 def translate_boolean(boolean):
   """

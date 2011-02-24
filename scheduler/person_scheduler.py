@@ -1,15 +1,15 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data import nurse
+from data import nurse
 
-from Scheduler.scheduler import person as person_module
-from Scheduler.scheduler import workplace as workplace_module
-from Scheduler.scheduler import weights
-from Scheduler.scheduler import plugins
+from scheduler import person as person_module
+from scheduler import workplace as workplace_module
+from scheduler import weights
+from scheduler import plugins
 
-from Scheduler.global_vars import employment_types, turnuses as all_turnuses, workplaces as all_workplaces
-from Scheduler.utils import time_conversion, holiday
-from Scheduler.data import turnus_type
+from global_vars import employment_types, turnuses as all_turnuses, workplaces as all_workplaces
+from utils import time_conversion, holiday
+from data import turnus_type
 
 import random
 import datetime

@@ -1,3 +1,4 @@
+# -*- coding: Cp1250 -*-
 """
 Copyright (c) 2003-2010  Gustavo Niemeyer <gustavo@niemeyer.net>
 

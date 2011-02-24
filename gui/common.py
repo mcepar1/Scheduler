@@ -3,7 +3,7 @@
 import wx
 import wx.lib.newevent
 
-from Scheduler.gui import wx_extensions
+import wx_extensions
 
 """
 New events, for easier communication between the toolbar and it's parents.

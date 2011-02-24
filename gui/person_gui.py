@@ -3,9 +3,10 @@
 import wx
 import wx.calendar
 import wx_extensions
+import locale
 
-from Scheduler import global_vars
-from Scheduler.global_vars import turnuses, vacations, workplaces, roles
+import global_vars
+from global_vars import turnuses, vacations, workplaces, roles
 
 class PersonPanel(wx.Panel):
   
@@ -304,7 +305,7 @@ class TitlePanel (wx.Panel):
     self.all_titles = wx.ListCtrl (self, wx.NewId(), style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_NO_HEADER)
     self.all_titles.InsertColumn (0, u'Vsi nazivi')
     for i, title in enumerate (global_vars.titles.get_all ( )):
-      self.all_titles.InsertStringItem(i, unicode (title))
+      self.all_titles.InsertStringItem(i, str (title))
     self.all_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
       
     
@@ -337,7 +338,7 @@ class TitlePanel (wx.Panel):
   def OrderDrag(self, event):
     text = self.person_titles.GetItemText(event.GetIndex())
     
-    if text != unicode (self.person):
+    if text != str (self.person):
       self.person_titles.DeleteItem(event.GetIndex())
       
       tdo = wx.TextDataObject(text)
@@ -370,13 +371,13 @@ class TitlePanel (wx.Panel):
     Sets the persons titles, as defined in the person_titles field.
     """
     #TODO: add the appropriate method into the container
-    from Scheduler.data.title import Title
+    from data.title import Title
     prefixes = []
     suffixes = []
     i = 0
     
     while i < self.person_titles.GetItemCount ( ):
-      if self.person_titles.GetItemText (i) == unicode (self.person):
+      if not locale.strcoll (self.person_titles.GetItemText (i), str (self.person)):
         break
       prefixes.append(Title (self.person_titles.GetItemText (i)))
       i += 1
@@ -403,17 +404,18 @@ class TitlePanel (wx.Panel):
       
       if prefixes:
         for i, title in enumerate (prefixes):
-          self.person_titles.InsertStringItem (i, unicode (title))
+          print title
+          self.person_titles.InsertStringItem (i, str (title))
       
       i += 1    
-      self.person_titles.InsertStringItem(i, unicode (self.person))
+      self.person_titles.InsertStringItem(i, str (self.person))
       item = self.person_titles.GetItem(i)
       item.SetTextColour(wx.BLUE)
       self.person_titles.SetItem(item)
       
       if suffixes:
         for i, title in enumerate (suffixes):
-          self.person_titles.InsertStringItem (i + 1 + len (prefixes), unicode (title))
+          self.person_titles.InsertStringItem (i + 1 + len (prefixes), str (title))
           
       self.person_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
       

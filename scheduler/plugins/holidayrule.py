@@ -4,10 +4,10 @@
 This plugin is responsible for properly scheduling the special holiday rule
 workplaces
 """
-from Scheduler.utils import holiday, time_conversion
-from Scheduler.data import turnus_type
-from Scheduler.scheduler import weights
-from Scheduler.global_vars import turnuses as all_turnuses
+from utils import holiday, time_conversion
+from data import turnus_type
+from scheduler import weights
+from global_vars import turnuses as all_turnuses
 
 import calendar
 import datetime

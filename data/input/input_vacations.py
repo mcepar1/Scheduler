@@ -1,8 +1,8 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data.vacation import Vacation
-from Scheduler.data.general  import locations, Container
-from Scheduler.utils         import time_conversion
+from data.vacation import Vacation
+from data.general  import locations, Container
+from utils         import time_conversion
 
 import os
 import sys

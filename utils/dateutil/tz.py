@@ -1,3 +1,4 @@
+# -*- coding: Cp1250 -*-
 """
 Copyright (c) 2003-2007  Gustavo Niemeyer <gustavo@niemeyer.net>
 
@@ -21,7 +22,7 @@ __all__ = ["tzutc", "tzoffset", "tzlocal", "tzfile", "tzrange",
            "tzstr", "tzical", "tzwin", "tzwinlocal", "gettz"]
 
 try:
-    from Scheduler.utils.dateutil.tzwin import tzwin, tzwinlocal
+    from utils.dateutil.tzwin import tzwin, tzwinlocal
 except (ImportError, OSError):
     tzwin, tzwinlocal = None, None
 
@@ -479,7 +480,7 @@ class tzrange(datetime.tzinfo):
                  start=None, end=None):
         global relativedelta
         if not relativedelta:
-            from Scheduler.utils.dateutil import relativedelta
+            from utils.dateutil import relativedelta
         self._std_abbr = stdabbr
         self._dst_abbr = dstabbr
         if stdoffset is not None:
@@ -556,7 +557,7 @@ class tzstr(tzrange):
     def __init__(self, s):
         global parser
         if not parser:
-            from Scheduler.utils.dateutil import parser
+            from utils.dateutil import parser
         self._s = s
 
         res = parser._parsetz(s)
@@ -702,7 +703,7 @@ class tzical:
     def __init__(self, fileobj):
         global rrule
         if not rrule:
-            from Scheduler.utils.dateutil import rrule
+            from utils.dateutil import rrule
 
         if isinstance(fileobj, basestring):
             self._s = fileobj
@@ -930,7 +931,7 @@ def gettz(name=None):
                     except OSError:
                         pass
                 if not tz:
-                    from Scheduler.utils.dateutil.zoneinfo import gettz
+                    from utils.dateutil.zoneinfo import gettz
                     tz = gettz(name)
                 if not tz:
                     for c in name:

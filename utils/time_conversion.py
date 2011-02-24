@@ -10,7 +10,7 @@ DATETIME_FORMAT = "%H:%M %d.%m.%Y"
 
 def time_to_string(time):
   """Convert a time object into a string HH:MM representation"""
-  return unicode (time.strftime(TIME_FORMAT))
+  return str (time.strftime(TIME_FORMAT))
   
 def string_to_time(string):
   """Converts a string formatted like HH:MM into a time object"""
@@ -23,7 +23,7 @@ def string_to_time(string):
 
 def date_to_string (date):
   """Convert a date object into human readable date"""
-  return unicode (date.strftime (DATE_FORMAT))
+  return str (date.strftime (DATE_FORMAT))
 
 def string_to_date (string):
   """Converts string into date object"""
@@ -44,4 +44,4 @@ def time_to_timedelta(time):
 
 def datetime_to_string (datetime):
   """Converts a datetime object into a string."""
-  return unicode (datetime.strftime (DATETIME_FORMAT))
+  return str (datetime.strftime (DATETIME_FORMAT))

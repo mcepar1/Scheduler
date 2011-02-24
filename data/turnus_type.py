@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data  import general, locations
-from Scheduler.utils import translate
+from data  import general, locations
+from utils import translate
 
 import locale
 

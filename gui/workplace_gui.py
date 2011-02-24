@@ -2,8 +2,8 @@
 
 import wx
 import wx_extensions
-from Scheduler.global_vars import workplaces, turnuses, roles
-from Scheduler.gui.common import GenericTablePanel
+from global_vars import workplaces, turnuses, roles
+from common import GenericTablePanel
 
 class WorkplacePanel(GenericTablePanel):
   

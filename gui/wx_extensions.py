@@ -1,6 +1,6 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.utils import holiday
+from utils import holiday
 
 import datetime
 import calendar
@@ -138,7 +138,7 @@ class LinkedComboBox(wx.ComboBox):
     """The default constructor."""
   
     #TODO clean the imports
-    from Scheduler.global_vars import employment_types
+    from global_vars import employment_types
     
     wx.ComboBox.__init__(self, *args, **kwargs)
     self.employment_types = employment_types.get_all ( )

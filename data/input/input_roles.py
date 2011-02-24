@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data.role    import Role
-from Scheduler.data.general import locations, Container
+from data.role    import Role
+from data.general import locations, Container
 
 import os
 import sys

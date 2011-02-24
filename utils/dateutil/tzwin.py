@@ -1,3 +1,4 @@
+# -*- coding: Cp1250 -*-
 # This code was originally contributed by Jeffrey Harris.
 import datetime
 import struct

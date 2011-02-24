@@ -1,6 +1,8 @@
+# -*- coding: Cp1250 -*-
+
 import datetime
 
-from Scheduler.utils import translations
+from utils import translations
 
 def translate(object):
   """

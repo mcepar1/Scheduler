@@ -1,8 +1,8 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.gui.person_gui import PersonPanel
-from Scheduler.gui.common import GenericTablePanel
-from Scheduler.global_vars import nurses
+from person_gui import PersonPanel
+from common import GenericTablePanel
+from global_vars import nurses
 
 class NursePanel(GenericTablePanel):
   

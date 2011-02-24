@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.data  import general, locations
-from Scheduler.utils import translate
+from data  import general, locations
+from utils import translate
 
 import locale
 
@@ -58,7 +58,7 @@ class Turnus:
   
   def __gues_types(self):
     """Tries to guess into which types does this turnus belong into"""
-    from Scheduler.global_vars import turnus_types
+    from global_vars import turnus_types
     
     #first get all the capital letters from the turnus code
     #TODO: document this
