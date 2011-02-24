@@ -80,6 +80,11 @@ class Nurse:
     # if a entry exists in this dict, it will be pre-scheduled    
     self.predefined = {}
       
+  
+  def as_data_list(self):
+    """Returns this object's attribute values in a list. 
+    This method should always correspond with the HEADERS variable."""
+    return [self.work_id, self.name, self.surname, self.birthday]
     
   def as_list(self):
     """Returns this object's attribute values in a list. 

@@ -25,6 +25,12 @@ class Workplace:
     # if the turnus is located in the set, the workplace allows that turnus
     self.allowed_turnuses = set ()
     
+  def as_data_list(self):
+    """Returns this object's attribute values in a list. 
+    This method should always correspond with the HEADERS variable."""
+    
+    return [self.label, self.holiday_rule]
+    
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""

@@ -2,50 +2,37 @@
 
 import wx
 import wx_extensions
-from global_vars import workplaces, turnuses, roles, nurses
+from Scheduler.global_vars import workplaces, turnuses, roles, nurses
+from Scheduler.gui.generic_table_panel import GenericTablePanel
 
-class WorkplacePanel(wx.Panel):
+class WorkplacePanel(GenericTablePanel):
   
   def __init__(self, parent):
-    wx.Panel.__init__(self, parent)
+    #wx.Panel.__init__(self, parent)
     
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    #sizer = wx.BoxSizer(wx.HORIZONTAL)
     
-    self.grid = wx.grid.Grid(self, wx.NewId())
-    self.fill_grid()
+    #self.grid = wx.grid.Grid(self, wx.NewId())
+    #self.fill_grid()
     
-    panelSizer = wx.BoxSizer(wx.VERTICAL)
+    #panelSizer = wx.BoxSizer(wx.VERTICAL)
     
-    sizer.Add(self.grid, 1, wx.CENTER | wx.EXPAND)
+    #sizer.Add(self.grid, 1, wx.CENTER | wx.EXPAND)
     
-    self.turnuses = TurnusPanel(self)
-    panelSizer.Add(self.turnuses, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
+    GenericTablePanel.__init__(self, workplaces, parent, edit_panel = TurnusPanel)
     
-    self.roles = RolePanel(self)
-    panelSizer.Add(self.roles, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
     
-    sizer.Add(panelSizer, 0, wx.ALIGN_LEFT)
+    #panelSizer.Add(self.turnuses, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
     
-    self.SetSizerAndFit(sizer)
+    #self.roles = RolePanel(self)
+    #panelSizer.Add(self.roles, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
+    
+    #sizer.Add(panelSizer, 0, wx.ALIGN_LEFT)
+    
+    #self.SetSizerAndFit(sizer)
     
     # add event listeners
-    self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.workplace_selected, self.grid)
-    
-  def fill_grid(self):
-    table = workplaces.as_table()
-    headers = table['header']
-    rows = table['items']
-    
-    self.grid.CreateGrid(len(rows), len(headers))
-      
-    for i in range(len(headers)):
-      self.grid.SetColLabelValue(i, headers[i])
-      
-    for i in range(len(rows)):
-      for j in range(len(rows[i])):
-        self.grid.SetCellValue(i, j, rows[i][j])
-        
-    self.grid.AutoSize()
+    #self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.workplace_selected, self.grid)
     
   def workplace_selected(self, event):
     if event.GetCol() == -1:
@@ -86,7 +73,7 @@ class TurnusPanel(wx.Panel):
     
     self.SetSizerAndFit(topSizer)
     
-  def set_workplace (self, workplace):
+  def set_unit (self, workplace):
     self.workplace = workplace
     self.__set_permissions ()
     
@@ -148,7 +135,7 @@ class RolePanel(wx.Panel):
     
     self.SetSizerAndFit(topSizer)
     
-  def set_workplace (self, workplace):
+  def set_unit (self, workplace):
     self.workplace = workplace
     self.__set_permissions ()
     

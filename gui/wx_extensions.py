@@ -1,13 +1,15 @@
 # -*- coding: Cp1250 -*-
 
-from utils import holiday
+from Scheduler.utils import holiday
 
 import datetime
 import calendar
 
 import wx
+import wx.grid
 import wx.calendar
 import wx.lib.intctrl
+import wx.lib.newevent
 
 
 
@@ -136,7 +138,7 @@ class LinkedComboBox(wx.ComboBox):
     """The default constructor."""
   
     #TODO clean the imports
-    from global_vars import employment_types
+    from Scheduler.global_vars import employment_types
     
     wx.ComboBox.__init__(self, *args, **kwargs)
     self.employment_types = employment_types.get_all ( )
@@ -216,6 +218,145 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
     dates.sort()
     
     return dates
+
+"""
+Custom events to handle the new grid's functionality. 
+"""
+SelectEvent, EVT_GRID_SELECTED = wx.lib.newevent.NewCommandEvent ( )
+    
+"""
+This class behaves the same way as a normal wxGrid.
+It handles data containers, filtering and sorting internally.
+"""
+class EnhancedGrid (wx.grid.Grid):
+  
+  def __init__(self, container, *args, **kwargs):
+    """
+    The default constructor.
+      container: an instance of the data container
+    """
+    wx.grid.Grid.__init__(self, *args, **kwargs)
+    
+    self.container = container
+    self.index_map = {}
+    self.sort_ascending = None
+    
+    self.SetCellHighlightPenWidth(-1) # disables the selected cell's bold border
+    self.EnableEditing(False)
+    self.__fill_grid()
     
     
+    
+    self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.__grid_clicked)
+    self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.__grid_clicked)
+    
+  def search (self, search_list):
+    """
+    Displays only those entries, that match the search list.
+      search_list: a list of strings
+    """
+    index = None
+    if self.IsSelection():
+      index = self.container.get_index(self.get_selected_element())
+    
+    self.container.set_filter(search_list)
+    self.__fill_grid ( )
+    
+    #if there is only one element, select it
+    if len (self.index_map) == 1:
+      self.__select(-1, 0)
+    #if there is an selected element, select it, if it passes the filter
+    elif index != None:
+      for row in self.index_map:
+        if self.index_map[row] == index:
+          self.__select(-1, row)
+          break
+      else:
+        self.__select(-1, -1)
+    #clear selection, if all else fails
+    else:
+      self.__select(-1, -1)
+      
+    
+  def get_selected_element (self):
+    """
+    Returns the currently selected element.
+      return: the element instance, None if there is no selection.
+    """
+    
+    if self.IsSelection ( ):
+      return self.container.get_element (self.index_map[self.GetSelectedRows( )[0]])
+    else:
+      return None
+    
+  def __sort (self, col):
+    """
+    Sorts and redraws the grid.
+    """
+    if self.sort_ascending:
+      self.sort_ascending = False
+    else:
+      self.sort_ascending = True
+    
+    element = None
+    if self.IsSelection():
+      element = self.get_selected_element ( )
+      
+    self.container.sort(col, self.sort_ascending)
+    self.__fill_grid()
+    
+    if element:
+      for i in self.index_map:
+        if self.container.get_element(self.index_map[i]) == element:
+          self.__select(-1, i)
+          break
+      else:
+        self.__select(-1, -1)
+    else:
+      self.__select(-1, -1)
+      
+    
+  def __fill_grid(self):
+    """
+    Fills the grid, with the container's data.
+    """
+    
+    self.ClearGrid( )
+    self.SetTable(None)
+      
+    table, self.index_map = self.container.as_table_filtered()
+    headers = table['header']
+    rows = table['items']
+    
+    self.CreateGrid(len(rows),len(headers))
+      
+    for i in range(len(headers)):
+      self.SetColLabelValue(i, headers[i])
+      
+    for i in range(len(rows)):
+      for j in range(len(rows[i])):
+        self.SetCellValue(i, j, rows[i][j])
+        
+    self.AutoSize ( )
+    self.GetParent( ).GetSizer().Layout()
+    
+    
+  def __select (self, col, row):
+    if col >=-1:
+      if row < 0:
+        self.ClearSelection()
+      else:
+        self.SelectRow(row)
+        
+    wx.PostEvent(self.GetEventHandler(), SelectEvent(self.GetId()))
+    
+  def __grid_clicked(self, event):
+    """
+    Event listener for the cell selection.
+    """
+    if event.GetRow ( ) == -1:
+      self.__sort(event.GetCol ( ))
+    else:
+      self.__select(event.GetCol ( ), event.GetRow ( ))
+      
     

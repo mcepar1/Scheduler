@@ -2,16 +2,19 @@
 
 import wx
 
+from Scheduler import global_vars
+from Scheduler.gui.generic_table_panel import GenericTablePanel
+
 from scheduler_gui import SchedulerPanel
 from turnus_gui import TurnusPanel
-from vacation_gui import VacationPanel
+#from vacation_gui import VacationPanel
 from nurse_gui import NursePanel
 #from doctor_gui import DoctorPanel
 from workplace_gui import WorkplacePanel
-from employment_type_gui import EmploymentTypePanel
-from title_gui import TitlePanel
-from turnus_type_gui import TurnusTypePanel
-from role_gui import RolePanel
+#from employment_type_gui import EmploymentTypePanel
+#from title_gui import TitlePanel
+#from turnus_type_gui import TurnusTypePanel
+#from role_gui import RolePanel
 
 class MainWindow(wx.Frame):
 
@@ -27,13 +30,13 @@ class MainWindow(wx.Frame):
     notebook.AddPage(SchedulerPanel(notebook), "Urnik")
     notebook.AddPage(NursePanel(notebook), "Medicinske sestre")
     #notebook.AddPage(DoctorPanel(notebook), "Zdravniki")
-    notebook.AddPage(EmploymentTypePanel(notebook), "Vrste zaposlitve")
+    notebook.AddPage(GenericTablePanel(global_vars.employment_types, notebook), "Vrste zaposlitve")
     notebook.AddPage(TurnusPanel(notebook), "Turnusi")
-    notebook.AddPage(VacationPanel(notebook), "Dopusti")
+    notebook.AddPage(GenericTablePanel(global_vars.vacations, notebook), "Dopusti")
     notebook.AddPage(WorkplacePanel(notebook), "Delovišèa")
-    notebook.AddPage(TitlePanel(notebook), "Nazivi")
-    notebook.AddPage(TurnusTypePanel(notebook), "Vrste turnusov")
-    notebook.AddPage(RolePanel(notebook), 'Vloge')
+    notebook.AddPage(GenericTablePanel(global_vars.titles, notebook), "Nazivi")
+    notebook.AddPage(GenericTablePanel(global_vars.turnus_types, notebook), "Vrste turnusov")
+    notebook.AddPage(GenericTablePanel(global_vars.roles, notebook), 'Vloge')
     
     self.sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
     
@@ -64,7 +67,6 @@ class MainButtons(wx.Panel):
   def save_all(self,event):
     #TODO: this is used only for testing
     #TODO: remove or change in a final release
-    import global_vars
     global_vars.save()
    
     

@@ -26,6 +26,11 @@ class EmploymentType:
     
     self.allowed_turnuses = set(allowed_turnuses)
     
+  def as_data_list(self):
+    """Returns this object's attribute values in a list. 
+    This method should always correspond with the HEADERS variable."""
+    return [self.label, self.weekly_hours, self.has_overtime]
+    
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""

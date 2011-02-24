@@ -34,6 +34,11 @@ class Turnus:
       self.__gues_types()
     else:
       self.types = types
+  
+  def as_data_list(self):
+    """Returns this object's attribute values in a list. 
+    This method should always correspond with the HEADERS variable."""
+    return [self.code, self.label, self.start, self.end, self.duration, self.blockade, self.holiday]
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
@@ -50,7 +55,7 @@ class Turnus:
   
   def __gues_types(self):
     """Tries to guess into which types does this turnus belong into"""
-    from global_vars import turnus_types
+    from Scheduler.global_vars import turnus_types
     
     #first get all the capital letters from the turnus code
     #TODO: document this

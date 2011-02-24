@@ -22,6 +22,11 @@ class Vacation:
     self.end = datetime.time(hour = 23, minute = 59)
     self.blockade = datetime.timedelta()
     self.duration = duration
+    
+  def as_data_list(self):
+    """Returns this object's attribute values in a list. 
+    This method should always correspond with the HEADERS variable."""
+    return [self.code, self.label, self.duration]
       
   def as_list(self):
     """Returns this object's attribute values in a list. 

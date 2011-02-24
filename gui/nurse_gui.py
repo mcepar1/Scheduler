@@ -1,8 +1,9 @@
 # -*- coding: Cp1250 -*-
 
 import wx
+import wx.grid
 from person_gui import PersonPanel
-from global_vars import nurses
+from Scheduler.global_vars import nurses
 
 class NursePanel(wx.Panel):
   
