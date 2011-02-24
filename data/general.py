@@ -1,5 +1,6 @@
 # -*- coding: Cp1250 -*-
 
+import locale
 import cPickle as pickle
 import os
 
@@ -82,8 +83,13 @@ class Container:
     
     if column < 0:
       self.elements.sort(reverse= not ascending)
-    elif column < len (self.headers):
-      self.elements.sort(cmp=lambda x, y: cmp(x.as_data_list()[column], y.as_data_list()[column]), reverse=not ascending)
+    elif column < len (self.headers) and len (self.headers):
+      el = self.elements[0].as_data_list( )[column]
+      #locale aware sorting
+      if isinstance(el, str):
+        self.elements.sort(cmp=lambda x, y: locale.strcoll(x.as_data_list()[column], y.as_data_list()[column]), reverse=not ascending)
+      else:
+        self.elements.sort(cmp=lambda x, y: cmp(x.as_data_list()[column], y.as_data_list()[column]), reverse=not ascending)
   
   def set_filter(self, filter):
     """

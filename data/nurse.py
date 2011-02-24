@@ -1,7 +1,9 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.utils import time_conversion, translate
+from Scheduler.utils import translate
 from Scheduler.data  import general, locations
+
+import locale
 
 class Nurse:
 
@@ -286,16 +288,16 @@ class Nurse:
     
   def __cmp__(self, other):
     try:
-      if self.work_id == other.work_id:
-        if self.surname == other.surname:
-          if self.name == other.name:
+      if not locale.strcoll(self.work_id, other.work_id):
+        if not locale.strcoll(self.surname, other.surname):
+          if not locale.strcoll(self.name, other.name):
             return cmp (self.birthday, other.birthday)
           else:
-            return cmp(self.name, other.name)
+            return locale.strcoll(self.surname, other.surname)
         else:
-          return cmp(self.surname, other.surname)
+          return locale.strcoll(self.surname, other.surname)
       else:
-        return cmp (self.work_id, other.work_id)
+        return locale.strcoll(self.work_id, other.work_id)
     
     
     except:

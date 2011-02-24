@@ -3,6 +3,8 @@
 from Scheduler.data  import general, locations
 from Scheduler.utils import translate
 
+import locale
+
 class Turnus:
   
   HEADERS = ["OZNAKA", "TIP DELA", "ZAÈETEK", "KONEC", "TRAJANJE", "BLOKADA", "NA PROST DAN"]
@@ -83,8 +85,8 @@ class Turnus:
     
   def __cmp__(self, other):
     try:
-      if self.code == other.code:
-        if self.label == other.label:
+      if not locale.strcoll (self.code, other.code):
+        if not locale.strcoll (self.label, other.label):
           if self.start == other.start:
             if self.end == other.end:
               return 0
@@ -93,9 +95,9 @@ class Turnus:
           else:
             return cmp(self.start, other.start)
         else:
-          return cmp(self.label, other.label)
+          return locale.strcoll (self.label, other.label)
       else:
-        return cmp(self.code, other.code)
+        return locale.strcoll (self.code, other.code)
     
     
     except:

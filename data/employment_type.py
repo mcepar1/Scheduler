@@ -3,6 +3,8 @@
 from Scheduler.data  import general, locations
 from Scheduler.utils import translate
 
+import locale
+
 """
 This file contains the employment types.
 """
@@ -50,13 +52,13 @@ class EmploymentType:
     #Monthly hours attribute is excluded, because this 
     #attribute varies form month to month
     try:
-      if self.label == other.label:
+      if  not locale.strcoll(self.label, other.label):
         if self.weekly_hours == other.weekly_hours:
           return cmp (self.has_overtime, other.has_overtime)
         else:
           return cmp(self.weekly_hours, other.weekly_hours)
       else:
-        return cmp(self.label, other.label)
+        return locale.strcoll(self.label, other.label)
     
     
     except:

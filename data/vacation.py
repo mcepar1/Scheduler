@@ -5,6 +5,8 @@ import datetime
 from Scheduler.data  import general, locations
 from Scheduler.utils import translate
 
+import locale
+
 class Vacation:
   
   HEADERS = ["OZNAKA", "VRSTA DOPUSTA", "OBRAÈUNAN ÈAS"]
@@ -45,13 +47,13 @@ class Vacation:
     
   def __cmp__(self, other):
     try:
-      if self.code == other.code:
-        if self.label == other.label:
+      if not locale.strcoll (self.code, other.code):
+        if not locale.strcoll (self.label, other.label):
           return 0
         else:
-          return cmp(self.label, other.label)
+          return locale.strcoll (self.label, other.label)
       else:
-        return cmp(self.code, other.code)
+        return locale.strcoll (self.code, other.code)
     
     
     except:

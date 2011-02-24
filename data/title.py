@@ -3,6 +3,8 @@
 from Scheduler.data  import general, locations
 from Scheduler.utils import translate
 
+import locale
+
 class Title:
   
   HEADERS = ["NAZIV"]
@@ -32,7 +34,7 @@ class Title:
     
   def __cmp__(self, other):
     try:
-      return cmp(self.label, other.label)
+      return locale.strcoll (self.label, other.label)
     except:
       return - 1
     

@@ -3,6 +3,8 @@
 from Scheduler.data  import general, locations
 from Scheduler.utils import translate
 
+import locale
+
 class Workplace:
   
   HEADERS = ["OZNAKA", "DELAJ POPOLDNE PRED PRAZNIKOM"]
@@ -78,10 +80,10 @@ class Workplace:
     
   def __cmp__(self, other):
     try:
-      if self.label == other.label:
+      if  not locale.strcoll (self.label, other.label):
         return 0
       else:
-        return cmp(self.label, other.label)
+        return locale.strcoll (self.label, other.label)
     
     except:
       return - 1
