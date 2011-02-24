@@ -1,12 +1,11 @@
 # -*- coding: Cp1250 -*-
 
 import wx
-import wx.grid
 import wx.calendar
 import wx_extensions
 
-import global_vars
-from global_vars import turnuses, vacations, workplaces, titles, roles
+from Scheduler import global_vars
+from Scheduler.global_vars import turnuses, vacations, workplaces, roles
 
 class PersonPanel(wx.Panel):
   
@@ -32,7 +31,7 @@ class PersonPanel(wx.Panel):
     sizer.Add(sub_sizer, 0, wx.ALIGN_LEFT)
     
     self.permissions = PermissionsPanel(self)
-    sizer.Add(self.permissions, 0, wx.ALIGN_LEFT)
+    sizer.Add(self.permissions, 1, wx.ALIGN_LEFT | wx.RIGHT, 1)
     
     self.button = wx.Button(self, wx.NewId(), "Uredi ostalo")
     self.button.Disable()
@@ -41,7 +40,7 @@ class PersonPanel(wx.Panel):
     
     self.SetSizerAndFit(sizer)
     
-  def set_person(self, person):
+  def set_unit(self, person):
     """
     Sets the person, that is represented by this panel.
       person: the person, that is represented
@@ -129,11 +128,11 @@ class PermissionsPanel(wx.Panel):
     
     self.person = None
     
-    topSizer = wx.FlexGridSizer(cols=2)
+    topSizer = wx.FlexGridSizer(cols = 2)
+    
     
     turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
     workplaceSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Delovišča"), wx.VERTICAL)
-    titlesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Nazivi"), wx.VERTICAL)
     specialCaseSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Ostalo"), wx.VERTICAL)
     
     #set the turnuses
@@ -151,7 +150,6 @@ class PermissionsPanel(wx.Panel):
       workplaceSizer.Add(self.workplaces[-1], 0, wx.ALIGN_LEFT)
         
     self.titles = TitlePanel (self, wx.NewId ())
-    titlesSizer.Add(self.titles, 0, wx.ALIGN_LEFT)
       
         
     self.packet_night_turnuses = wx.CheckBox(self, wx.NewId(), label='Združuj nočne turnuse')
@@ -167,11 +165,13 @@ class PermissionsPanel(wx.Panel):
     #set the initial permissions  
     self.__set_permissions()
     
-    topSizer.Add(turnusSizer, 0, wx.ALIGN_LEFT)
-    topSizer.Add(titlesSizer, 0, wx.ALIGN_LEFT)
-    topSizer.Add(workplaceSizer, 0, wx.ALIGN_LEFT)
-    topSizer.Add(self.roles, 0, wx.ALIGN_LEFT)
-    topSizer.Add(specialCaseSizer, 0 , wx.ALIGN_LEFT)
+    topSizer.Add (self.titles, 1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    topSizer.Add (turnusSizer, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    
+    topSizer.Add(workplaceSizer, 1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    topSizer.Add(self.roles, 1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    
+    topSizer.Add(specialCaseSizer, 1 , wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     
     self.SetSizerAndFit(topSizer)
     
@@ -299,27 +299,29 @@ class TitlePanel (wx.Panel):
     
     self.person = None
     
-    sizer = wx.BoxSizer(wx.VERTICAL)
+    sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Nazivi"), wx.VERTICAL)
     
-    self.all_titles = wx.ListCtrl (self, wx.NewId(), style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_NO_HEADER | wx.LC_HRULES)
-    self.all_titles.InsertColumn (0,'')
+    self.all_titles = wx.ListCtrl (self, wx.NewId(), style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_NO_HEADER)
+    self.all_titles.InsertColumn (0, u'Vsi nazivi')
     for i, title in enumerate (global_vars.titles.get_all ( )):
       self.all_titles.InsertStringItem(i, unicode (title))
     self.all_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
       
     
-    self.person_titles = wx.ListCtrl (self, wx.NewId(), style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_NO_HEADER | wx.LC_HRULES)
-    self.person_titles.InsertColumn (0,'')
+    self.person_titles = wx.ListCtrl (self, wx.NewId(), style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_NO_HEADER)
+    self.person_titles.InsertColumn (0, u'Izbrani nazivi')
+    self.person_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+    
     dt = TitlePanel.MyTextDropTarget(self.person_titles)
     self.person_titles.SetDropTarget(dt)
-    self.person_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+    
     self.Bind(wx.EVT_LIST_BEGIN_DRAG, self.InsertDrag, self.all_titles)
     self.Bind(wx.EVT_LIST_BEGIN_DRAG, self.OrderDrag,  self.person_titles)
     
     self.__set_permissions ( )
     
-    sizer.Add (self.all_titles)
-    sizer.Add (self.person_titles)
+    sizer.Add (self.all_titles, 3, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    sizer.Add (self.person_titles, 2, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
     
@@ -353,6 +355,15 @@ class TitlePanel (wx.Panel):
     self.person_titles.DeleteAllItems ( )
     self.person = person
     self.__set_permissions()
+    
+    
+  def __set_titles_width(self):
+    """
+    Sets the appropriate width for the lists.
+    """
+    width = self.GetSize ( )[0] - 21
+    self.all_titles.SetColumnWidth(0, width)
+    self.person_titles.SetColumnWidth(0, width)
     
   def __set_titles (self):
     """
@@ -410,6 +421,8 @@ class TitlePanel (wx.Panel):
       self.person_titles.Disable()
       self.all_titles.Disable()
       
+    self.__set_titles_width ( )
+      
     
           
 class RolePanel (wx.Panel):
@@ -419,19 +432,19 @@ class RolePanel (wx.Panel):
     
     self.person = None
     
-    rolesSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
+    sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
     
     self.workplaces = wx_extensions.LinkedChoice (workplaces.get_all ( ), self, wx.NewId())
     self.Bind(wx.EVT_CHOICE, self.__workplace_selected, self.workplaces)
-    rolesSizer.Add(self.workplaces, 0, wx.ALIGN_LEFT)
+    sizer.Add(self.workplaces, 0, wx.ALIGN_LEFT)
     
     self.roles = []
     for role in roles.get_all ( ):
       self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
       self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
-      rolesSizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
+      sizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
       
-    self.SetSizerAndFit(rolesSizer)
+    self.SetSizerAndFit(sizer)
       
     self.__set_permissions()
       
@@ -505,7 +518,7 @@ class DatePermissionsPanel(wx.Panel):
     topSizer = wx.BoxSizer(wx.HORIZONTAL)
     
     turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Dovoljeni turnusi"), wx.VERTICAL)
-    preScheduleSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vnaprej doloci"), wx.VERTICAL)
+    preScheduleSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vnaprej določi"), wx.VERTICAL)
     vacationSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Dopusti"), wx.VERTICAL)
 
     

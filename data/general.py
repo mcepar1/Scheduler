@@ -90,6 +90,12 @@ class Container:
         self.elements.sort(cmp=lambda x, y: locale.strcoll(x.as_data_list()[column], y.as_data_list()[column]), reverse=not ascending)
       else:
         self.elements.sort(cmp=lambda x, y: cmp(x.as_data_list()[column], y.as_data_list()[column]), reverse=not ascending)
+        
+  def delete(self, element):
+    """
+    Deletes the element form the self.elements. Does not store the change to the hard drive.
+    """
+    self.elements.remove(element)
   
   def set_filter(self, filter):
     """

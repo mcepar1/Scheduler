@@ -2,48 +2,32 @@
 
 import wx
 import wx_extensions
-from Scheduler.global_vars import workplaces, turnuses, roles, nurses
-from Scheduler.gui.generic_table_panel import GenericTablePanel
+from Scheduler.global_vars import workplaces, turnuses, roles
+from Scheduler.gui.common import GenericTablePanel
 
 class WorkplacePanel(GenericTablePanel):
   
   def __init__(self, parent):
-    #wx.Panel.__init__(self, parent)
+    GenericTablePanel.__init__(self, workplaces, parent, edit_panel=EditWorkplacePanel)
+        
+class EditWorkplacePanel(wx.Panel):
+  def __init__(self, *args, **kwargs):
+    wx.Panel.__init__(self, *args, **kwargs)
     
-    #sizer = wx.BoxSizer(wx.HORIZONTAL)
+    sizer = wx.BoxSizer(wx.VERTICAL)
     
-    #self.grid = wx.grid.Grid(self, wx.NewId())
-    #self.fill_grid()
+    self.turnuses = TurnusPanel (self, wx.NewId())
+    self.roles    = RolePanel   (self, wx.NewId())
     
-    #panelSizer = wx.BoxSizer(wx.VERTICAL)
+    sizer.Add(self.turnuses, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    sizer.Add(self.roles,    0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     
-    #sizer.Add(self.grid, 1, wx.CENTER | wx.EXPAND)
+    self.SetSizerAndFit (sizer)
+    self.set_unit(None)
     
-    GenericTablePanel.__init__(self, workplaces, parent, edit_panel = TurnusPanel)
-    
-    
-    #panelSizer.Add(self.turnuses, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
-    
-    #self.roles = RolePanel(self)
-    #panelSizer.Add(self.roles, 0, wx.ALIGN_LEFT | wx.LEFT, 4)
-    
-    #sizer.Add(panelSizer, 0, wx.ALIGN_LEFT)
-    
-    #self.SetSizerAndFit(sizer)
-    
-    # add event listeners
-    #self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.workplace_selected, self.grid)
-    
-  def workplace_selected(self, event):
-    if event.GetCol() == -1:
-      if event.GetRow() < 0:
-        self.turnuses.set_workplace(None)
-        self.roles.set_workplace(None)
-        self.grid.ClearSelection()
-      else:
-        self.grid.SelectRow(event.GetRow())
-        self.turnuses.set_workplace(workplaces.get_element(event.GetRow()))
-        self.roles.set_workplace(workplaces.get_element(event.GetRow()))
+  def set_unit (self, workplace):
+    self.turnuses.set_unit(workplace)
+    self.roles.set_unit(workplace)
 
         
 class TurnusPanel(wx.Panel):
@@ -54,24 +38,23 @@ class TurnusPanel(wx.Panel):
     
     self.workplace = None
     
-    topSizer = wx.BoxSizer(wx.HORIZONTAL)
     
-    turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
+    sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Turnusi"), wx.VERTICAL)
     
     #set the turnuses
     self.turnuses = []
     for turnus in turnuses.get_all ( ):
       self.turnuses.append(wx_extensions.LinkedCheckBox(turnus, self, wx.NewId(), str(turnus)))
       self.Bind(wx.EVT_CHECKBOX, self.__turnus_edited, self.turnuses[-1])
-      turnusSizer.Add(self.turnuses[-1], 0, wx.ALIGN_LEFT)
+      sizer.Add(self.turnuses[-1], 1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     
 
     #set the initial turnuses  
     self.__set_permissions ()
     
-    topSizer.Add(turnusSizer, 0, wx.ALIGN_RIGHT)
+    #topSizer.Add(turnusSizer, 0, wx.ALIGN_RIGHT)
     
-    self.SetSizerAndFit(topSizer)
+    self.SetSizerAndFit(sizer)
     
   def set_unit (self, workplace):
     self.workplace = workplace
@@ -85,16 +68,8 @@ class TurnusPanel(wx.Panel):
     else:
       # add the restriction
       self.workplace.remove_allowed_turnus(event.GetEventObject().element)
-         
-    #update every single person - needed for synchronization
-    for nurse in nurses.get_all ( ):
-      if self.workplace in nurse.workplaces:
-        nurse.remove_workplace(self.workplace)
-        nurse.add_workplace(self.workplace)
       
-        
-    
-    
+          
   def __set_permissions (self):
     """Checks and unchecks the checker according to the current state."""
     
@@ -107,7 +82,8 @@ class TurnusPanel(wx.Panel):
           turnus.SetValue (False)
     else:
       for turnus in self.turnuses:
-        turnus.Disable ()
+        turnus.SetValue (False)
+        turnus.Disable ( )
         
 class RolePanel(wx.Panel):
   
@@ -115,25 +91,21 @@ class RolePanel(wx.Panel):
     wx.Panel.__init__(self, *args, **kwargs)
     
     self.workplace = None
-        
-    topSizer = wx.BoxSizer(wx.HORIZONTAL)
     
-    roleSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
+    sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
     
     #set the roles
     self.roles = []
     for role in roles.get_all ( ):
       self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
       self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
-      roleSizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
+      sizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     
 
     #set the initial roles
     self.__set_permissions ()
     
-    topSizer.Add(roleSizer, 0, wx.ALIGN_RIGHT)
-    
-    self.SetSizerAndFit(topSizer)
+    self.SetSizerAndFit(sizer)
     
   def set_unit (self, workplace):
     self.workplace = workplace
@@ -160,5 +132,6 @@ class RolePanel(wx.Panel):
           role.SetValue (False)
     else:
       for role in self.roles:
-        role.Disable ()
+        role.SetValue (False)
+        role.Disable ( )
       

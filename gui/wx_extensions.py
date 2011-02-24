@@ -250,6 +250,29 @@ class EnhancedGrid (wx.grid.Grid):
     self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.__grid_clicked)
     self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.__grid_clicked)
     
+  def delete (self):
+    """
+    Deletes the selected element from the global container.
+    """
+    if self.IsSelection ( ):
+      self.container.delete (self.get_selected_element ( ))
+      self.__fill_grid ( )
+    
+  def save (self):
+    """
+    Saves the contents of the grid. It always saves the whole grid (including filtered out elements) and
+    preserves the sorting state.
+    """
+    self.container.save ( )
+    
+  def reload (self):
+    """
+    Writes the last saved state into the grid.
+    """
+    self.ClearSelection ( )
+    self.container.load ( )
+    self.__fill_grid ( )
+    
   def search (self, search_list):
     """
     Displays only those entries, that match the search list.

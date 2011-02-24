@@ -3,7 +3,7 @@
 import wx
 
 from Scheduler import global_vars
-from Scheduler.gui.generic_table_panel import GenericTablePanel
+from Scheduler.gui.common import GenericTablePanel
 
 from scheduler_gui import SchedulerPanel
 from turnus_gui import TurnusPanel
