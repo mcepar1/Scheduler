@@ -1,12 +1,12 @@
 # -*- coding: Cp1250 -*-
 
 import wx
+import wx.calendar
 import wx_extensions
 import result_gui
 
-from global_vars import employment_types, workplaces, turnuses, nurses, turnus_types,roles
-from data import employment_type
-from scheduler import person_scheduler
+from Scheduler.global_vars import employment_types, workplaces, turnuses, nurses, turnus_types,roles
+from Scheduler.data import employment_type
 
 class SchedulerPanel(wx.Panel):
   def __init__(self, *args, **kwargs):

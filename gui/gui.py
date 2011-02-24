@@ -7,14 +7,8 @@ from Scheduler.gui.common import GenericTablePanel
 
 from scheduler_gui import SchedulerPanel
 from turnus_gui import TurnusPanel
-#from vacation_gui import VacationPanel
 from nurse_gui import NursePanel
-#from doctor_gui import DoctorPanel
 from workplace_gui import WorkplacePanel
-#from employment_type_gui import EmploymentTypePanel
-#from title_gui import TitlePanel
-#from turnus_type_gui import TurnusTypePanel
-#from role_gui import RolePanel
 
 class MainWindow(wx.Frame):
 

@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from utils import time_conversion
-from global_vars import turnuses, workplaces
+from Scheduler.utils import time_conversion
+from Scheduler.global_vars import turnuses, workplaces
 
 def get_date():
   MESSAGE = "Datum mora biti v navednicah in oblike DD.MM.LLLL. Primer datuma je: '01.01.2010'\nVnesi datum: "

@@ -1,8 +1,8 @@
 # -*- coding: Cp1250 -*-
 
-from global_vars import employment_types, workplaces
-from scheduler import person_scheduler
-from utils import time_conversion, exporter
+from Scheduler.global_vars import employment_types, workplaces
+from Scheduler.scheduler import person_scheduler
+from Scheduler.utils import time_conversion, exporter
 
 import wx
 import wx.grid

@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
-from global_vars import turnuses
-from data import workplace as data_model
+from Scheduler.global_vars import turnuses
+from Scheduler.data import workplace as data_model
 
 class Workplace(data_model.Workplace):
   

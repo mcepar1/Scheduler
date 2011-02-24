@@ -3,7 +3,7 @@
 import cPickle as pickle
 import os
 
-from utils import time_conversion
+from Scheduler.utils import time_conversion
 
 class Doctor:
 
@@ -36,7 +36,7 @@ class Doctor:
       self.set_employment_type(employment_type)
     else:
       # very rare case
-      from data import employment_type
+      from Scheduler.data import employment_type
       try:
         self.employment_type = employment_type.load().employment_types[-1]
       except:

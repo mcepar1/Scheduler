@@ -1,6 +1,6 @@
 # -*- coding: Cp1250 -*-
-from data.turnus_type import TurnusType
-from utils import holiday, time_conversion
+from Scheduler.data.turnus_type import TurnusType
+from Scheduler.utils import holiday, time_conversion
 
 import datetime
 import calendar

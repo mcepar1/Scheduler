@@ -1,9 +1,9 @@
 # -*- coding: Cp1250 -*-
-
-from data.doctor import Doctor, DoctorContainer
-from utils import time_conversion
-from global_vars import doctors, workplaces
-from scheduler import person_scheduler
+"""
+from Scheduler.data.doctor import Doctor, DoctorContainer
+from Scheduler.utils import time_conversion
+from Scheduler.global_vars import doctors, workplaces
+from Scheduler.scheduler import person_scheduler
 import keyboard
 
 import os
@@ -97,7 +97,7 @@ def input_last_month():
   ps.save(force=True)
   sys.stdout.write('OK\n')
   
-  
+"""  
   
 
 

@@ -1,3 +1,5 @@
+# -*- coding: Cp1250 -*-
+
 """
 This class has some useful function for translating variable values.
 """
@@ -41,6 +43,7 @@ def translate_string(string):
   Translates string variable into slovenian language.
     return: an unicode object
   """
+  print string
   return unicode (string)
 
 def translate_boolean(boolean):
