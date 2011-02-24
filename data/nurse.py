@@ -1,6 +1,6 @@
 # -*- coding: Cp1250 -*-
 
-from Scheduler.utils import time_conversion
+from Scheduler.utils import time_conversion, translate
 from Scheduler.data  import general, locations
 
 class Nurse:
@@ -89,7 +89,7 @@ class Nurse:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.work_id, self.name, self.surname, time_conversion.date_to_string(self.birthday)]
+    return [translate (self.work_id), translate (self.name), translate (self.surname), translate (self.birthday)]
   
   def add_allowed_turnus(self, turnus):
     """

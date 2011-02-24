@@ -3,6 +3,7 @@
 import datetime
 
 from Scheduler.data  import general, locations
+from Scheduler.utils import translate
 
 class Vacation:
   
@@ -31,7 +32,7 @@ class Vacation:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.code, self.label, str(self.duration)]
+    return [translate (self.code), translate (self.label), translate (self.duration)]
     
   def __str__(self):
     return self.code + " - " + self.label

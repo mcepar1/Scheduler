@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
 from Scheduler.data  import general, locations
+from Scheduler.utils import translate
 
 """
 This file contains the employment types.
@@ -34,7 +35,7 @@ class EmploymentType:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [str(self.label), str(self.weekly_hours), str(self.has_overtime)]
+    return [translate (self.label), translate (self.weekly_hours), translate (self.has_overtime)]
     
   def __str__(self):
     return self.label

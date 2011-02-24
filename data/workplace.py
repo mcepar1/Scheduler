@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
 from Scheduler.data  import general, locations
+from Scheduler.utils import translate
 
 class Workplace:
   
@@ -11,7 +12,7 @@ class Workplace:
     This is the default constructor
       label: the name of this workplace
       holiday_rule: is a boolean that tells the scheduler, if the workplace 
-                    should follow the spacial scheduling rule (if works on a work 
+                    should follow the special scheduling rule (if works on a work 
                     free day, then it must work the afternoon before (can violate
                     any other restriction)
     """
@@ -35,7 +36,7 @@ class Workplace:
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
     
-    return [self.label, str(self.holiday_rule)]
+    return [translate (self.label), translate (self.holiday_rule)]
     
   def add_allowed_turnus (self, turnus):
     """

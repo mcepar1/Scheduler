@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
 from Scheduler.data  import general, locations
+from Scheduler.utils import translate
 
 class Turnus:
   
@@ -43,7 +44,7 @@ class Turnus:
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.code, self.label, self.start.strftime("%H:%M"), self.end.strftime("%H:%M"), str(self.duration), str(self.blockade), str(self.holiday)]
+    return [translate (self.code), translate (self.label), translate (self.start), translate (self.end), translate (self.duration), translate (self.blockade), translate (self.holiday)]
   
   def add_type(self, type):
     """Adds a type to the set of turnus types."""
