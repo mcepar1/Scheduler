@@ -5,7 +5,7 @@ from utils import translate
 
 import locale
 
-class TurnusType:
+class TurnusType (general.DataClass):
   
   HEADERS = ["VRSTE TURNUSOV"]
   
@@ -42,7 +42,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.Container(locations.TURNUS_TYPE_DATA, TurnusType.HEADERS)
+  el = general.DataContainer(locations.TURNUS_TYPE_DATA, TurnusType.HEADERS)
   try:
     el.load()
   except Exception as e:

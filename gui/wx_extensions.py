@@ -93,11 +93,12 @@ class LinkedChoice(wx.Choice):
     
     
   def get_value(self):
-    """Returns the selected instance of the workspace class"""
+    """Returns the selected object, None if there is no slected object."""
     if self.elements:
       return self.elements[self.GetCurrentSelection()]
     else:
-      raise Exception ('Ni elmentov!')
+      #raise Exception ('Ni elmentov!')
+      return None
     
 """
 This class behaves the same way as as a normal wxIntCtrl.

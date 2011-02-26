@@ -147,7 +147,7 @@ class ShiftControl(wx.Panel):
     if not self.workplace:
       self.role = None
       
-    if self.role not in self.workplace.roles:
+    if self.workplace and self.role not in self.workplace.roles:
       self.role = None
       
     self.__set_permissions()

@@ -4,7 +4,7 @@ from data.nurse   import Nurse
 from utils        import time_conversion
 from global_vars  import nurses as all_nurses, workplaces
 from scheduler    import person_scheduler
-from data.general import locations, Container 
+from data.general import locations, DataContainer 
 import keyboard
 
 import os
@@ -39,7 +39,7 @@ def input_persons():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih medicinskih sester ...')
-  nc = Container(locations.NURSES_DATA, Nurse.HEADERS, sorted(nurses))
+  nc = DataContainer(locations.NURSES_DATA, Nurse.HEADERS, sorted(nurses))
   nc.save()
   sys.stdout.write('OK\n')
   

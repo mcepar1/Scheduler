@@ -7,7 +7,7 @@ from utils import translate
 
 import locale
 
-class Vacation:
+class Vacation (general.DataClass):
   
   HEADERS = ["OZNAKA", "VRSTA DOPUSTA", "OBRAÈUNAN ÈAS"]
   
@@ -63,7 +63,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.Container(locations.VACATION_DATA, Vacation.HEADERS)
+  el = general.DataContainer(locations.VACATION_DATA, Vacation.HEADERS)
   try:
     el.load()
   except Exception as e:

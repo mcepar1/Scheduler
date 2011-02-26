@@ -1,7 +1,7 @@
 # -*- coding: Cp1250 -*-
 
+from data import locations
 from data.turnus import Turnus, TurnusContainer
-from data.general import locations
 
 import os
 import sys

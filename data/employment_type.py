@@ -8,7 +8,7 @@ import locale
 """
 This file contains the employment types.
 """
-class EmploymentType:
+class EmploymentType (general.DataClass):
 
   HEADERS = ["VRSTA", "URE NA TEDEN", "NADURE"]
 
@@ -38,6 +38,17 @@ class EmploymentType:
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
     return [translate (self.label), translate (self.weekly_hours), translate (self.has_overtime)]
+  
+  def synchronize_data(self, *args):
+    """
+    This is used to keep the instances of the subclasses consistent. This method updates every internal
+    attribute of the class, so that the matching objects are forced into the data structure. Look at the
+    data model for more details. 
+    """
+    for data in args:
+      if data in self.allowed_turnuses:
+        self.allowed_turnuses.remove (data)
+        self.allowed_turnuses.add    (data)
     
   def __str__(self):
     return self.label
@@ -68,7 +79,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.Container(locations.EMPLOYMENT_TYPE_DATA, EmploymentType.HEADERS)
+  el = general.DataContainer(locations.EMPLOYMENT_TYPE_DATA, EmploymentType.HEADERS)
   try:
     el.load()
   except Exception as e:

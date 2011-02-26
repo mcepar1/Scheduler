@@ -1,7 +1,8 @@
 # -*- coding: Cp1250 -*-
 
+from data           import locations
 from data.workplace import Workplace
-from data.general   import locations, Container 
+from data.general   import DataContainer 
 
 import os
 import sys
@@ -28,7 +29,7 @@ def input_workplaces():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih delovisc ...')
-  wc = Container(locations.WORKPLACE_DATA, Workplace.HEADERS, sorted(workplaces))
+  wc = DataContainer(locations.WORKPLACE_DATA, Workplace.HEADERS, sorted(workplaces))
   wc.save()
   sys.stdout.write('OK\n')
   

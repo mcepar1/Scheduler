@@ -5,7 +5,7 @@ from utils import translate
 
 import locale
 
-class Workplace:
+class Workplace (general.DataClass):
   
   HEADERS = ["OZNAKA", "DELAJ POPOLDNE PRED PRAZNIKOM"]
   
@@ -69,6 +69,20 @@ class Workplace:
     # removing an un-added role should not be possible
     self.roles.remove(role)
     
+  def synchronize_data(self, *args):
+    """
+    This is used to keep the instances of the subclasses consistent. This method updates every internal
+    attribute of the class, so that the matching objects are forced into the data structure. Look at the
+    data model for more details. 
+    """
+    for data in args:
+      if data in self.allowed_turnuses:
+        self.remove_allowed_turnus(data)
+        self.add_allowed_turnus(data)
+      if data in self.roles:
+        self.remove_role(data)
+        self.add_role(data)
+    
   def __str__(self):
     return self.label
     
@@ -93,7 +107,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.Container(locations.WORKPLACE_DATA, Workplace.HEADERS)
+  el = general.DataContainer(locations.WORKPLACE_DATA, Workplace.HEADERS)
   try:
     el.load()
   except Exception as e:

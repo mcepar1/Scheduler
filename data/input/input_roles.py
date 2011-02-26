@@ -1,7 +1,8 @@
 # -*- coding: Cp1250 -*-
 
+from data         import locations
 from data.role    import Role
-from data.general import locations, Container
+from data.general import DataContainer
 
 import os
 import sys
@@ -28,7 +29,7 @@ def input_roles():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih vlog ...')
-  tc = Container(locations.ROLE_DATA, Role.HEADERS, sorted(roles))
+  tc = DataContainer(locations.ROLE_DATA, Role.HEADERS, sorted(roles))
   tc.save()
   sys.stdout.write('OK\n')
   

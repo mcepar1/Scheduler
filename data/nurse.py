@@ -5,7 +5,7 @@ from data  import general, locations
 
 import locale
 
-class Nurse:
+class Nurse (general.DataClass):
 
   HEADERS = ["MAT. ŠTEV.", "IME", "PRIIMEK", "ROJSTNI DAN"]
 
@@ -18,7 +18,7 @@ class Nurse:
       birthday: is the nurse's birthday
       titles: is a list of two lists. The first list contains the prefix titles, the second list contains suffix
               titles. Both are ordered.
-      roles: is dictionary that maps workplaces a set of roles that the has at the
+      roles: is dictionary that maps workplaces to a set of roles that the has at the
              workplace
       employment_type: is the employment type of the nurse
       workplaces: a sequence of workplaces, in which the nurse works
@@ -78,7 +78,7 @@ class Nurse:
       for workplace in workplaces:
         self.add_workplace(workplace)
     
-    # maps a date to a two tuple (turnus, worspace)
+    # maps a date to a 3 - tuple (turnus, worspace, role)
     # if a entry exists in this dict, it will be pre-scheduled    
     self.predefined = {}
       
@@ -276,6 +276,78 @@ class Nurse:
       suffixes_s.append(str (title))
       
     return str (u', '.join(prefixes_s) + u' ' + unicode (self) + u' ' + ', '.join(suffixes_s))
+  
+  def synchronize_data(self, *args):
+    """
+    This is used to keep the instances of the subclasses consistent. This method updates every internal
+    attribute of the class, so that the matching objects are forced into the data structure. Look at the
+    data model for more details. 
+    """
+    for data in args:
+      #set the titles
+      titles_l, titles_r = self.get_titles ( )
+      if data in titles_l:
+        titles_l[titles_l.index(data)] = data
+      if data in titles_r:
+        titles_r[titles_r.index(data)] = data
+      self.set_titles(titles_l, titles_r)
+      
+      #set the workplaces
+      if data in self.workplaces:
+        #first reset the roles map
+        roles_temp = self.roles[data]
+        del self.roles[data]
+        self.roles[data] = roles_temp
+        
+        #now we check the predefined
+        dates = self.predefined.keys()
+        for date in dates:
+          if self.predefined[date][1] == data:
+            self.predefined[date] = (self.predefined[date][0], data, self.predefined[date][2])
+            
+        #now the workplaces entry
+        self.workplaces.remove (data)
+        self.workplaces.add    (data)
+        
+      #set the roles
+      for workplace in self.roles:
+        if data in self.roles[workplace]:
+          self.roles[workplace].remove (data)
+          self.roles[workplace].add    (data)
+          
+          #now we check the predefined
+          dates = self.predefined.keys()
+          for date in dates:
+            if self.predefined[date][1] == workplace and self.predefined[date][2] == data:
+              self.predefined[date] = (self.predefined[date][0], workplace, data)
+              
+      #set the employment type
+      if self.employment_type == data:
+        self.employment_type = data
+        
+      #set the turnuses
+      if data in self.allowed_turnuses:
+        self.allowed_turnuses.remove (data)
+        self.allowed_turnuses.add (data)
+        
+        #check the invalid dictionary
+        for date in self.forbidden_turnuses:
+          if data in self.forbidden_turnuses[date]:
+            self.forbidden_turnuses[date].remove (data)
+            self.forbidden_turnuses[date].add    (data)
+            
+        #check the predifined
+        for date in self.predefined:
+          if self.predefined[date][0] == data:
+            self.predefined[date] = (data, self.predefined[date][1], self.predefined[date][2])
+      
+      
+      #set the vacations
+      for date in self.vacations:
+        if data in self.vacations[date]:
+          self.vacations[date].remove (data)
+          self.vacations[date].add    (data)
+      
     
   def __str__(self):
     return self.name + " " + self.surname
@@ -307,7 +379,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.Container(locations.NURSES_DATA, Nurse.HEADERS)
+  el = general.DataContainer(locations.NURSES_DATA, Nurse.HEADERS)
   try:
     el.load()
   except Exception as e:

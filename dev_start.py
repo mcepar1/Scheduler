@@ -18,7 +18,7 @@ reset_log()
 set_encoding()
 
 import locale
-locale.setlocale(locale.LC_ALL,"")
+locale.setlocale(locale.LC_ALL, '')
 
 from gui import gui
 

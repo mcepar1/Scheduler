@@ -5,7 +5,7 @@ from utils import translate
 
 import locale
 
-class Turnus:
+class Turnus (general.DataClass):
   
   HEADERS = ["OZNAKA", "TIP DELA", "ZAÈETEK", "KONEC", "TRAJANJE", "BLOKADA", "NA PROST DAN"]
   
@@ -55,6 +55,17 @@ class Turnus:
   def remove_type(self, type):
     """Removes a type from the set of turnus types."""
     self.types.remove(type)
+    
+  def synchronize_data(self, *args):
+    """
+    This is used to keep the instances of the subclasses consistent. This method updates every internal
+    attribute of the class, so that the matching objects are forced into the data structure. Look at the
+    data model for more details. 
+    """
+    for data in args:
+      if data in self.types:
+        self.remove_type(data)
+        self.add_type(data)
   
   def __gues_types(self):
     """Tries to guess into which types does this turnus belong into"""
@@ -103,7 +114,7 @@ class Turnus:
     except:
       return - 1
     
-class TurnusContainer (general.Container):
+class TurnusContainer (general.DataContainer):
   
   def get_by_type(self, type, workplace=None):
     """

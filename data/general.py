@@ -6,7 +6,32 @@ import os
 
 from data import locations
 
-class Container:
+class DataClass:
+  """ A generic class that defines some common methods, for all the subclasses. """
+  
+  def as_data_list(self):
+    """
+    Returns this object's attribute values in a list. 
+      return: a list of static attributes of this class
+    """
+    raise Exception ('Not implemented')
+    
+  def as_list(self):
+    """
+    Returns this object's attribute values in a list. 
+      return: same as as_data_list, only the atrributes are now transformed into strings
+    """
+    raise Exception ('Not implemented')
+  
+  def synchronize_data(self, *args):
+    """
+    This is used to keep the instances of the subclasses consistent. This method updates every internal
+    attribute of the class, so that the matching objects are forced into the data structure. Look at the
+    data model for more details. 
+    """
+    pass
+
+class DataContainer:
   """ A generic class that handles multiple instances of the data classes. """
   
   def __init__(self, filename, headers, elements_list=None):
@@ -43,6 +68,11 @@ class Container:
   def load(self):
     """Loads the contents from the external file. The current state is LOST!!!!"""
     self.elements = pickle.load(file(self.path, 'rb'))
+    
+  def synchronize_data(self, *args):
+    """Keeps the data in sync."""
+    for element in self.elements:
+      element.synchronize_data(*args)
     
   def as_table(self, filter=False):
     """

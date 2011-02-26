@@ -1,7 +1,8 @@
 # -*- coding: Cp1250 -*-
 
+from data         import locations 
 from data.title   import Title
-from data.general import locations, Container
+from data.general import DataContainer
 
 import os
 import sys
@@ -28,7 +29,7 @@ def input_titles():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih nazivov ...')
-  tc = Container(locations.TITLE_DATA, Title.HEADERS, sorted(titles))
+  tc = DataContainer(locations.TITLE_DATA, Title.HEADERS, sorted(titles))
   tc.save()
   sys.stdout.write('OK\n')
   

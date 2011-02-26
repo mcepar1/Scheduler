@@ -1,7 +1,8 @@
 # -*- coding: Cp1250 -*-
 
+from data          import locations 
 from data.vacation import Vacation
-from data.general  import locations, Container
+from data.general  import DataContainer
 from utils         import time_conversion
 
 import os
@@ -30,7 +31,7 @@ def input_vacations():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih dopustov ...')
-  vc = Container(locations.VACATION_DATA, Vacation.HEADERS, sorted(vacations))
+  vc = DataContainer(locations.VACATION_DATA, Vacation.HEADERS, sorted(vacations))
   vc.save()
   sys.stdout.write('OK\n')
   

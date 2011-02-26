@@ -5,7 +5,7 @@ from utils import translate
 
 import locale
 
-class Role:
+class Role (general.DataClass):
   
   HEADERS = ["VLOGA"]
 
@@ -49,7 +49,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.Container(locations.ROLE_DATA, Role.HEADERS)
+  el = general.DataContainer(locations.ROLE_DATA, Role.HEADERS)
   try:
     el.load()
   except Exception as e:

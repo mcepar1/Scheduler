@@ -1,7 +1,8 @@
 # -*- coding: Cp1250 -*-
 
+from data             import locations 
 from data.turnus_type import TurnusType
-from data.general     import locations, Container
+from data.general     import DataContainer
 
 import os
 import sys
@@ -28,7 +29,7 @@ def input_turnus_types():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih vrst turnusov ...')
-  tc = Container(locations.TURNUS_TYPE_DATA, TurnusType.HEADERS, sorted(turnus_types))
+  tc = DataContainer(locations.TURNUS_TYPE_DATA, TurnusType.HEADERS, sorted(turnus_types))
   tc.save()
   sys.stdout.write('OK\n')
   
