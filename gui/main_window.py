@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
 import wx
+import os
 
 from common import GenericTablePanel
 
@@ -24,8 +25,9 @@ def make_icon(img):
 
 class MainWindow(wx.Frame):
 
-  TITLE = "Urnik"
-  PARENT = None
+  TITLE     = 'Urnik'
+  PARENT    = None
+  ICON_PATH = os.path.join ('persistence', 'gui', 'clock.png')
 
   def __init__(self,
                vacations, 
@@ -56,13 +58,16 @@ class MainWindow(wx.Frame):
     self.SetSizer(self.sizer)
     self.SetAutoLayout(1)
     self.sizer.Fit(self)
-    self.SetIcon(make_icon(wx.Image(name = "persistence\gui\clock.png")))
+    self.SetIcon(make_icon(wx.Image(name = MainWindow.ICON_PATH)))
   
 class SplashScreen(wx.Frame):
+  SPLASH_PATH = os.path.join ('persistence', 'gui', 'splash.png')
+  ICON_PATH   = os.path.join ('persistence', 'gui', 'clock.png')
+  
   def __init__(self):
     wx.Frame.__init__(self, None, title = MainWindow.TITLE, style = wx.NO_BORDER)
     
-    aBitmap = wx.Image(name = "persistence\gui\splash.png").ConvertToBitmap()
+    aBitmap = wx.Image(name = SplashScreen.SPLASH_PATH).ConvertToBitmap()
     
     sizer = wx.BoxSizer(wx.VERTICAL)
     
@@ -70,15 +75,15 @@ class SplashScreen(wx.Frame):
     self.text          = wx.StaticText(self, wx.ID_ANY, size = (pic.GetSize()[0], -1), style = wx.ST_NO_AUTORESIZE)
     self.progress      = wx.Gauge(self, wx.ID_ANY)
     
-    sizer.Add (pic, 1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.SHAPED)
-    sizer.Add (self.text, 0, wx.ALIGN_BOTTOM | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (pic,           1, wx.ALIGN_TOP    | wx.ALIGN_LEFT | wx.SHAPED)
+    sizer.Add (self.text,     0, wx.ALIGN_BOTTOM | wx.ALIGN_LEFT | wx.EXPAND)
     sizer.Add (self.progress, 0, wx.ALIGN_BOTTOM | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.text.SetFont(wx.Font(20, wx.FONTFAMILY_SCRIPT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
     
+    self.SetIcon(make_icon(wx.Image(name = SplashScreen.ICON_PATH)))
     self.SetSizerAndFit (sizer)
     self.CenterOnScreen ( )
-    self.SetIcon(make_icon(wx.Image(name = "persistence\gui\clock.png")))
     self.Show ( )
     
   
@@ -103,7 +108,6 @@ class SplashScreen(wx.Frame):
     
     for i, method in enumerate (inv):
       method (args[i])
-    
     
     frame = MainWindow (*args)
     wx.GetApp ( ).SetTopWindow(frame)
