@@ -1,6 +1,6 @@
 # -*- coding: Cp1250 -*-
 
-from global_vars import turnuses
+import global_vars
 from data import workplace as data_model
 
 class Workplace(data_model.Workplace):
@@ -45,7 +45,7 @@ class Workplace(data_model.Workplace):
     #if it was delete it
     types = turnus.types
     for type in types:
-      if not turnuses.get_by_type(type, self):
+      if not global_vars.get_turnuses ( ).get_by_type(type, self):
         del self.workers[type]
       
     

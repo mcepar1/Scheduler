@@ -7,7 +7,8 @@ workplaces
 from utils import holiday, time_conversion
 from data import turnus_type
 from scheduler import weights
-from global_vars import turnuses as all_turnuses
+
+import global_vars
 
 import calendar
 import datetime
@@ -462,7 +463,7 @@ class HolidayRulePlugin:
     map = {}
     
     for type in types:
-      turnuses = all_turnuses.get_by_type(type, workplace)
+      turnuses = global_vars.get_turnuses ( ).get_by_type(type, workplace)
       map[type] = 0
       for turnus in turnuses:
         map[type] += self.__get_already_scheduled(workplace, role, turnus, date)

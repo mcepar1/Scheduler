@@ -7,7 +7,8 @@ from scheduler import workplace as workplace_module
 from scheduler import weights
 from scheduler import plugins
 
-from global_vars import employment_types, turnuses as all_turnuses, workplaces as all_workplaces
+import global_vars
+import log
 from utils import time_conversion, holiday
 from data import turnus_type
 
@@ -16,14 +17,6 @@ import datetime
 import calendar
 import cPickle as pickle
 import os
-
-"""
-This class intercepts and discards log messages, if no log was given to the
-PersonScheduler
-"""
-class DummyLog:
-  def send_message(self, *args, **kwargs):
-    print args, kwargs
     
 """
 Contains the plug-ins, that will be used in this scheduler.
@@ -41,7 +34,7 @@ class PersonScheduler:
   DOCTOR_DIR = 'doctors'
   NURSE_DIR = 'nurses'
 
-  def __init__(self, people, workplaces, date, input_raw=False, log=DummyLog()):
+  def __init__(self, people, workplaces, date, input_raw=False, log=log.DummyLog()):
     """
     The default constructor.
       people: a list of all the people, that will be scheduled
@@ -99,7 +92,7 @@ class PersonScheduler:
     
     #maps workplaces to people
     self.workplace_people = {}
-    for workplace in all_workplaces.get_all ( ):
+    for workplace in global_vars.get_workplaces( ).get_all ( ):
       self.workplace_people[workplace] = set()
     
     for workplace in self.workplaces:
@@ -110,7 +103,7 @@ class PersonScheduler:
         
     #maps employment types to people
     self.employment_type_people = {}
-    for employment_type in employment_types.get_all ( ):
+    for employment_type in global_vars.get_employment_types ( ).get_all ( ):
       self.employment_type_people[employment_type] = set ()
     
     for person in self.people:
@@ -120,7 +113,7 @@ class PersonScheduler:
       
     #maps turnuses to people
     self.turnus_people = {}
-    for turnus in all_turnuses.get_all ( ):
+    for turnus in global_vars.get_turnuses ( ).get_all ( ):
       self.turnus_people[turnus] = set ()
     
     for person in self.people:
@@ -143,9 +136,9 @@ class PersonScheduler:
     self.clean_up_plugins = []
     if not input_raw:    
       for plug_in in PLUG_INS:
-        self.active_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.get_all ( ), self.date, self.log))
+        self.active_plugins.append(plug_in(self.people, self.workplaces, global_vars.get_turnuses ( ).get_all ( ), self.date, self.log))
       for plug_in in CLEAN_UP:
-        self.clean_up_plugins.append(plug_in(self.people, self.workplaces, all_turnuses.get_all ( ), self.date, self.log))
+        self.clean_up_plugins.append(plug_in(self.people, self.workplaces, global_vars.get_turnuses ( ).get_all ( ), self.date, self.log))
     
         
       
@@ -414,7 +407,7 @@ class PersonScheduler:
 
     turnuses = []
     for type in workers.keys():
-      turnuses += list(all_turnuses.get_by_type(type, workplace))
+      turnuses += list(global_vars.get_turnuses ( ).get_by_type(type, workplace))
     
     random.shuffle(turnuses)
 
@@ -468,7 +461,7 @@ class PersonScheduler:
           next_date += datetime.timedelta(days=1)
           #find the workfree night turnus
           night_turnus = None
-          for temp_turnus in all_turnuses.get_all ( ):
+          for temp_turnus in global_vars.get_turnuses ( ).get_all ( ):
             if temp_turnus.holiday and temp_turnus.code[0] == 'N':
               night_turnus = temp_turnus
               break
@@ -592,7 +585,7 @@ class PersonScheduler:
       elif depth == 1 and date.weekday() == 5:
         # TODO: allow only one holiday turnus per shift type (document this)
         sunday_night_turnus = None
-        for alternative_turnus in all_turnuses.get_all ( ):
+        for alternative_turnus in global_vars.get_turnuses ( ).get_all ( ):
           if alternative_turnus.holiday and alternative_turnus.code[0] == 'N':
             sunday_night_turnus = alternative_turnus
             break
@@ -714,7 +707,7 @@ class PersonScheduler:
     map = {}
     
     for type in types:
-      turnuses = all_turnuses.get_by_type(type, workplace)
+      turnuses = global_vars.get_turnuses ( ).get_by_type(type, workplace)
       map[type] = 0
       for turnus in turnuses:
         map[type] += self.__get_already_scheduled(workplace, role, turnus, date)

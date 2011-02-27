@@ -4,12 +4,11 @@ import wx
 import wx_extensions
 
 from common import GenericTablePanel
-
-from global_vars import turnuses, turnus_types
+import global_vars
 
 class TurnusPanel(GenericTablePanel):
   def __init__(self, parent):
-    GenericTablePanel.__init__(self, turnuses, parent, edit_panel=TurnusTypePanel)
+    GenericTablePanel.__init__(self, global_vars.get_turnuses ( ), parent, edit_panel=TurnusTypePanel)
     
     
 class TurnusTypePanel(wx.Panel):
@@ -24,7 +23,7 @@ class TurnusTypePanel(wx.Panel):
     
     #set the turnus types
     self.turnus_types = []
-    for turnus_type in turnus_types.get_all ( ):
+    for turnus_type in global_vars.get_turnus_types ( ).get_all ( ):
       self.turnus_types.append(wx_extensions.LinkedCheckBox(turnus_type, self, wx.NewId(), str(turnus_type)))
       self.Bind(wx.EVT_CHECKBOX, self.__turnus_type_edited, self.turnus_types[-1])
       sizer.Add(self.turnus_types[-1], 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)

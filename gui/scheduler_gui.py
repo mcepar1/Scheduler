@@ -5,7 +5,7 @@ import wx.calendar
 import wx_extensions
 import result_gui
 
-from global_vars import employment_types, workplaces, turnuses, nurses, turnus_types,roles
+import global_vars
 from data import employment_type
 
 class SchedulerPanel(wx.Panel):
@@ -55,7 +55,7 @@ class ScheduleControl(wx.Panel):
   def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.persons = nurses.get_all ( )
+    self.persons = global_vars.get_nurses ( ).get_all ( )
     
     main_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Razvršèanje"), wx.HORIZONTAL)
     
@@ -86,7 +86,7 @@ class ShiftControl(wx.Panel):
     self.workplace = None
     self.role = None
     
-    for workplace in workplaces.get_all ( ):
+    for workplace in global_vars.get_workplaces ( ).get_all ( ):
       self.workers[workplace] = {}
       for role in workplace.roles:
         self.workers[workplace][role] = {}
@@ -95,13 +95,13 @@ class ShiftControl(wx.Panel):
     
     shift_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Število zaposlenih v izmeni"), wx.VERTICAL)
     
-    self.workplace_selector = wx_extensions.LinkedChoice(workplaces.get_all ( ), self, wx.NewId())
+    self.workplace_selector = wx_extensions.LinkedChoice(global_vars.get_workplaces ( ).get_all ( ), self, wx.NewId())
     self.Bind(wx.EVT_CHOICE, self.__set_workplace, self.workplace_selector)
     shift_sizer.Add(self.workplace_selector, 0, wx.CENTER)
     
     roles_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
     self.roles = []
-    for role in roles.get_all ( ):
+    for role in global_vars.get_roles ( ).get_all ( ):
       self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
       self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
       roles_sizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
@@ -111,7 +111,7 @@ class ShiftControl(wx.Panel):
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     
     self.turnus_types = []
-    for turnus_type in turnus_types.get_all ( ):
+    for turnus_type in global_vars.get_turnus_types ( ).get_all ( ):
       sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus_type) + ":"), 0, wx.ALIGN_LEFT)
       self.turnus_types.append(wx_extensions.LinkedSpinCtr(turnus_type, self, wx.NewId(), style=wx.SP_VERTICAL))
       self.turnus_types[-1].SetRange(0, 200)
@@ -189,7 +189,7 @@ class ShiftControl(wx.Panel):
       
       for turnus_type_spin in self.turnus_types:
         # if the workplace has at least one turnus of the specified type
-        if len (turnuses.get_by_type(turnus_type_spin.element) & self.workplace.allowed_turnuses):
+        if len (global_vars.get_turnuses ( ).get_by_type(turnus_type_spin.element) & self.workplace.allowed_turnuses):
           turnus_type_spin.Enable()
           #load spins with correct numbers
           try:
@@ -269,7 +269,7 @@ class DateShiftControl(wx.Dialog):
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     
     self.turnus_types = []
-    for turnus_type in turnus_types.get_all ( ):
+    for turnus_type in global_vars.get_turnus_types ( ).get_all ( ):
       sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus_type) + ":"), 0, wx.ALIGN_LEFT)
       self.turnus_types.append(wx_extensions.LinkedSpinCtr(turnus_type, self, wx.NewId(), style=wx.SP_VERTICAL))
       self.turnus_types[-1].SetRange(0, 200)
@@ -302,7 +302,7 @@ class DateShiftControl(wx.Dialog):
     date = self.calendar.PyGetDate()
     
     for turnus_type_spin in self.turnus_types:
-      if len (turnuses.get_by_type(turnus_type_spin.element, self.workplace)):
+      if len (global_vars.get_turnuses ( ).get_by_type(turnus_type_spin.element, self.workplace)):
         turnus_type_spin.Enable()
       else:
         turnus_type_spin.Disable()
@@ -333,7 +333,7 @@ class MothlyHoursControl(wx.Panel):
     
     sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
     self.employment_type_hours = []
-    for employment_type in employment_types.get_all ( ):
+    for employment_type in global_vars.get_employment_types ( ).get_all ( ):
       self.employment_type_hours.append(wx_extensions.LinkedIntCtrl(employment_type, self, wx.NewId(), value=employment_type.monthly_hours, min=0))
       
       sub_sizer.Add(wx.StaticText(self, wx.NewId(), label=employment_type.label + ':'), 0, wx.ALIGN_LEFT)

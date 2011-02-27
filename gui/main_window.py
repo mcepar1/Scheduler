@@ -1,0 +1,112 @@
+# -*- coding: Cp1250 -*-
+
+import wx
+
+from common import GenericTablePanel
+
+from scheduler_gui import SchedulerPanel
+from turnus_gui import TurnusPanel
+from nurse_gui import NursePanel
+from workplace_gui import WorkplacePanel
+
+def make_icon(img):
+  """
+  The various platforms have different requirements for the
+  icon size...
+  """
+  if "wxMSW" in wx.PlatformInfo:
+    img = img.Scale(16, 16)
+  elif "wxGTK" in wx.PlatformInfo:
+    img = img.Scale(22, 22)
+  # wxMac can be any size upto 128x128, so leave the source img alone....
+  icon = wx.IconFromBitmap(img.ConvertToBitmap() )
+  return icon
+
+class MainWindow(wx.Frame):
+
+  TITLE = "Urnik"
+  PARENT = None
+
+  def __init__(self,
+               vacations, 
+               titles, 
+               turnus_types, 
+               roles, 
+               turnuses, 
+               workplaces, 
+               employment_types, 
+               nurses):
+    wx.Frame.__init__(self, MainWindow.PARENT, title = MainWindow.TITLE, style = wx.DEFAULT_FRAME_STYLE)
+    
+    self.sizer = wx.BoxSizer(wx.VERTICAL)
+    
+    notebook = wx.Notebook(self)
+    notebook.AddPage(SchedulerPanel(notebook), "Urnik")
+    notebook.AddPage(NursePanel(notebook), "Medicinske sestre")
+    notebook.AddPage(GenericTablePanel(employment_types, notebook), "Vrste zaposlitve")
+    notebook.AddPage(TurnusPanel(notebook), "Turnusi")
+    notebook.AddPage(GenericTablePanel(vacations, notebook), "Dopusti")
+    notebook.AddPage(WorkplacePanel(notebook), "Delovišèa")
+    notebook.AddPage(GenericTablePanel(titles, notebook), "Nazivi")
+    notebook.AddPage(GenericTablePanel(turnus_types, notebook), "Vrste turnusov")
+    notebook.AddPage(GenericTablePanel(roles, notebook), 'Vloge')
+    
+    self.sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
+    
+    self.SetSizer(self.sizer)
+    self.SetAutoLayout(1)
+    self.sizer.Fit(self)
+    self.SetIcon(make_icon(wx.Image(name = "persistence\gui\clock.png")))
+  
+class SplashScreen(wx.Frame):
+  def __init__(self):
+    wx.Frame.__init__(self, None, title = MainWindow.TITLE, style = wx.NO_BORDER)
+    
+    aBitmap = wx.Image(name = "persistence\gui\splash.png").ConvertToBitmap()
+    
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    
+    pic                = wx.StaticBitmap(self, wx.ID_ANY, aBitmap)
+    self.text          = wx.StaticText(self, wx.ID_ANY, size = (pic.GetSize()[0], -1), style = wx.ST_NO_AUTORESIZE)
+    self.progress      = wx.Gauge(self, wx.ID_ANY)
+    
+    sizer.Add (pic, 1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.SHAPED)
+    sizer.Add (self.text, 0, wx.ALIGN_BOTTOM | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.progress, 0, wx.ALIGN_BOTTOM | wx.ALIGN_LEFT | wx.EXPAND)
+    
+    self.text.SetFont(wx.Font(20, wx.FONTFAMILY_SCRIPT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+    
+    self.SetSizerAndFit (sizer)
+    self.CenterOnScreen ( )
+    self.SetIcon(make_icon(wx.Image(name = "persistence\gui\clock.png")))
+    self.Show ( )
+    
+  
+    wx.Yield ( )  
+    import data
+    self.__application_loaded(*data.load(self))
+    
+  def send_message (self, text, percent):
+    self.text.SetLabel (text)
+    self.progress.SetValue(percent)
+    
+  def __application_loaded(self, *args):
+    import global_vars
+    inv = [global_vars.set_vacations, 
+           global_vars.set_titles, 
+           global_vars.set_turnus_types,
+           global_vars.set_roles,
+           global_vars.set_turnuses,
+           global_vars.set_workplaces,
+           global_vars.set_employment_types,
+           global_vars.set_nurses]
+    
+    for i, method in enumerate (inv):
+      method (args[i])
+    
+    
+    frame = MainWindow (*args)
+    wx.GetApp ( ).SetTopWindow(frame)
+    self.Hide ( )
+    frame.Show(True)
+    self.Destroy ( )

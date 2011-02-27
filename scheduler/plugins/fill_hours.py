@@ -1,7 +1,8 @@
 # -*- coding: Cp1250 -*-
 
-from global_vars import turnuses
 from utils import holiday, time_conversion
+
+import global_vars
 
 import calendar
 import datetime
@@ -66,7 +67,7 @@ class FillHours:
                   next_date += datetime.timedelta(days=1)
                   #find the workfree night turnus
                   night_turnus = None
-                  for temp_turnus in turnuses.get_all ( ):
+                  for temp_turnus in global_vars.get_turnuses ( ).get_all ( ):
                     if temp_turnus.holiday and temp_turnus.code[0] == 'N':
                       night_turnus = temp_turnus
                       break
@@ -141,7 +142,7 @@ class FillHours:
     dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
     for date in dates:
       for person in self.people:
-        for turnus in turnuses.get_all ( ):
+        for turnus in global_vars.get_turnuses ( ).get_all ( ):
           if person.is_scheduled_exact(workplace, role, turnus, date):
             difference += 1
     
@@ -280,7 +281,7 @@ class FillHours:
       elif depth == 1 and date.weekday() == 5:
         # TODO: allow only one holiday turnus per shift type (document this)
         sunday_night_turnus = None
-        for alternative_turnus in turnuses.get_all ( ):
+        for alternative_turnus in global_vars.get_turnuses ( ).get_all ( ):
           if alternative_turnus.holiday and alternative_turnus.code[0] == 'N':
             sunday_night_turnus = alternative_turnus
             break

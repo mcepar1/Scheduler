@@ -2,13 +2,14 @@
 
 import wx
 import wx_extensions
-from global_vars import workplaces, turnuses, roles
 from common import GenericTablePanel
+
+import global_vars
 
 class WorkplacePanel(GenericTablePanel):
   
   def __init__(self, parent):
-    GenericTablePanel.__init__(self, workplaces, parent, edit_panel=EditWorkplacePanel)
+    GenericTablePanel.__init__(self, global_vars.get_workplaces ( ), parent, edit_panel=EditWorkplacePanel)
         
 class EditWorkplacePanel(wx.Panel):
   def __init__(self, *args, **kwargs):
@@ -43,7 +44,7 @@ class TurnusPanel(wx.Panel):
     
     #set the turnuses
     self.turnuses = []
-    for turnus in turnuses.get_all ( ):
+    for turnus in global_vars.get_turnuses ( ).get_all ( ):
       self.turnuses.append(wx_extensions.LinkedCheckBox(turnus, self, wx.NewId(), str(turnus)))
       self.Bind(wx.EVT_CHECKBOX, self.__turnus_edited, self.turnuses[-1])
       sizer.Add(self.turnuses[-1], 1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
@@ -96,7 +97,7 @@ class RolePanel(wx.Panel):
     
     #set the roles
     self.roles = []
-    for role in roles.get_all ( ):
+    for role in global_vars.get_roles ( ).get_all ( ):
       self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
       self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
       sizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)

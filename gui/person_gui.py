@@ -6,7 +6,6 @@ import wx_extensions
 import locale
 
 import global_vars
-from global_vars import turnuses, vacations, workplaces, roles
 
 class PersonPanel(wx.Panel):
   
@@ -138,14 +137,14 @@ class PermissionsPanel(wx.Panel):
     
     #set the turnuses
     self.turnuses = []
-    for turnus in turnuses.get_all ( ):
+    for turnus in global_vars.get_turnuses ( ).get_all ( ):
       self.turnuses.append(wx_extensions.LinkedCheckBox(turnus, self, wx.NewId(), str(turnus)))
       self.Bind(wx.EVT_CHECKBOX, self.__turnus_edited, self.turnuses[-1])
       turnusSizer.Add(self.turnuses[-1], 0, wx.ALIGN_LEFT)
       
     #set the workplaces
     self.workplaces = []
-    for workplace in workplaces.get_all ( ):
+    for workplace in global_vars.get_workplaces ( ).get_all ( ):
       self.workplaces.append(wx_extensions.LinkedCheckBox(workplace, self, wx.NewId(), str(workplace)))
       self.Bind(wx.EVT_CHECKBOX, self.__workplace_edited, self.workplaces[-1])
       workplaceSizer.Add(self.workplaces[-1], 0, wx.ALIGN_LEFT)
@@ -304,7 +303,7 @@ class TitlePanel (wx.Panel):
     
     self.all_titles = wx.ListCtrl (self, wx.NewId(), style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_NO_HEADER)
     self.all_titles.InsertColumn (0, u'Vsi nazivi')
-    for i, title in enumerate (global_vars.titles.get_all ( )):
+    for i, title in enumerate (global_vars.get_titles ( ).get_all ( )):
       self.all_titles.InsertStringItem(i, str (title))
     self.all_titles.SetColumnWidth(0, wx.LIST_AUTOSIZE)
       
@@ -404,7 +403,6 @@ class TitlePanel (wx.Panel):
       
       if prefixes:
         for i, title in enumerate (prefixes):
-          print title
           self.person_titles.InsertStringItem (i, str (title))
       
       i += 1    
@@ -436,12 +434,12 @@ class RolePanel (wx.Panel):
     
     sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
     
-    self.workplaces = wx_extensions.LinkedChoice (workplaces.get_all ( ), self, wx.NewId())
+    self.workplaces = wx_extensions.LinkedChoice (global_vars.get_workplaces ( ).get_all ( ), self, wx.NewId())
     self.Bind(wx.EVT_CHOICE, self.__workplace_selected, self.workplaces)
     sizer.Add(self.workplaces, 0, wx.ALIGN_LEFT)
     
     self.roles = []
-    for role in roles.get_all ( ):
+    for role in global_vars.get_roles ( ).get_all ( ):
       self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
       self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
       sizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
@@ -551,7 +549,7 @@ class DatePermissionsPanel(wx.Panel):
 
     #set the vacations
     self.vacations = []
-    for vacation in vacations.get_all ( ):
+    for vacation in global_vars.get_vacations ( ).get_all ( ):
       self.vacations.append(wx_extensions.LinkedCheckBox(vacation, self, wx.NewId(), str(vacation)))
       self.Bind(wx.EVT_CHECKBOX, self.__vacation_edited, self.vacations[-1])
       vacationSizer.Add(self.vacations[-1], 0, wx.ALIGN_LEFT)

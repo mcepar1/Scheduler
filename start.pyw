@@ -20,8 +20,8 @@ set_encoding()
 import locale
 locale.setlocale(locale.LC_ALL,"")
 
-from gui import gui
 
+import gui
 app = wx.App(redirect=True, filename=LOG)
-window = gui.MainWindow()
+gui.start ( )
 app.MainLoop()
