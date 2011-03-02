@@ -47,7 +47,7 @@ class GenericTablePanel(wx.Panel):
       self.edit_panel = self.edit_panel_class (self, wx.NewId())
       
       sub_sizer = wx.BoxSizer (wx.HORIZONTAL)
-      sub_sizer.Add (self.edit_panel, 0, wx.ALIGN_LEFT | wx.SHAPED)
+      sub_sizer.Add (self.edit_panel, 0, wx.ALIGN_LEFT | wx.EXPAND)
       sub_sizer.Add (self.grid, 1, wx.CENTER | wx.LEFT | wx.EXPAND, 4)
       sizer.Add (sub_sizer, 1, wx.EXPAND)
     else:
