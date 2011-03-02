@@ -245,8 +245,6 @@ class EnhancedGrid (wx.grid.Grid):
     self.EnableEditing(False)
     self.__fill_grid()
     
-    
-    
     self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.__grid_clicked)
     self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.__grid_clicked)
     
@@ -371,6 +369,17 @@ class EnhancedGrid (wx.grid.Grid):
       for j in range(len(rows[i])):
         self.SetCellValue(i, j, rows[i][j])
         
+    sort_state = self.container.get_sorting_state ( )
+    if (sort_state[0] != None) and (sort_state[1] != None):
+      if sort_state[0] < 0:
+        lab = ''
+      else:
+        lab = headers[sort_state[0]]
+      if sort_state[1]:
+        self.SetColLabelValue(sort_state[0], lab + ' »')
+      else:
+        self.SetColLabelValue(sort_state[0], lab + ' «')
+        
     self.AutoSize ( )
     self.GetParent( ).GetSizer().Layout()
     
@@ -389,7 +398,7 @@ class EnhancedGrid (wx.grid.Grid):
     """
     Event listener for the cell selection.
     """
-    if event.GetRow ( ) == -1:
+    if event.GetRow ( ) == -1 and event.GetCol ( ) != -1:
       self.__sort(event.GetCol ( ))
     else:
       self.__select(event.GetCol ( ), event.GetRow ( ))
