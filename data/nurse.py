@@ -379,7 +379,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.NURSES_DATA, Nurse.HEADERS)
+  el = general.DataContainer(locations.NURSES_DATA, Nurse)
   try:
     el.load()
   except Exception as e:

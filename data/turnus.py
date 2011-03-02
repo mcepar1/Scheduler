@@ -69,7 +69,7 @@ class Turnus (general.DataClass):
   
   def __gues_types(self):
     """Tries to guess into which types does this turnus belong into"""
-    from global_vars import turnus_types
+    import global_vars
     
     #first get all the capital letters from the turnus code
     #TODO: document this
@@ -80,7 +80,7 @@ class Turnus (general.DataClass):
         
     #now we check if they match with the types first letter
     for char in chars:
-      for type in turnus_types.get_all ( ):
+      for type in global_vars.get_turnus_types ( ).get_all ( ):
         if char == str(type)[0].upper():
           self.types.add(type)
           
@@ -141,7 +141,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = TurnusContainer (locations.TURNUS_DATA, Turnus.HEADERS)
+  el = TurnusContainer (locations.TURNUS_DATA, Turnus)
   try:
     el.load()
   except Exception as e:

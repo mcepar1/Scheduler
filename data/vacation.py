@@ -63,7 +63,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.VACATION_DATA, Vacation.HEADERS)
+  el = general.DataContainer(locations.VACATION_DATA, Vacation)
   try:
     el.load()
   except Exception as e:

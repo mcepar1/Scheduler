@@ -3,14 +3,8 @@
 import wx
 import wx_extensions
 
-from common import GenericTablePanel
 import global_vars
-
-class TurnusPanel(GenericTablePanel):
-  def __init__(self, parent):
-    GenericTablePanel.__init__(self, global_vars.get_turnuses ( ), parent, edit_panel=TurnusTypePanel)
-    
-    
+        
 class TurnusTypePanel(wx.Panel):
   """This class represents the turnus types."""
   

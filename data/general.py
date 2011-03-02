@@ -19,7 +19,7 @@ class DataClass:
   def as_list(self):
     """
     Returns this object's attribute values in a list. 
-      return: same as as_data_list, only the atrributes are now transformed into strings
+      return: same as as_data_list, only the attributes are now transformed into strings
     """
     raise Exception ('Not implemented')
   
@@ -34,18 +34,22 @@ class DataClass:
 class DataContainer:
   """ A generic class that handles multiple instances of the data classes. """
   
-  def __init__(self, filename, headers, elements_list=None):
+  def __init__(self, filename, data_class, elements_list=None):
     """
     This is the constructor
       filename: a string, that represents the file name to the container's data file
-      headers: a list of strings, that represent column names, when the container is represented as a list
+      data_class: a data class for which the this container holds its objects
       elements_list: a list (or set) that contains elements of the data class
     """
     
     self.path = os.path.join(locations.DATA_DIR, filename)
-    self.headers = headers
+    self.data_class = data_class
     self.filter = []
     self.elements = []
+    
+    #sort state
+    self.column = None
+    self.sort_ascending = None
     
     if elements_list:
       self.add_all(elements_list)
@@ -55,10 +59,16 @@ class DataContainer:
       elements_list: a list that contains  instances of the data class"""
       
     for element in elements_list:
-      for existing_element in self.elements:
-        if element == existing_element:
-          raise Exception(u'Element ' + str (element) + u' že obstaja.')
+      if isinstance(element, self.data_class):
+        for existing_element in self.elements:
+          if element == existing_element:
+            raise Exception(u'Element ' + str (element) + u' že obstaja.')
+      else:
+        raise Exception ('Dodajanje ' + str (type (element)) + ' med ' + str (self.data_class) + '!')
       self.elements.append (element)
+    
+    # sort the table, according to the sorting state
+    self.sort (self.column, self.sort_ascending)
  
   def save(self):
     """Saves the current state into an external file."""
@@ -68,6 +78,7 @@ class DataContainer:
   def load(self):
     """Loads the contents from the external file. The current state is LOST!!!!"""
     self.elements = pickle.load(file(self.path, 'rb'))
+    self.sort(self.column)
     
   def synchronize_data(self, *args):
     """Keeps the data in sync."""
@@ -89,7 +100,7 @@ class DataContainer:
       rows_list.append(element.as_list())
     
     table = {}
-    table['header'] = self.headers 
+    table['header'] = self.data_class.HEADERS 
     table['items'] = rows_list
    
     return table
@@ -103,25 +114,44 @@ class DataContainer:
     """
     return self.as_table(filter=True), self.__get_filtered_indexes()
   
-  def sort(self, column, ascending=True):
+  def sort(self, column, sort_ascending=None):
     """
     Sorts the internal container. Does not return anything.
       column: which column to use for sorting: if it is lower than 0, the elements are ordered in their natural
         order, if it is larger than the number of columns, no sorting is performed.
-      ascending: set the order in which the values are sorted. Default value is 0.
+      sort_ascending: will sort ascending if set to true, descending if set to false. If it is set to none,
+        the sorting order will be determined automatically 
     """
     
-    if column < 0:
-      self.elements.sort(reverse= not ascending)
-    elif column < len (self.headers) and len (self.headers):
-      el = self.elements[0].as_data_list( )[column]
+    if sort_ascending == None:
+      if column == None:
+        self.sort_ascending = None
+      elif self.column != column:
+        self.sort_ascending = True
+      else:
+        self.sort_ascending = not self.sort_ascending
+    else:
+      self.sort_ascending = sort_ascending 
+    self.column = column
+    
+    if self.column < 0:
+      self.elements.sort(reverse= not self.sort_ascending)
+    elif self.column < len (self.data_class.HEADERS) and len (self.data_class.HEADERS):
+      el = self.elements[0].as_data_list( )[self.column]
       #locale aware sorting
       if isinstance(el, str):
-        self.elements.sort(cmp=lambda x, y: locale.strcoll(x.as_data_list()[column], y.as_data_list()[column]), reverse=not ascending)
+        self.elements.sort(cmp=lambda x, y: locale.strcoll(x.as_data_list()[self.column], y.as_data_list()[self.column]), reverse=not self.sort_ascending)
       else:
-        self.elements.sort(cmp=lambda x, y: cmp(x.as_data_list()[column], y.as_data_list()[column]), reverse=not ascending)
+        self.elements.sort(cmp=lambda x, y: cmp(x.as_data_list()[self.column], y.as_data_list()[self.column]), reverse=not self.sort_ascending)
+  
+  def create (self, *args):
+    """
+    Creates and returns a single data object of this container. It does not insert it into the container.
+      return: a single object, that can be put into this container.
+    """
+    return self.data_class (*args)
         
-  def delete(self, element):
+  def delete (self, element):
     """
     Deletes the element form the self.elements. Does not store the change to the hard drive.
     """
@@ -210,3 +240,4 @@ class DataContainer:
     
   def __str__(self):
     return ", ".join([str(element) for element in self.elements])
+  

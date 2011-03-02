@@ -139,10 +139,10 @@ class LinkedComboBox(wx.ComboBox):
     """The default constructor."""
   
     #TODO clean the imports
-    from global_vars import employment_types
+    import global_vars
     
     wx.ComboBox.__init__(self, *args, **kwargs)
-    self.employment_types = employment_types.get_all ( )
+    self.employment_types = global_vars.get_employment_types ( ).get_all ( )
     
     self.Clear()
     for employment_type in self.employment_types:
@@ -240,7 +240,6 @@ class EnhancedGrid (wx.grid.Grid):
     
     self.container = container
     self.index_map = {}
-    self.sort_ascending = None
     
     self.SetCellHighlightPenWidth(-1) # disables the selected cell's bold border
     self.EnableEditing(False)
@@ -250,6 +249,11 @@ class EnhancedGrid (wx.grid.Grid):
     
     self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.__grid_clicked)
     self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.__grid_clicked)
+    
+  def Refresh (self):
+    """Overrides the default function."""
+    self.__fill_grid ( )
+    super(EnhancedGrid, self).Refresh ( )
     
   def delete (self):
     """
@@ -277,7 +281,7 @@ class EnhancedGrid (wx.grid.Grid):
   def search (self, search_list):
     """
     Displays only those entries, that match the search list.
-      search_list: a list of strings
+      search_list: a list of strings. If it is an empty list, all items will be displayed.
     """
     index = None
     if self.IsSelection():
@@ -313,20 +317,26 @@ class EnhancedGrid (wx.grid.Grid):
     else:
       return None
     
+  def select_element (self, element):
+    """
+    Selects the element, if possible.
+      element: a data object, that will be selected
+    """
+    index = self.container.get_index (element)
+    for i in self.index_map:
+      if self.index_map[i] == index:
+        self.__select(-1, i)
+        break
+    
   def __sort (self, col):
     """
     Sorts and redraws the grid.
-    """
-    if self.sort_ascending:
-      self.sort_ascending = False
-    else:
-      self.sort_ascending = True
-    
+    """    
     element = None
     if self.IsSelection():
       element = self.get_selected_element ( )
       
-    self.container.sort(col, self.sort_ascending)
+    self.container.sort(col)
     self.__fill_grid()
     
     if element:
@@ -370,6 +380,7 @@ class EnhancedGrid (wx.grid.Grid):
       if row < 0:
         self.ClearSelection()
       else:
+        self.MakeCellVisible (row, 0)
         self.SelectRow(row)
         
     wx.PostEvent(self.GetEventHandler(), SelectEvent(self.GetId()))

@@ -36,7 +36,11 @@ def translate_timedelata (timedelta):
     return: an unicode object
   """
   # exclude seconds
-  return str (timedelta)[0:-3]
+  string = str (timedelta)[0:-3]
+  # add leading zero, if necessary
+  if len (string)==4:
+    string = '0' + string 
+  return string
 
 def translate_string(string):
   """

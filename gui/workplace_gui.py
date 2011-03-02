@@ -1,15 +1,10 @@
 # -*- coding: Cp1250 -*-
 
 import wx
-import wx_extensions
-from common import GenericTablePanel
 
 import global_vars
+import wx_extensions
 
-class WorkplacePanel(GenericTablePanel):
-  
-  def __init__(self, parent):
-    GenericTablePanel.__init__(self, global_vars.get_workplaces ( ), parent, edit_panel=EditWorkplacePanel)
         
 class EditWorkplacePanel(wx.Panel):
   def __init__(self, *args, **kwargs):

@@ -3,12 +3,8 @@
 import wx
 import os
 
-from common import GenericTablePanel
-
+import get_panels
 from scheduler_gui import SchedulerPanel
-from turnus_gui import TurnusPanel
-from nurse_gui import NursePanel
-from workplace_gui import WorkplacePanel
 
 def make_icon(img):
   """
@@ -44,14 +40,14 @@ class MainWindow(wx.Frame):
     
     notebook = wx.Notebook(self)
     notebook.AddPage(SchedulerPanel(notebook), "Urnik")
-    notebook.AddPage(NursePanel(notebook), "Medicinske sestre")
-    notebook.AddPage(GenericTablePanel(employment_types, notebook), "Vrste zaposlitve")
-    notebook.AddPage(TurnusPanel(notebook), "Turnusi")
-    notebook.AddPage(GenericTablePanel(vacations, notebook), "Dopusti")
-    notebook.AddPage(WorkplacePanel(notebook), "Delovišèa")
-    notebook.AddPage(GenericTablePanel(titles, notebook), "Nazivi")
-    notebook.AddPage(GenericTablePanel(turnus_types, notebook), "Vrste turnusov")
-    notebook.AddPage(GenericTablePanel(roles, notebook), 'Vloge')
+    notebook.AddPage(get_panels.get_nurse_panel (nurses, notebook), "Medicinske sestre")
+    notebook.AddPage(get_panels.get_employment_type_panel (employment_types, notebook), "Vrste zaposlitve")
+    notebook.AddPage(get_panels.get_turnus_panel (turnuses, notebook), "Turnusi")
+    notebook.AddPage(get_panels.get_vacation_panel (vacations, notebook), "Dopusti")
+    notebook.AddPage(get_panels.get_workplace_panel (workplaces, notebook), "Delovišèa")
+    notebook.AddPage(get_panels.get_simple_panel (titles, notebook), "Nazivi")
+    notebook.AddPage(get_panels.get_simple_panel (turnus_types, notebook), "Vrste turnusov")
+    notebook.AddPage(get_panels.get_simple_panel (roles, notebook), 'Vloge')
     
     self.sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
     

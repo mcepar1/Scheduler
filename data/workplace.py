@@ -107,7 +107,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.WORKPLACE_DATA, Workplace.HEADERS)
+  el = general.DataContainer(locations.WORKPLACE_DATA, Workplace)
   try:
     el.load()
   except Exception as e:

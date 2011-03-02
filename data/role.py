@@ -49,7 +49,7 @@ def load():
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.ROLE_DATA, Role.HEADERS)
+  el = general.DataContainer(locations.ROLE_DATA, Role)
   try:
     el.load()
   except Exception as e:

@@ -1,8 +1,10 @@
 # -*- coding: Cp1250 -*-
 
 import wx
+import wx.wizard
 import wx.lib.newevent
 
+import static_data
 import wx_extensions
 
 """
@@ -20,12 +22,18 @@ This is a standard GUI panel, for editing the data elements.
 class GenericTablePanel(wx.Panel):
   def __init__(self, container, *args, **kwargs):
     
-    edit_panel = None
+    self.edit_panel_class = None
     if 'edit_panel' in kwargs:
-      edit_panel = kwargs['edit_panel']
+      self.edit_panel_class = kwargs['edit_panel']
       del kwargs['edit_panel']
+      
+    self.static_panel_class = static_data.TextStaticPanel
+    if 'static_panel' in kwargs:
+      self.static_panel_class = kwargs['static_panel']
+      del kwargs['static_panel']
     
     wx.Panel.__init__(self, *args, **kwargs)
+    self.container = container
     
     sizer = wx.BoxSizer(wx.VERTICAL)
     self.SetSizer (sizer)
@@ -35,8 +43,8 @@ class GenericTablePanel(wx.Panel):
     
     self.grid = wx_extensions.EnhancedGrid (container, self, wx.NewId ( ))
     self.edit_panel = None
-    if edit_panel:
-      self.edit_panel = edit_panel (self, wx.NewId())
+    if self.edit_panel_class:
+      self.edit_panel = self.edit_panel_class (self, wx.NewId())
       
       sub_sizer = wx.BoxSizer (wx.HORIZONTAL)
       sub_sizer.Add (self.edit_panel, 0, wx.ALIGN_LEFT | wx.SHAPED)
@@ -71,7 +79,14 @@ class GenericTablePanel(wx.Panel):
     """
     Adds a new element into the global container.
     """
-    print 'Adding...'
+    object = AddWizard (self.container, self, wx.ID_ANY, title='Čarovnik za dodajanje',
+                                                         static_panel=self.static_panel_class,
+                                                         edit_panel=self.edit_panel_class).get_object ( )
+                                                         
+    if object:
+      self.container.add_all ([object])
+      self.grid.Refresh ( )
+      self.grid.select_element (object)
     
   def __remove(self, event):
     """
@@ -205,5 +220,131 @@ class NotebookPageToolbar (wx.ToolBar):
     Fires the reload event.
     """
     wx.PostEvent(self.GetEventHandler(), ReloadEvent(self.GetId()))
-       
+
+"""
+A wizard, that adds a new data instances.
+"""    
+class AddWizard (wx.wizard.Wizard):
+  def __init__(self, container, *args, **kwargs):
+    """
+    The default constructor.
+      container: a data container object
+      static_panel: a wx panel subclass, that edits the object's static data. The default value is the 
+        TextStaticPanel
+      edit_panel: a wx panel subclass, that edits the objects's dynamic data
+    """
+    static_panel = static_data.TextStaticPanel
+    dynamic_panel = None
+    self.container = container
+    
+    if 'static_panel' in kwargs:
+      static_panel = kwargs['static_panel']
+      del kwargs['static_panel']
+    if 'edit_panel' in kwargs:
+      dynamic_panel = kwargs['edit_panel']
+      del kwargs['edit_panel']
+    
+    wx.wizard.Wizard.__init__(self, *args, **kwargs)
+    
+    self.static_page  = StaticPage (self.container, self, static_panel=static_panel)
+    self.dynamic_page = None
+    if dynamic_panel:
+      self.dynamic_page = DynamicPage (dynamic_panel, self)
+      wx.wizard.WizardPageSimple_Chain (self.static_page, self.dynamic_page)
+    
+    self.GetPageAreaSizer ( ).Add(self.static_page)
+    
+    self.data_object = None
+    
+    self.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGING, self.__page_changed)
+    
+    if not self.RunWizard (self.static_page):
+      self.data_object = None
+    
+  def get_object(self):
+    """
+    Returns a data object, that was created by this wizard. If the wizard was canceled, returns None.
+    """
+    return self.data_object
+  
+  def __page_changed (self, event):
+    """
+    Event listener for changing the page.
+    """
+    if event.GetPage ( ).PAGE_NUMBER == StaticPage.PAGE_NUMBER:
+      self.data_object = self.container.create (*event.GetPage ( ).get_attributes ( ))
+      if self.dynamic_page:
+        self.dynamic_page.set_unit (self.data_object)
+        
+"""
+An empty static page.
+"""  
+class StaticPage (wx.wizard.WizardPageSimple):
+  PAGE_NUMBER = 0
+  
+  def __init__(self, container, *args, **kwargs):
+    """
+    The default constructor.
+      container: a data container object
+      static_panel: a wx panel subclass, that edits the object's static data. The default value is the 
+        TextStaticPanel
+    """
+    static_panel = static_data.TextStaticPanel
+    if 'static_panel' in kwargs:
+      static_panel = kwargs['static_panel']
+      del kwargs['static_panel']
+    
+    wx.wizard.WizardPageSimple.__init__(self, *args, **kwargs)
+    
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    
+    title = wx.StaticText(self, -1, 'Statični podatki')
+    title.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
+    
+    self.static_panel = static_panel (container, self)
+    
+    sizer.Add (title, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+    sizer.Add (wx.StaticLine(self, -1), 0, wx.EXPAND|wx.ALL, 5)
+    sizer.Add (self.static_panel, 1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.SHAPED)
+    self.SetSizerAndFit(sizer)
+  
+  def get_attributes (self):
+    """
+    Return a list of all attributes.
+      return: a list, that contains the static panel's attribute values.
+    """
+    return self.static_panel.get_attributes ( )
+  
+"""
+An empty dynamic page
+"""
+class DynamicPage (wx.wizard.WizardPageSimple):
+  PAGE_NUMBER = 1
+  
+  def __init__(self, edit_panel, *args, **kwargs):
+    """
+    The default constructor.
+      container: a data container object
+      edit_panel: a wx panel subclass, that edits the objects's dynamic data
+    """
+    wx.wizard.WizardPageSimple.__init__(self, *args, **kwargs)
+    
+    sizer = wx.BoxSizer (wx.VERTICAL)
+    
+    title = wx.StaticText(self, -1, 'Dinamični podatki')
+    title.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
+    
+    self.edit_panel = edit_panel (self, wx.NewId())
+    
+    sizer.Add (title, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+    sizer.Add (wx.StaticLine(self, -1), 0, wx.EXPAND|wx.ALL, 5)
+    sizer.Add (self.edit_panel, 1, wx.ALIGN_LEFT | wx.ALIGN_TOP, wx.SHAPED)
+    
+    self.SetSizerAndFit (sizer)
+    
+  def set_unit(self, element):
+    """
+    Sets the data object, that will be edited.
+    """
+    self.edit_panel.set_unit (element)   
     
