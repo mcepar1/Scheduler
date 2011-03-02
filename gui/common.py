@@ -1,8 +1,9 @@
 # -*- coding: Cp1250 -*-
 
-import wx
+
 import wx.wizard
 import wx.lib.newevent
+import wx.lib.scrolledpanel
 
 import static_data
 import wx_extensions
@@ -19,7 +20,7 @@ SearchEvent, EVT_TB_SEARCH = wx.lib.newevent.NewCommandEvent ( )
 """
 This is a standard GUI panel, for editing the data elements.
 """
-class GenericTablePanel(wx.Panel):
+class GenericTablePanel(wx.lib.scrolledpanel.ScrolledPanel):
   def __init__(self, container, *args, **kwargs):
     
     self.edit_panel_class = None
@@ -32,7 +33,7 @@ class GenericTablePanel(wx.Panel):
       self.static_panel_class = kwargs['static_panel']
       del kwargs['static_panel']
     
-    wx.Panel.__init__(self, *args, **kwargs)
+    wx.lib.scrolledpanel.ScrolledPanel.__init__(self, *args, **kwargs)
     self.container = container
     
     sizer = wx.BoxSizer(wx.VERTICAL)
@@ -64,7 +65,8 @@ class GenericTablePanel(wx.Panel):
     self.Bind(wx_extensions.EVT_GRID_SELECTED, self.__element_selected, self.grid)
     self.__element_selected (None)
     
-    self.SetSizerAndFit(sizer)
+    self.SetSizerAndFit (sizer)
+    self.SetupScrolling()
     
   def __element_selected(self, event):
     """
