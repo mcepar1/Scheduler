@@ -274,9 +274,15 @@ class AddWizard (wx.wizard.Wizard):
     Event listener for changing the page.
     """
     if event.GetPage ( ).PAGE_NUMBER == StaticPage.PAGE_NUMBER:
-      self.data_object = self.container.create (*event.GetPage ( ).get_attributes ( ))
-      if self.dynamic_page:
-        self.dynamic_page.set_unit (self.data_object)
+      if event.GetPage ( ).is_valid ( ):
+        self.data_object = self.container.create (*event.GetPage ( ).get_attributes ( ))
+        if self.container.has_element (self.data_object):
+          self.static_page.set_error_message ('Ta element že obstaja v aplikaciji.')
+          event.Veto ( )
+        elif self.dynamic_page:
+          self.dynamic_page.set_unit (self.data_object)
+      else:
+        event.Veto ( )
         
 """
 An empty static page.
@@ -309,6 +315,7 @@ class StaticPage (wx.wizard.WizardPageSimple):
     sizer.Add (wx.StaticLine(self, -1), 0, wx.EXPAND|wx.ALL, 5)
     sizer.Add (self.static_panel, 1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.SHAPED)
     self.SetSizerAndFit(sizer)
+    
   
   def get_attributes (self):
     """
@@ -316,6 +323,19 @@ class StaticPage (wx.wizard.WizardPageSimple):
       return: a list, that contains the static panel's attribute values.
     """
     return self.static_panel.get_attributes ( )
+  
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry.
+      return: true, if it is valid, false otherwise
+    """
+    return self.static_panel.is_valid ( )
+  
+  def set_error_message (self, message):
+    """
+    Displays an error message.
+    """
+    self.static_panel.set_error_msg (message)
   
 """
 An empty dynamic page

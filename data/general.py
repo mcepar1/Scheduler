@@ -213,6 +213,16 @@ class DataContainer:
       
     return passed
   
+  def has_element(self, element):
+    """
+    Checks if this container contains the element.
+      return: true, if it does, false otherwise.
+    """
+    for el in self.elements:
+      if el == element:
+        return True
+    return False
+  
   def get_all(self):
     """
     Returns all elements.

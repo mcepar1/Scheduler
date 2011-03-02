@@ -21,8 +21,10 @@ class StaticPanel (wx.Panel):
     """
     wx.Panel.__init__ (self, *args, **kwargs)
     
-    self.headers    = self.__pretty_format (container.as_table( )['header'])
-    self.attributes = []
+    self.headers     = self.__pretty_format (container.as_table( )['header'])
+    self.attributes  = []
+    self.error_label = wx.StaticText(self, wx.ID_ANY)
+    self.error_label.SetForegroundColour (wx.RED)
     
     
   def get_attributes (self):
@@ -32,6 +34,19 @@ class StaticPanel (wx.Panel):
     """
     raise Exception ('Implement!')
   
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry. Also sets the error message
+      return: true, if it is valid, false otherwise
+    """
+    raise Exception ('Implement!')
+  
+  def set_error_msg (self, msg):
+    """
+    Displays an error message.
+    """
+    self.error_label.SetLabel (msg)
+  
   def _set_attributes (self, attributes):
     """
     Adds the fields to this panel.
@@ -39,12 +54,15 @@ class StaticPanel (wx.Panel):
     
     self.attributes = attributes
     
+    top_sizer       = wx.BoxSizer (wx.VERTICAL)
     panel_sizer     = wx.FlexGridSizer (rows=len(self.headers), cols=2)
     for i, header in enumerate (self.headers):
       panel_sizer.Add (wx.StaticText(self, wx.ID_ANY, header))
       panel_sizer.Add (self.attributes[i], 0, wx.EXPAND)
     
-    self.SetSizerAndFit (panel_sizer)
+    top_sizer.Add (panel_sizer, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    top_sizer.Add (self.error_label, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    self.SetSizerAndFit (top_sizer)
     
     
   
@@ -89,6 +107,19 @@ class TextStaticPanel (StaticPanel):
       atr.append(attribute.GetValue ( ))
       
     return atr
+  
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry. Also sets the error message
+      return: true, if it is valid, false otherwise
+    """
+    for text in self.get_attributes ( ):
+      if not text:
+        self.set_error_msg('Vsa tekstovna polja so obvezna.')
+        return False
+    
+    self.set_error_msg('')
+    return True
 
 """
 A panel, that mirrors the nurse's static attributes.
@@ -120,6 +151,19 @@ class StaticNursePanel (TextStaticPanel):
     
     return attributes
   
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry. Also sets the error message
+      return: true, if it is valid, false otherwise
+    """
+    for text in self.get_attributes ( )[0:-1]:
+      if not text:
+        self.set_error_msg('Vsa tekstovna polja so obvezna.')
+        return False
+    
+    self.set_error_msg('')
+    return True
+  
 """
 A panel, that mirrors the workplaces's static attributes.
 """ 
@@ -145,6 +189,19 @@ class StaticWorkplacePanel (TextStaticPanel):
       attributes.append (atr.GetValue ( ))
     
     return attributes
+  
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry. Also sets the error message
+      return: true, if it is valid, false otherwise
+    """
+    for text in self.get_attributes ( )[0:-1]:
+      if not text:
+        self.set_error_msg('Vsa tekstovna polja so obvezna.')
+        return False
+    
+    self.set_error_msg('')
+    return True
   
 """
 A panel, that mirrors the employment type static attributes.
@@ -173,6 +230,18 @@ class StaticEmploymentTypePanel (StaticPanel):
       attributes.append (atr.GetValue ( ))
     
     return attributes
+  
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry. Also sets the error message
+      return: true, if it is valid, false otherwise
+    """
+    if not self.get_attributes ( )[0]:
+      self.set_error_msg('Vsa tekstovna polja so obvezna.')
+      return False
+    
+    self.set_error_msg('')
+    return True
 
 """
 A panel, that mirrors the turnus static attributes.
@@ -213,6 +282,19 @@ class StaticTurnusPanel (StaticPanel):
     
     return attributes
   
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry. Also sets the error message
+      return: true, if it is valid, false otherwise
+    """
+    for text in self.get_attributes ( )[0:2]:
+      if not text:
+        self.set_error_msg('Vsa tekstovna polja so obvezna.')
+        return False
+    
+    self.set_error_msg('')
+    return True
+  
 """
 A panel, that mirrors the vacation's static attributes.
 """   
@@ -242,3 +324,16 @@ class StaticVacationPanel (StaticPanel):
     attributes.append (time_conversion.time_to_timedelta (time_conversion.string_to_time (self.attributes[-1].GetValue ( ))))
     
     return attributes
+  
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry. Also sets the error message
+      return: true, if it is valid, false otherwise
+    """
+    for text in self.get_attributes ( )[0:2]:
+      if not text:
+        self.set_error_msg('Vsa tekstovna polja so obvezna.')
+        return False
+    
+    self.set_error_msg('')
+    return True
