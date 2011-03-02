@@ -31,9 +31,9 @@ def input_emplyment_types():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih vrst zaposlitve ...')
-  ec = DataContainer(locations.EMPLOYMENT_TYPE_DATA, EmploymentType.HEADERS, sorted(employment_types))
+  ec = DataContainer(locations.EMPLOYMENT_TYPE_DATA, EmploymentType, sorted(employment_types))
   ec.save()
   sys.stdout.write('OK\n')
   
-  print 'Konec vnosa vrst zaposlitve.\n'
-  print 'Zacetno stanje vrst zaposlitve vzpostavljeno.'
+  print 'Konec vnosa vrst zaposlitve.'
+  print 'Zacetno stanje vrst zaposlitve vzpostavljeno.\n'

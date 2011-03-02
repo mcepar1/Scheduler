@@ -72,13 +72,13 @@ class DataContainer:
  
   def save(self):
     """Saves the current state into an external file."""
-    pickle.dump(self.elements, file(self.path, 'wb'))
+    pickle.dump((self.elements, self.column, self.sort_ascending), file(self.path, 'wb'))
     
     
   def load(self):
     """Loads the contents from the external file. The current state is LOST!!!!"""
-    self.elements = pickle.load(file(self.path, 'rb'))
-    self.sort(self.column)
+    self.elements, self.column, self.sort_ascending = pickle.load(file(self.path, 'rb'))
+    self.sort(self.column, self.sort_ascending)
     
   def synchronize_data(self, *args):
     """Keeps the data in sync."""
@@ -118,10 +118,15 @@ class DataContainer:
     """
     Sorts the internal container. Does not return anything.
       column: which column to use for sorting: if it is lower than 0, the elements are ordered in their natural
-        order, if it is larger than the number of columns, no sorting is performed.
+        order, if it is larger than the number of columns or None, no sorting is performed.
       sort_ascending: will sort ascending if set to true, descending if set to false. If it is set to none,
         the sorting order will be determined automatically 
     """
+    
+    if column == None:
+      self.column = None
+      self.sort_ascending = None
+      return
     
     if sort_ascending == None:
       if column == None:
@@ -139,7 +144,7 @@ class DataContainer:
     elif self.column < len (self.data_class.HEADERS) and len (self.data_class.HEADERS):
       el = self.elements[0].as_data_list( )[self.column]
       #locale aware sorting
-      if isinstance(el, str):
+      if isinstance(el, str) or isinstance(el, unicode):
         self.elements.sort(cmp=lambda x, y: locale.strcoll(x.as_data_list()[self.column], y.as_data_list()[self.column]), reverse=not self.sort_ascending)
       else:
         self.elements.sort(cmp=lambda x, y: cmp(x.as_data_list()[self.column], y.as_data_list()[self.column]), reverse=not self.sort_ascending)
@@ -156,6 +161,14 @@ class DataContainer:
     Deletes the element form the self.elements. Does not store the change to the hard drive.
     """
     self.elements.remove(element)
+    
+  def get_sorting_state (self):
+    """
+    Returns the sorting state of this container.
+      return: a 2-tuple: the first element is the column, the second is a boolean, that defines if it was
+        sorted in an ascending order
+    """
+    return (self.column, self.sort_ascending)
   
   def set_filter(self, filter):
     """
@@ -240,4 +253,15 @@ class DataContainer:
     
   def __str__(self):
     return ", ".join([str(element) for element in self.elements])
+  
+def load (file_location, data_class, container_class=DataContainer):
+  """
+  Loads and returns a container instance.
+  """
+  el = container_class (file_location, data_class)
+  try:
+    el.load()
+  except Exception:
+    pass
+  return el
   

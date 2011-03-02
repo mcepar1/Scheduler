@@ -4,4 +4,4 @@ the logging class.
 """
 class DummyLog:
   def send_message(self, *args, **kwargs):
-    print args, kwargs
+    pass

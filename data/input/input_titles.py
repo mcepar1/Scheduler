@@ -29,9 +29,9 @@ def input_titles():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih nazivov ...')
-  tc = DataContainer(locations.TITLE_DATA, Title.HEADERS, sorted(titles))
+  tc = DataContainer(locations.TITLE_DATA, Title, sorted(titles))
   tc.save()
   sys.stdout.write('OK\n')
   
-  print 'Konec vnosa nazivov\n'
-  print 'Zacetno stanje nazivov vzpostavljeno.'
+  print 'Konec vnosa nazivov.'
+  print 'Zacetno stanje nazivov vzpostavljeno.\n'

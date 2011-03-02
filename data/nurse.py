@@ -375,15 +375,9 @@ class Nurse (general.DataClass):
     except:
       return - 1
     
-def load():
+def load ( ):
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.NURSES_DATA, Nurse)
-  try:
-    el.load()
-  except Exception as e:
-    print e
-    pass
-  return el
+  return general.load (locations.NURSES_DATA, Nurse)
     

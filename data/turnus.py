@@ -70,6 +70,13 @@ class Turnus (general.DataClass):
   def __gues_types(self):
     """Tries to guess into which types does this turnus belong into"""
     import global_vars
+    turnus_types = global_vars.get_turnus_types ( ).get_all ( )
+    # if it is empty, try to reload the container
+    # only when inputing initial data
+    if not turnus_types:
+      import turnus_type
+      turnus_types = turnus_type.load ( ).get_all ( )
+    
     
     #first get all the capital letters from the turnus code
     #TODO: document this
@@ -137,16 +144,10 @@ class TurnusContainer (general.DataContainer):
   def __str__(self):
     return ", ".join([str(turnus) for turnus in self.turnuses])
     
-def load():
+def load ( ):
   """
   Loads and returns a container instance.
   """
-  el = TurnusContainer (locations.TURNUS_DATA, Turnus)
-  try:
-    el.load()
-  except Exception as e:
-    print e
-    pass
-  return el
+  return general.load (locations.TURNUS_DATA, Turnus, container_class=TurnusContainer)
   
     

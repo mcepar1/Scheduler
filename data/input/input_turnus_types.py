@@ -29,9 +29,9 @@ def input_turnus_types():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih vrst turnusov ...')
-  tc = DataContainer(locations.TURNUS_TYPE_DATA, TurnusType.HEADERS, sorted(turnus_types))
+  tc = DataContainer(locations.TURNUS_TYPE_DATA, TurnusType, sorted(turnus_types))
   tc.save()
   sys.stdout.write('OK\n')
   
-  print 'Konec vnosa vrst turnsov.\n'
-  print 'Zacetno stanje vrst turnusov vzpostavljeno.'
+  print 'Konec vnosa vrst turnsov.'
+  print 'Zacetno stanje vrst turnusov vzpostavljeno.\n'

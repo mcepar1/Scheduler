@@ -29,9 +29,9 @@ def input_roles():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih vlog ...')
-  tc = DataContainer(locations.ROLE_DATA, Role.HEADERS, sorted(roles))
+  tc = DataContainer(locations.ROLE_DATA, Role, sorted(roles))
   tc.save()
   sys.stdout.write('OK\n')
   
-  print 'Konec vnosa vlog\n'
-  print 'Zacetno stanje vlog vzpostavljeno.'
+  print 'Konec vnosa vlog.'
+  print 'Zacetno stanje vlog vzpostavljeno.\n'

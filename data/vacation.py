@@ -59,17 +59,11 @@ class Vacation (general.DataClass):
     except:
       return - 1
     
-def load():
+def load ( ):
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.VACATION_DATA, Vacation)
-  try:
-    el.load()
-  except Exception as e:
-    print e
-    
-  return el
+  return general.load (locations.VACATION_DATA, Vacation)
       
   
     

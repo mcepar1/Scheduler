@@ -103,15 +103,10 @@ class Workplace (general.DataClass):
       return - 1
       
 
-def load():
+def load ( ):
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.WORKPLACE_DATA, Workplace)
-  try:
-    el.load()
-  except Exception as e:
-    print e
-  return el
+  return general.load (locations.WORKPLACE_DATA, Workplace)
     
     

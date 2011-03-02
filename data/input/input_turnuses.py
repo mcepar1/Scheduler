@@ -34,9 +34,9 @@ def input_turnuses():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih turnusov ...')
-  tc = TurnusContainer(locations.TURNUS_DATA, Turnus.HEADERS, turnuses)
+  tc = TurnusContainer(locations.TURNUS_DATA, Turnus, turnuses)
   tc.save()
   sys.stdout.write('OK\n')
   
-  print 'Konec vnosa turnusov\n'
-  print 'Zacetno stanje turnusov vzpostavljeno.'
+  print 'Konec vnosa turnusov.'
+  print 'Zacetno stanje turnusov vzpostavljeno.\n'

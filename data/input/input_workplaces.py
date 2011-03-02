@@ -29,9 +29,9 @@ def input_workplaces():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih delovisc ...')
-  wc = DataContainer(locations.WORKPLACE_DATA, Workplace.HEADERS, sorted(workplaces))
+  wc = DataContainer(locations.WORKPLACE_DATA, Workplace, sorted(workplaces))
   wc.save()
   sys.stdout.write('OK\n')
   
-  print 'Konec vnosa delovisc\n'
-  print 'Zacetno stanje delovisc vzpostavljeno.'
+  print 'Konec vnosa delovisc.'
+  print 'Zacetno stanje delovisc vzpostavljeno.\n'

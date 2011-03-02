@@ -31,9 +31,9 @@ def input_vacations():
     sys.stdout.write('OK\n')
   
   sys.stdout.write('\tBrisanje starih in pisanje novih dopustov ...')
-  vc = DataContainer(locations.VACATION_DATA, Vacation.HEADERS, sorted(vacations))
+  vc = DataContainer(locations.VACATION_DATA, Vacation, sorted(vacations))
   vc.save()
   sys.stdout.write('OK\n')
   
-  print 'Konec vnosa dopustov.\n'
-  print 'Zacetno stanje dopustov vzpostavljeno.'
+  print 'Konec vnosa dopustov.'
+  print 'Zacetno stanje dopustov vzpostavljeno.\n'

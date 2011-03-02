@@ -9,8 +9,21 @@ import input_titles as ititles
 import input_turnus_types as iturnus_types
 import input_roles as iroles
 
-#def input_doctors():
-#  idoctors.input_doctors()
+# load the global data first
+import data
+import global_vars
+args = data.load ( )
+inv = [global_vars.set_vacations, 
+       global_vars.set_titles, 
+       global_vars.set_turnus_types,
+       global_vars.set_roles,
+       global_vars.set_turnuses,
+       global_vars.set_workplaces,
+       global_vars.set_employment_types,
+       global_vars.set_nurses]
+    
+for i, method in enumerate (inv):
+  method (args[i])
   
 def input_nurses():
   inurses.input_nurses()

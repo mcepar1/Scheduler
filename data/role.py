@@ -45,14 +45,8 @@ class Role (general.DataClass):
       return - 1
     
   
-def load():
+def load ( ):
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.ROLE_DATA, Role)
-  try:
-    el.load()
-  except Exception as e:
-    print e
-    pass
-  return el
+  return general.load (locations.ROLE_DATA, Role)

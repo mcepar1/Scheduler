@@ -75,16 +75,10 @@ class EmploymentType (general.DataClass):
     except:
       return - 1
     
-def load():
+def load ( ):
   """
   Loads and returns a container instance.
   """
-  el = general.DataContainer(locations.EMPLOYMENT_TYPE_DATA, EmploymentType)
-  try:
-    el.load()
-  except Exception as e:
-    print e
-    pass
-  return el
+  return general.load (locations.EMPLOYMENT_TYPE_DATA, EmploymentType)
 
 
