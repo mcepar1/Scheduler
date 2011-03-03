@@ -54,6 +54,14 @@ class Workplace (general.DataClass):
     """
     self.allowed_turnuses.remove (turnus)
     
+  def is_allowed_turnus (self, turnus):
+    """
+    Checks, if it is possible to schedule the turnus into this workplace.
+      turnus: the turnus in question
+      return true, if it possible, false otherwise
+    """
+    return turnus in self.allowed_turnuses
+    
   def add_role (self, role):
     """
     Adds a role to the workplace.
@@ -68,6 +76,14 @@ class Workplace (general.DataClass):
     """
     # removing an un-added role should not be possible
     self.roles.remove(role)
+    
+  def has_role (self, role):
+    """
+    Checks, if the workplace has the specific role.
+      role: the role in question
+      return: true if it has, false otherwise
+    """
+    return role in self.roles
     
   def synchronize_data(self, *args):
     """

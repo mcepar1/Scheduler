@@ -25,27 +25,28 @@ def get_nurse_panel (container, parent):
   """
   Returns the nurse panel,
   """
-  from person_gui import PersonPanel
-  return __make_panel (container, parent, static_data.StaticNursePanel, edit_panel=PersonPanel)
+  from dynamic_data import EditNursePanel
+  return __make_panel (container, parent, static_data.StaticNursePanel, edit_panel=EditNursePanel)
 
 def get_employment_type_panel (container, parent):
   """
   Returns the employment type panel.
   """
-  return __make_panel (container, parent, static_panel=static_data.StaticEmploymentTypePanel)
+  from dynamic_data import EditEmploymentTypePanel
+  return __make_panel (container, parent, static_panel=static_data.StaticEmploymentTypePanel, edit_panel=EditEmploymentTypePanel)
 
 def get_turnus_panel (container, parent):
   """
   Returns the turnus panel.
   """
-  from turnus_gui import TurnusTypePanel
-  return __make_panel(container, parent, static_panel=static_data.StaticTurnusPanel, edit_panel=TurnusTypePanel)
+  from dynamic_data import EditTurnusPanel
+  return __make_panel(container, parent, static_panel=static_data.StaticTurnusPanel, edit_panel=EditTurnusPanel)
 
 def get_workplace_panel (container, parent):
   """
   Returns the workplace panel.
   """
-  from workplace_gui import EditWorkplacePanel
+  from dynamic_data import EditWorkplacePanel
   return __make_panel(container, parent, static_data.StaticWorkplacePanel, EditWorkplacePanel)
 
 def get_vacation_panel (container, parent):

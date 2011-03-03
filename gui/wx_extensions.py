@@ -144,29 +144,28 @@ class LinkedComboBox(wx.ComboBox):
     wx.ComboBox.__init__(self, *args, **kwargs)
     self.employment_types = global_vars.get_employment_types ( ).get_all ( )
     
-    self.Clear()
+    self.Clear ( )
     for employment_type in self.employment_types:
-      self.Append(str(employment_type))
+      self.Append (str (employment_type))
       
-    self.Disable()
+    self.Disable ( )
     
     
-  def set_selection(self, person):
+  def set_selection(self, employment_type):
     """
     Sets the selection.
       person: is an instance of either the Nurse or Doctor class
     """
     
-    if person:
-      self.Enable()
-      self.SetStringSelection(str(person.employment_type))
+    if employment_type in self.employment_types:
+      self.SetStringSelection (str (employment_type))
     else:
-      self.Disable()
+      self.Select (-1)
         
-  def get_selected_type(self):
+  def get_selected_type (self):
     """
-    Return the selected employement type if any.
-      return: an employement type if a valid emplyement type was
+    Return the selected employment type if any.
+      return: an employment type if a valid employment type was
               selected, None otherwise.
     """
     

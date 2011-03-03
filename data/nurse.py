@@ -107,6 +107,13 @@ class Nurse (general.DataClass):
     """
     self.allowed_turnuses.remove(turnus)
     
+  def is_turnus_allowed(self, turnus):
+    """
+    Checks, if the nurse can work in the specified turnus.
+      return: true if she can, false otherwise
+    """
+    return turnus in self.allowed_turnuses
+    
   def add_invalid_turnus(self, date, turnus):
     """
     Adds a turnus to a list of forbidden turnuses
@@ -174,6 +181,13 @@ class Nurse (general.DataClass):
     for date in self.predefined.keys():
       if self.predefined[date][1] == workplace:
         self.remove_predefined(date)
+        
+  def is_workplace_allowed(self, workplace):
+    """
+    Checks if the nurse can work in this workplace.
+      return true, if it can, false otherwise
+    """
+    return workplace in self.workplaces
 
   def get_titles(self):
     """

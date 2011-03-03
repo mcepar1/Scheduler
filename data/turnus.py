@@ -56,6 +56,14 @@ class Turnus (general.DataClass):
     """Removes a type from the set of turnus types."""
     self.types.remove(type)
     
+  def has_type(self, type):
+    """
+    Checks, it the turnus is of the specified type.
+      type: a turnus_type object
+      return: true, if the turnus is of the type, false otherwise
+    """
+    return type in self.types
+    
   def synchronize_data(self, *args):
     """
     This is used to keep the instances of the subclasses consistent. This method updates every internal
