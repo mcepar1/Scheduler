@@ -7,9 +7,9 @@ import locale
 
 class Turnus (general.DataClass):
   
-  HEADERS = ["OZNAKA", "TIP DELA", "ZAÈETEK", "KONEC", "TRAJANJE", "BLOKADA", "NA PROST DAN"]
+  HEADERS = ["OZNAKA", "TIP DELA", "ZAÈETEK", "KONEC", "TRAJANJE", "BLOKADA", "NA DELOVNIK", "NA PROST DAN"]
   
-  def __init__(self, code, label, start, end, duration, blockade, holiday, types=None):
+  def __init__(self, code, label, start, end, duration, blockade, workday, holiday, types=None):
     """
     This is the constructor.
       code: is the code of the turnus (D,P,N, ...)
@@ -18,18 +18,20 @@ class Turnus (general.DataClass):
       end: is the ending time
       duration: is the length of the shift (start - end)
       blockade: how long after the end of the shift, the person cannot perform tasks
+      workday: if true, the turnus can be scheduled on a workday
       holiday: if true, the turnus can be scheduled on a holiday
       types: a list of turnus types, that this turnus belongs to
     """
   
   
-    self.code = code
-    self.label = label
-    self.start = start
-    self.end = end
+    self.code     = code
+    self.label    = label
+    self.start    = start
+    self.end      = end
     self.duration = duration
     self.blockade = blockade    
-    self.holiday = holiday
+    self.holiday  = holiday
+    self.workday  = workday
     
     self.types = set()
     if not types:
@@ -41,12 +43,12 @@ class Turnus (general.DataClass):
   def as_data_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.code, self.label, self.start, self.end, self.duration, self.blockade, self.holiday]
+    return [self.code, self.label, self.start, self.end, self.duration, self.blockade, self.workday, self.holiday]
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [translate (self.code), translate (self.label), translate (self.start), translate (self.end), translate (self.duration), translate (self.blockade), translate (self.holiday)]
+    return [translate (self.code), translate (self.label), translate (self.start), translate (self.end), translate (self.duration), translate (self.blockade), translate (self.workday), translate (self.holiday)]
   
   def add_type(self, type):
     """Adds a type to the set of turnus types."""

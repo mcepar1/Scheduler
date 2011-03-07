@@ -261,6 +261,7 @@ class StaticTurnusPanel (StaticPanel):
     self.attributes.append (wx.lib.masked.TimeCtrl (self, wx.ID_ANY, format='24HHMM'))
     self.attributes.append (wx.lib.masked.TimeCtrl (self, wx.ID_ANY, format='24HHMM'))
     self.attributes.append (wx.CheckBox (self, wx.ID_ANY))
+    self.attributes.append (wx.CheckBox (self, wx.ID_ANY))
     
     self._set_attributes(self.attributes)
     
@@ -275,9 +276,10 @@ class StaticTurnusPanel (StaticPanel):
     
     for atr in self.attributes[2:4]:
       attributes.append (time_conversion.string_to_time(atr.GetValue ( )))
-    for atr in self.attributes[4:-1]:
+    for atr in self.attributes[4:-2]:
       attributes.append (time_conversion.time_to_timedelta (time_conversion.string_to_time (atr.GetValue ( ))))
-   
+    
+    attributes.append (self.attributes[-2].GetValue ( ))
     attributes.append (self.attributes[-1].GetValue ( ))  
     
     return attributes

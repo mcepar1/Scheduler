@@ -30,6 +30,7 @@ def input_turnuses():
     row[4] = time_conversion.time_to_timedelta(time_conversion.string_to_time(row[4]))
     row[5] = time_conversion.time_to_timedelta(time_conversion.string_to_time(row[5]))
     row[6] = bool(int(row[6]))
+    row[7] = bool(int(row[7]))
     turnuses.append(Turnus(*row))
     sys.stdout.write('OK\n')
   
