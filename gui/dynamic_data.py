@@ -32,8 +32,11 @@ class EditNursePanel(wx.Panel):
     self.workplace_checkers = CheckerPanel           ('Delovišèa', global_vars.get_workplaces ( ), Nurse.is_workplace_allowed, Nurse.add_workplace, Nurse.remove_workplace,      self, wx.ID_ANY)
     self.role_selector      = RolePanel              (global_vars.get_roles ( ), self, wx.ID_ANY)
     self.special_properties = SpecialNurseProperties (self, wx.ID_ANY)
+    #TODO: remove this!
+    self.rest_button        = wx.Button              (self, wx.ID_ANY, 'Vezano na datum')
     
     self.Bind(custom_events.EVT_UPDATED, self.__workplaces_to_roles, self.workplace_checkers)
+    self.Bind (wx.EVT_BUTTON, self.__obsolete, self.rest_button)
     
     grid_sizer = wx.FlexGridSizer (cols=2)
     grid_sizer.Add (self.title_selector,     0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
@@ -41,6 +44,7 @@ class EditNursePanel(wx.Panel):
     grid_sizer.Add (self.workplace_checkers, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     grid_sizer.Add (self.role_selector,      0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     grid_sizer.Add (self.special_properties, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    grid_sizer.Add (self.rest_button,        0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     
     
     sizer = wx.BoxSizer (wx.VERTICAL)
@@ -49,6 +53,12 @@ class EditNursePanel(wx.Panel):
     
     
     self.SetSizerAndFit(sizer)
+    
+  def __obsolete(self,event):
+    dialog = DateDialog(self.person, self, wx.NewId(), title=str(self.person))
+    dialog.CenterOnScreen()
+    dialog.ShowModal()
+    
     
   def set_unit(self, person):
     """
@@ -624,4 +634,237 @@ class SpecialNurseProperties (wx.Panel):
       self.packet_night_turnuses.Disable ( )
       self.week_morning.Disable ( )
       
+
+"""
+Deprecated
+"""      
+class DateDialog(wx.Dialog):
+  
+  def __init__(self, person, *args, **kwargs):
+    """
+    The default constructor.
+      person: the person, that this dialog will represent
+    """
+    import wx
+    wx.Dialog.__init__(self, *args, **kwargs)
+    
+    self.person = person
+    
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    import wx.calendar
+    self.calendar = wx_extensions.EnhancedCalendar(self, wx.NewId(), style=wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_SURROUNDING_WEEKS | wx.calendar.CAL_SEQUENTIAL_MONTH_SELECTION)
+    self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED, self.__update_date, self.calendar)
+    sizer.Add(self.calendar, 1, wx.CENTER | wx.EXPAND)
+    
+    
+    self.permissions = DatePermissionsPanel(person, self.__get_date(), self, wx.NewId())
+    sizer.Add(self.permissions, 0, wx.ALIGN_LEFT)
+    
+    self.SetSizerAndFit(sizer)
+      
+    self.permissions.set_unit(self.__get_date())
+      
+  def __update_date(self, event):
+    """Event listener of the calendar object"""
+    self.permissions.set_unit(self.__get_date())
+    
+  def __get_date(self):
+    """Reads the date from the calendar control and returns a python date object.
+      return: a python date, as selected in the calendar control.
+    """
+    return self.calendar.PyGetDate ()
+  
+class DatePermissionsPanel(wx.Panel):
+  def __init__(self, person, date, *args, **kwargs):
+    wx.Panel.__init__(self, *args, **kwargs)
+    
+    self.person = person
+    self.date = date
+    
+    topSizer = wx.BoxSizer(wx.HORIZONTAL)
+    
+    turnusSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Dovoljeni turnusi"), wx.VERTICAL)
+    preScheduleSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vnaprej doloci"), wx.VERTICAL)
+    vacationSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Dopusti"), wx.VERTICAL)
+
+    
+    #set the turnuses
+    self.turnuses = []
+    for turnus in person.allowed_turnuses:
+      self.turnuses.append(wx_extensions.LinkedCheckBox(turnus, self, wx.NewId(), str(turnus)))
+      self.Bind(wx.EVT_CHECKBOX, self.__turnus_edited, self.turnuses[-1])
+      turnusSizer.Add(self.turnuses[-1], 0, wx.ALIGN_LEFT)
+      
+    #set the preschedule options
+    self.workplaces = wx_extensions.LinkedChoice(person.workplaces, self, wx.NewId())
+    self.Bind(wx.EVT_CHOICE, self.__workplace_changed, self.workplaces)
+    preScheduleSizer.Add(self.workplaces, 0, wx.CENTER)
+    
+    self.roles = wx_extensions.LinkedChoice([], self, wx.NewId())
+    self.Bind(wx.EVT_CHOICE, self.__set_permissions_wrapper, self.roles)
+    preScheduleSizer.Add(self.roles, 0, wx.CENTER) 
+    
+    self.pre_turnuses = []
+    for turnus in self.person.allowed_turnuses:
+      self.pre_turnuses.append(wx_extensions.LinkedCheckBox(turnus, self, wx.NewId(), str(turnus)))
+      self.Bind(wx.EVT_CHECKBOX, self.__predefined_edited, self.pre_turnuses[-1])
+      preScheduleSizer.Add(self.pre_turnuses[-1], 0, wx.ALIGN_LEFT) 
+      
+    
+    
+
+    #set the vacations
+    self.vacations = []
+    for vacation in global_vars.get_vacations().get_all():
+      self.vacations.append(wx_extensions.LinkedCheckBox(vacation, self, wx.NewId(), str(vacation)))
+      self.Bind(wx.EVT_CHECKBOX, self.__vacation_edited, self.vacations[-1])
+      vacationSizer.Add(self.vacations[-1], 0, wx.ALIGN_LEFT)
+      
+          
+    
+    # set the initial permissions  
+    self.__set_permissions()
+    # set the initial roles
+    self.__workplace_changed(None)
+    
+    topSizer.Add(turnusSizer, 0, wx.ALIGN_RIGHT)
+    topSizer.Add(preScheduleSizer, 0, wx.ALIGN_RIGHT)
+    topSizer.Add(vacationSizer, 0, wx.ALIGN_RIGHT)
+    
+    self.SetSizerAndFit(topSizer)
+    
+  def set_unit(self, date):
+    """
+    Permissions are always edited on a person + date basis.
+    This method sets the date (person is constant for the whole dialog).
+      date: is the date for which the permissions apply
+    """
+    
+    # either both are valid or both are invalid
+    # it would work otherwise, but this keeps the internal state consistent
+    if self.person and date:
+      self.date = date
+    else:
+      self.date = None
+    
+    self.__set_permissions()
+    
+    
+  def __turnus_edited(self, event):
+    """The event listener for the turnus checkboxes."""
+    if event.IsChecked():
+      # remove the turnus from restrictions
+      self.person.remove_invalid_turnus(self.date, event.GetEventObject().element)
+    else:
+      # add the restriction
+      self.person.add_invalid_turnus(self.date, event.GetEventObject().element)
+      
+    # reload permissions - vacation to turnus sync
+    self.__set_permissions()
+    
+  def __vacation_edited(self, event):
+    """The event listener for the vacation checkboxes."""
+    if event.IsChecked():
+      # remove the turnus from restrictions
+      self.person.add_vacation(self.date, event.GetEventObject().element)
+    else:
+      # add the restriction
+      self.person.remove_vacation(self.date, event.GetEventObject().element)
+      
+    # reload permissions - vacation to turnus sync
+    self.__set_permissions()
+    
+  def __predefined_edited(self, event):
+    """The event listener for the predefined checkboxes."""
+    if event.IsChecked():
+      # overwrite any existing schedule
+      self.person.add_predefined(self.date, event.GetEventObject().element, self.workplaces.get_value(), self.roles.get_value())
+    else:
+      # remove the prescheduled
+      self.person.remove_predefined(self.date)
+      
+    # reload permissions - synchronizes everything
+    self.__set_permissions()
+    
+  def __workplace_changed(self, event):
+    """Event listener for the workplace choice"""
+    
+    self.roles.set_elements(self.workplaces.get_value().roles & self.person.roles[self.workplaces.get_value()])
+    self.__set_permissions()
+    
+  def __set_permissions_wrapper(self, event):
+    """Just wraps an event listener around the set permissions method."""
+    self.__set_permissions()
+    
+  def __set_permissions(self):
+    """This method set's the initial permissions, according to the person and date attributes."""
+    
+    # edititing should not be possible
+    if self.person == None or self.date == None:
+      for turnus_checker in self.turnuses:
+        turnus_checker.Disable()
+      for vacation_checker in self.vacations:
+        vacation_checker.Disable()
+      self.workplaces.Disable()
+      self.roles.set_elements([])
+      self.roles.Disable()
+    else:
+      for turnus_checker in self.turnuses:
+        if turnus_checker.element in self.person.get_allowed_turnuses():
+          turnus_checker.Enable()
+        else:
+          turnus_checker.Disable()
+          
+      for vacation_checker in self.vacations:
+        vacation_checker.Enable()
+        
+      # select correct turnus permissons
+      if self.date in self.person.forbidden_turnuses:
+        turnuses = self.person.forbidden_turnuses[self.date]
+        for turnus_checker in self.turnuses:
+          if turnus_checker.element in turnuses:
+            turnus_checker.SetValue(False)
+          else:
+            turnus_checker.SetValue(True)
+      else:
+        for turnus_checker in self.turnuses:
+          turnus_checker.SetValue(True)
+      
+      # set the correct vacation permissions    
+      if self.date in self.person.vacations:
+        vacations = self.person.vacations[self.date]
+        for vacation_checker in self.vacations:
+          if vacation_checker.element in vacations:
+            vacation_checker.SetValue(True)
+          else:
+            vacation_checker.SetValue(False)
+      else:
+        for vacation_checker in self.vacations:
+          vacation_checker.SetValue(False)
+          
+      # disable / enable the correct turnuses for prescheduling
+      roles = self.workplaces.get_value().roles & self.person.roles[self.workplaces.get_value()]
+      if roles:
+        self.roles.Enable()
+        allowed_turnuses = set()
+        for turnus in self.workplaces.get_value().allowed_turnuses & self.person.allowed_turnuses:
+          if not self.person.is_turnus_forbidden(turnus, self.date):
+            allowed_turnuses.add(turnus)
+          
+        # set the permissions
+        for turnus_checker in self.pre_turnuses:
+          if turnus_checker.element in allowed_turnuses:
+            turnus_checker.Enable()
+            if self.person.is_predefined(self.date):
+              turnus_checker.SetValue(self.person.predefined[self.date][0] == turnus_checker.element and self.person.predefined[self.date][1] == self.workplaces.get_value() and self.person.predefined[self.date][2] == self.roles.get_value())
+            else:
+              turnus_checker.SetValue(False)
+          else:
+            turnus_checker.SetValue(False)
+            turnus_checker.Disable()
+      else:
+        self.roles.Disable()
+        for turnus_checker in self.pre_turnuses:
+          turnus_checker.SetValue (False)
+          turnus_checker.Disable()
       
