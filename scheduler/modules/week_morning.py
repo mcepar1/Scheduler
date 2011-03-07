@@ -1,9 +1,7 @@
 # -*- coding: Cp1250 -*-
 from data.turnus_type import TurnusType
-from utils import holiday, time_conversion
+from utils import holiday, time_conversion, calendar_utils
 
-import datetime
-import calendar
 import random
 
 class WeekMorning:
@@ -22,6 +20,7 @@ class WeekMorning:
         
     self.date = date
     
+    #TODO: document HARDCODED
     self.turnus_type = TurnusType('Dopoldanski')
     
     
@@ -96,7 +95,7 @@ class WeekMorning:
    
   def __get_dates (self):
     """Returns a sorted list of all valid dates."""
-    pre_dates = [datetime.date(day=day, month=self.date.month, year=self.date.year) for day in self.__get_days()]
+    pre_dates = calendar_utils.get_same_month_dates (self.date)
     dates = []
     
     for date in pre_dates:
@@ -105,14 +104,3 @@ class WeekMorning:
     
     return dates
     
-    
-  def __get_days(self):
-    """Returns a sorted list of days for the scheduling date"""
-    days = []
-    for day in calendar.Calendar().itermonthdays(self.date.year, self.date.month):
-      if day:
-        days.append(day)
-        
-    days.sort()
-    
-    return days

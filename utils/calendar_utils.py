@@ -77,4 +77,33 @@ def get_next_month (date):
   
   
   
+def get_week(date):
+  """
+  Returns the week in which the date is located.
+    date: instance of the datetime.date class
+    return: a list of dates
+  """
   
+  for week in calendar.Calendar().monthdatescalendar(year=date.year, month=date.month):
+    if date in week:
+      return week
+  else:
+    raise Exception('Date week error')
+  
+def get_next_week(date):
+  """
+  Returns all dates in the week after the week in which the date is located.
+    date: instance of the datetime.date class
+    return: a list of dates
+  """
+    
+  return get_week(date + datetime.timedelta(days=7))
+
+def get_previous_week(date):
+  """
+  Returns all dates in the week after the week in which the date is located.
+    date: instance of the datetime.date class
+    return: a list of dates
+  """
+    
+  return get_week(date + datetime.timedelta(days= -7))  
