@@ -4,8 +4,8 @@ import wx
 import os
 
 import get_panels
-#from schedule.scheduler_gui import SchedulerPanel
-from scheduler_gui import SchedulerPanel
+from schedule.scheduler_gui import SchedulerPanel
+#from scheduler_gui import SchedulerPanel
 
 def make_icon(img):
   """
