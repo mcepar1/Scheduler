@@ -61,6 +61,18 @@ class Workplace (general.DataClass):
       return true, if it possible, false otherwise
     """
     return turnus in self.allowed_turnuses
+  
+  def get_turnus_types (self):
+    """
+    Returns a list of all the contained turnus types.
+      return: a set of turnus types
+    """
+    
+    turnus_types = set ( )
+    for turnus in self.allowed_turnuses:
+      turnus_types |= turnus.types
+      
+    return sorted (turnus_types)
     
   def add_role (self, role):
     """

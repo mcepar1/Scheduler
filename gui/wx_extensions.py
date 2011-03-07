@@ -17,7 +17,7 @@ import wx.lib.newevent
 This class behaves the same way as a normal wxCheckBox.
 The only difference is that is also has an attribute
 element.
-Element is an instance, that is beeing manipulated by
+Element is an instance, that is being manipulated by
 this CheckBox.
 """
 class LinkedCheckBox(wx.CheckBox):
@@ -25,6 +25,7 @@ class LinkedCheckBox(wx.CheckBox):
     wx.CheckBox.__init__(self, *args, **kwargs)
     
     self.element = element
+      
 
 """
 This class is a wx.Choice, with predefined choices.
@@ -123,10 +124,10 @@ class LinkedIntCtrl(wx.lib.intctrl.IntCtrl):
     self.employment_type.monthly_hours = self.GetValue()
 
 class LinkedSpinCtr(wx.SpinCtrl):
-  def __init__(self, turnus, *args, **kwargs):
+  def __init__(self, element, *args, **kwargs):
     wx.SpinCtrl.__init__(self, *args, **kwargs)
     
-    self.element = turnus
+    self.element = element
 
 """
 This class behaves the same way as a normal wxComboBox.
@@ -190,17 +191,45 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
   
     wx.calendar.CalendarCtrl.__init__(self, *args, **kwargs)
     
-    self.Bind(wx.calendar.EVT_CALENDAR_MONTH, self.__set_holidays, self)
-    self.Bind(wx.calendar.EVT_CALENDAR_YEAR, self.__set_holidays, self)
+    #self.Bind(wx.calendar.EVT_CALENDAR_MONTH, self.__set_holidays, self)
+    #self.Bind(wx.calendar.EVT_CALENDAR_YEAR, self.__set_holidays, self)
     
-    next_month = datetime.date(day=28, month=datetime.date.today().month, year=datetime.date.today().year) + datetime.timedelta(days=10)
-    self.PySetDate(next_month.replace(day=1))
-    self.__set_holidays(None)
+    self.Bind(wx.EVT_PAINT, self.__paint)
+    
+    self.special_days = set ( )
+    #self.__set_holidays(None)
+    
+  def mark_special_date (self, date):
+    """
+    Marks the date in special color.
+    """
+    self.special_days.add (date)
+    if date in self.__get_dates ( ) and date in self.special_days:
+      attr = wx.calendar.CalendarDateAttr (colText=wx.WHITE, colBack=wx.ColourDatabase ( ).Find ('MAROON'), colBorder=wx.NullColour, font=wx.NullFont, border=wx.calendar.CAL_BORDER_NONE)
+      self.SetAttr (date.day, attr)
+    else:
+      self.__set_holidays (None)
+    
+  def unmark_special_date (self, date):
+    """
+    Removes the special color from the date.
+    """
+    if date in self.special_days:
+      self.special_days.remove (date)
+      if date in self.__get_dates ( ):
+        self.__set_holidays (None)
+        
+  def __paint (self, event):
+    self.__set_holidays (None)
+    for date in sorted (self.special_days):
+      self.mark_special_date (date)
+    event.Skip ( )
+    
         
   def __set_holidays(self, event):
     """Colors the holidays"""
     
-    for date in self.__get_dates():
+    for date in self.__get_dates ( ):
       if holiday.is_workfree(date):
         self.SetHoliday(date.day)
       else:
@@ -209,15 +238,33 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
     
   def __get_dates(self):
     """Returns a sorted list of days for the current date and month."""
-    current_date = self.PyGetDate()
+    current_date = self.PyGetDate ( )
     dates = []
-    for day in calendar.Calendar().itermonthdays(current_date.year, current_date.month):
+    for day in calendar.Calendar ( ).itermonthdays(current_date.year, current_date.month):
       if day:
-        dates.append(datetime.date(day=day, month=current_date.month, year=current_date.year))
+        dates.append (datetime.date(day=day, month=current_date.month, year=current_date.year))
               
-    dates.sort()
+    dates.sort ( )
     
     return dates
+  
+  def Enable (self, arg=True):
+    """
+    Overrides the main method.
+    """
+    if arg:
+      self.SetHighlightColours (wx.WHITE, wx.BLUE)
+    else:
+      self.SetHighlightColours (wx.BLACK, wx.WHITE)
+    super(EnhancedCalendar, self).Enable (arg)
+    self.Refresh ( )
+    
+  def Disable (self):
+    """
+    Overrides the main method.
+    """
+    self.Enable (False)
+    
 
 """
 Custom events to handle the new grid's functionality. 

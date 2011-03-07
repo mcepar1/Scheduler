@@ -4,6 +4,7 @@ import wx
 import os
 
 import get_panels
+#from schedule.scheduler_gui import SchedulerPanel
 from scheduler_gui import SchedulerPanel
 
 def make_icon(img):
@@ -39,7 +40,7 @@ class MainWindow(wx.Frame):
     self.sizer = wx.BoxSizer(wx.VERTICAL)
     
     notebook = wx.Notebook(self)
-    notebook.AddPage(SchedulerPanel(notebook), "Urnik")
+    notebook.AddPage(SchedulerPanel(workplaces, roles, turnus_types, notebook), "Urnik")
     notebook.AddPage(get_panels.get_nurse_panel (nurses, notebook), "Medicinske sestre")
     notebook.AddPage(get_panels.get_employment_type_panel (employment_types, notebook), "Vrste zaposlitve")
     notebook.AddPage(get_panels.get_turnus_panel (turnuses, notebook), "Turnusi")

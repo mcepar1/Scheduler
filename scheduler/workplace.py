@@ -12,7 +12,6 @@ class Workplace(data_model.Workplace):
     self.roles = data_workplace.roles
     
     self.workers = {}
-    self.date_workers = {}
     
     allowed_types = set()
     for turnus in self.allowed_turnuses:
@@ -88,11 +87,8 @@ class Workplace(data_model.Workplace):
   def get_workers(self, date):
     """Returns workers for the specified date."""
     
-    if date not in self.date_workers:
-      return self.workers
+    if date not in self.workers:
+      raise Exception ('Critical error!')
     else:
-      workers = {}
-      workers.update(self.workers)
-      workers.update(self.date_workers[date])
-      return workers
+      return self.workers[date]
 

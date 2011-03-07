@@ -1,8 +1,8 @@
 # -*- coding: Cp1250 -*-
 
 import global_vars
-from scheduler import person_scheduler
 from utils import time_conversion, exporter
+from scheduler import person_scheduler
 
 import wx
 import wx.grid
@@ -17,12 +17,12 @@ import os
 (ScheduleMessageEvent, EVT_SCHEDULE_MESSAGE) = wx.lib.newevent.NewEvent()
 
 class Result(wx.Frame):
-  def __init__(self, persons, static_workers, date_workers, date, *args, **kwargs):
+  def __init__(self, persons, workers, date, *args, **kwargs):
     wx.Frame.__init__(self, *args, **kwargs)
     
     self.progress_dialog = NonModalProgressDialog(self, wx.NewId(), title="Razvrscanje ...")
     
-    self.scheduler = Scheduler(self, persons, static_workers, date_workers, date)
+    self.scheduler = Scheduler(self, persons, workers, date)
     self.Bind(EVT_SCHEDULE_MESSAGE, self.__message_recieved)
     
     self.Hide()
@@ -223,7 +223,7 @@ class Scheduler(Thread):
       raise Exception ('Razpored ne obstaja')
     
     
-  def __schedule(self, persons, static_workers, date_workers, date):
+  def __schedule(self, persons, workers, date):
     """
     This method creates the scheduler and start's scheduling.
       persons: a list of persons, that will be scheduled
@@ -237,7 +237,7 @@ class Scheduler(Thread):
     
     self.running = True
     #try:
-    self.scheduler = self.__initialize_scheduler(persons, static_workers, date_workers, date)
+    self.scheduler = self.__initialize_scheduler(persons, workers, date)
     self.scheduler.schedule()
     #except Exception as e:
     #  self.send_message(message=str(e), running=False, error=True)
@@ -247,7 +247,7 @@ class Scheduler(Thread):
     
     
     
-  def __initialize_scheduler(self, persons, static_workers, date_workers, date):
+  def __initialize_scheduler(self, persons, workers, date):
     """
     This method initializes the scheduler.
       arguments: look at __schedule method
@@ -255,33 +255,10 @@ class Scheduler(Thread):
     """
     
     self.send_message('Predpriprave ...')
-    #force the persons to refresh employment_types
-    #TODO: this should be done automatically
-    for employment_type in global_vars.get_employment_types ( ).get_all ( ):
-      for person in persons:
-        if person.employment_type == employment_type:
-          # skips the built in method on purpose
-          person.employment_type = employment_type
-          
-    #force the persons to refresh workplaces
-    #TODO: this should be done automatically
-    for workplace in global_vars.get_workplaces ( ).get_all ( ):
-      for person in persons:
-        if workplace in person.workplaces:
-          person.workplaces.remove(workplace)
-          person.workplaces.add(workplace)
-          
-    ps = person_scheduler.PersonScheduler(persons, set(static_workers.keys() + date_workers.keys()), date, log=self)
+    
+    ps = person_scheduler.PersonScheduler(persons, global_vars.get_workplaces ( ).get_all ( ), date, log=self)
     for workplace in ps.workplaces:
-      if workplace in static_workers:
-        for role in static_workers[workplace]:
-          for turnus_type in static_workers[workplace][role]:
-            workplace.set_worker(role, turnus_type, static_workers[workplace][role][turnus_type])
-      if workplace in date_workers:
-        for role in date_workers[workplace]:
-          for date in date_workers[workplace][role]:
-            for turnus_type in date_workers[workplace][role][date]:
-              workplace.set_worker(role, turnus_type, date_workers[workplace][role][date][turnus_type], date)
+      workplace.workers = workers.convert (workplace)
             
     return ps
   

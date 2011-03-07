@@ -66,7 +66,7 @@ class GenericTablePanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.__element_selected (None)
     
     self.SetSizerAndFit (sizer)
-    self.SetupScrolling()
+    self.SetupScrolling ( )
     
   def __element_selected(self, event):
     """
