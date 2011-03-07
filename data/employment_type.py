@@ -12,19 +12,21 @@ class EmploymentType (general.DataClass):
 
   HEADERS = ["VRSTA", "URE NA TEDEN", "NADURE"]
 
-  def __init__(self, label, weekly_hours, has_overtime, allowed_turnuses=[], monthly_hours=0):
+  def __init__(self, label, weekly_hours, has_overtime, comment = '', allowed_turnuses=[], monthly_hours=0):
     """
     The default constructor
       label: is the label of the employment type
       weekly_hours: is the minimum required work time per week
       has_overtime: true, if it allows overtime, false otherwise
+      comment: a string description of this employment type
       allowed_turnuses: a list of turnuses, that a parson can have
       monthly_hours: is the minimum required work time per month
     """
     
     self.label = label
-    self.weekly_hours = weekly_hours
-    self.has_overtime = has_overtime
+    self.weekly_hours  = weekly_hours
+    self.has_overtime  = has_overtime
+    self.comment       = comment
     self.monthly_hours = monthly_hours
     
     self.allowed_turnuses = set(allowed_turnuses)

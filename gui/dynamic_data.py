@@ -5,6 +5,7 @@ This file contains classes for editing the object's dynamic data.
 import wx
 import wx_extensions
 import wx.lib.intctrl
+import wx.lib.expando
 import custom_events
 
 import locale
@@ -158,17 +159,25 @@ class EditEmploymentTypePanel (wx.Panel):
     self.employment_type = None
     
     self.monthly_hours = wx.lib.intctrl.IntCtrl (self, wx.ID_ANY)
+    self.comment_text  = wx.lib.expando.ExpandoTextCtrl (self, wx.ID_ANY)
+    
     self.monthly_hours.SetMin (0)
     self.monthly_hours.SetLimited (True)
     
     self.Bind(wx.lib.intctrl.EVT_INT, self.__hours_changed, self.monthly_hours)
+    self.Bind(wx.EVT_TEXT, self.__commented, self.comment_text)
     
-    sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), 'Število ur v mesecu'), wx.VERTICAL)
-    sizer.Add (self.monthly_hours, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    
+    sizer_hours   = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Število ur v mesecu'), wx.VERTICAL)
+    sizer_hours.Add (self.monthly_hours, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    
+    sizer_comment = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Komentar'), wx.VERTICAL)
+    sizer_comment.Add (self.comment_text, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     #wrap around another sizer, to keep the GUI consistent
     workaround_sizer = wx.BoxSizer (wx.VERTICAL)
-    workaround_sizer.Add (sizer, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    workaround_sizer.Add (sizer_hours,   0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    workaround_sizer.Add (sizer_comment, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (workaround_sizer)
     
@@ -184,22 +193,37 @@ class EditEmploymentTypePanel (wx.Panel):
     """
     Event listener for the spin control.
     """
-    self.employment_type.monthly_hours = self.monthly_hours.GetValue ( )
-    self.__set_permissions ( )
+    if self.employment_type:
+      self.employment_type.monthly_hours = self.monthly_hours.GetValue ( )
+      self.__set_permissions ( )
+    
+  def __commented(self, event):
+    """
+    Event listener for the comment field.
+    """
+    if self.employment_type:
+      self.employment_type.comment = self.comment_text.GetValue ( )
     
   def __set_permissions(self):
     """Keeps the GUI in sync with the data"""
     
     if self.employment_type:
       self.monthly_hours.Enable ( )
+      self.comment_text.Enable ( )
+      
       # if we do not unbind it, it causes a loop
       self.Unbind(wx.lib.intctrl.EVT_INT, self.monthly_hours)
       self.monthly_hours.SetValue (self.employment_type.monthly_hours)
       self.Bind(wx.lib.intctrl.EVT_INT, self.__hours_changed, self.monthly_hours)
       
+      self.comment_text.SetValue (self.employment_type.comment)
+      
     else:
       self.monthly_hours.SetValue (0)
+      self.comment_text.SetValue ('')
+      
       self.monthly_hours.Disable  ( )
+      self.comment_text.Disable ( )
     
 """
 This class contains two list boxes and is used to assert the nurse's titles.
