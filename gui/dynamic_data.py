@@ -6,6 +6,7 @@ import wx
 import wx_extensions
 import wx.lib.intctrl
 import wx.lib.expando
+import wx.lib.ticker
 import custom_events
 
 import locale
@@ -49,7 +50,7 @@ class EditNursePanel(wx.Panel):
     
     
     sizer = wx.BoxSizer (wx.VERTICAL)
-    sizer.Add (self.header, 0, wx.ALIGN_CENTER)
+    sizer.Add (self.header, 0, wx.EXPAND)
     sizer.Add (grid_sizer,  1, wx.ALIGN_LEFT | wx.EXPAND)
     
     
@@ -551,16 +552,20 @@ class HeaderNursePanel (wx.Panel):
     
     self.nurse = None
     
-    self.person_info      = wx.StaticText                (self, wx.ID_ANY, HeaderNursePanel.INVALID_LABEL)
+    self.person_info      = wx.lib.ticker.Ticker         (self, wx.ID_ANY, HeaderNursePanel.INVALID_LABEL)
     text                  = wx.StaticText                (self, wx.ID_ANY, "Vrsta zaposlitve: ")
     self.employment_types = wx_extensions.LinkedComboBox (self, wx.ID_ANY, style=wx.CB_READONLY)
     
     self.Bind(wx.EVT_COMBOBOX, self.__employment_type_selected, self.employment_types)
     
-    sizer = wx.GridBagSizer(2, 2)
-    sizer.Add (self.person_info,      (0,0), (1,2), wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-    sizer.Add (text,                  (1,0), (1,1), wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
-    sizer.Add (self.employment_types, (1,1), (1,1), wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT  | wx.EXPAND)
+    employment_type_sizer = wx.BoxSizer (wx.HORIZONTAL)
+    
+    employment_type_sizer.Add (text,                  0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+    employment_type_sizer.Add (self.employment_types, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+    
+    sizer = wx.BoxSizer (wx.VERTICAL)
+    sizer.Add (self.person_info,      0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (employment_type_sizer, 0, wx.ALIGN_CENTER)
     
     self.SetSizerAndFit (sizer)
     
@@ -584,7 +589,7 @@ class HeaderNursePanel (wx.Panel):
     Keeps the GUI in sync with the data.
     """
     if self.nurse:
-      self.person_info.SetLabel (str (self.nurse))
+      self.person_info.SetText (self.nurse.get_academic_name ( ))
       self.employment_types.Enable ( )
       self.employment_types.set_selection (self.nurse.employment_type)
     else:
