@@ -10,6 +10,30 @@ import holiday
 
 # create a calendar with Monday as the first day of the week
 __cal = calendar.Calendar (0)
+__months = ['Januar', 'Februar', 'Marec', 'April', 'Maj', 'Junij', 'Julij', 'Avgust', 'September', 'Oktober', 'November', 'December']
+
+def get_month_names ( ):
+  """
+  Returns a date-ordered list of all the month names.
+    @return: an ordered list of strings
+  """
+  return __months
+
+def get_month_name (month):
+  """
+  Returns the name of the month.
+    @param month: a 1 based index of the month
+    @return: the month's name
+  """
+  return __months[month - 1]
+
+def get_py_month_name (date):
+  """
+  Returns the name of the month.
+    @param date: a datetime.date object
+    @return: the month's name 
+  """
+  return get_month_name (date.month)
 
 def get_same_month_dates(date):
   """
@@ -45,6 +69,21 @@ def get_workfree_dates (date):
       workfree_dates.append (date)
       
   return workfree_dates
+
+def get_pre_workfree_dates (date):
+  """
+  Returns a sorted list of work days, that are followed by a workfree date. The pre_workfree dates are all
+   in the same month as the specified date.
+   @param date: is a datetime.date object, that contains the desired month and year
+   @return: a sorted list of datetime.date objects
+  """
+  this_month_workdays = set (get_workdays (date))
+  pre_work_free_dates = []
+  for workdate in this_month_workdays:
+    if holiday.is_workfree (workdate + datetime.timedelta (days = 1)):
+      pre_work_free_dates.append (workdate)
+      
+  return sorted (pre_work_free_dates)
 
 def get_workdays (date):
   """

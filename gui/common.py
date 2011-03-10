@@ -2,20 +2,13 @@
 
 
 import wx.wizard
-import wx.lib.newevent
 import wx.lib.scrolledpanel
 
 import static_data
+import custom_events
 import wx_extensions
 
-"""
-New events, for easier communication between the toolbar and it's parents.
-"""
-AddEvent,    EVT_TB_ADD    = wx.lib.newevent.NewCommandEvent ( )
-RemoveEvent, EVT_TB_REMOVE = wx.lib.newevent.NewCommandEvent ( )
-SaveEvent,   EVT_TB_SAVE   = wx.lib.newevent.NewCommandEvent ( )
-ReloadEvent, EVT_TB_RELOAD = wx.lib.newevent.NewCommandEvent ( )
-SearchEvent, EVT_TB_SEARCH = wx.lib.newevent.NewCommandEvent ( )
+
 
 """
 This is a standard GUI panel, for editing the data elements.
@@ -55,11 +48,11 @@ class GenericTablePanel(wx.lib.scrolledpanel.ScrolledPanel):
       sizer.Add(self.grid, 1, wx.ALIGN_LEFT | wx.EXPAND)
     
     
-    self.Bind(EVT_TB_ADD,    self.__add,    self.toolbar)
-    self.Bind(EVT_TB_REMOVE, self.__remove, self.toolbar)
-    self.Bind(EVT_TB_SAVE,   self.__save,   self.toolbar)
-    self.Bind(EVT_TB_RELOAD, self.__reload, self.toolbar)
-    self.Bind(EVT_TB_SEARCH, self.__search, self.toolbar)
+    self.Bind(custom_events.EVT_TB_ADD,    self.__add,    self.toolbar)
+    self.Bind(custom_events.EVT_TB_REMOVE, self.__remove, self.toolbar)
+    self.Bind(custom_events.EVT_TB_SAVE,   self.__save,   self.toolbar)
+    self.Bind(custom_events.EVT_TB_RELOAD, self.__reload, self.toolbar)
+    self.Bind(custom_events.EVT_TB_SEARCH, self.__search, self.toolbar)
     
 
     self.Bind(wx_extensions.EVT_GRID_SELECTED, self.__element_selected, self.grid)
@@ -184,7 +177,7 @@ class NotebookPageToolbar (wx.ToolBar):
     """
     Fires the search event.
     """
-    wx.PostEvent(self.GetEventHandler(), SearchEvent(self.GetId()))
+    wx.PostEvent(self.GetEventHandler(), custom_events.SearchEvent(self.GetId()))
     
   def __key_pressed (self, event):
     """
@@ -203,25 +196,25 @@ class NotebookPageToolbar (wx.ToolBar):
     """
     Fires the add event.
     """
-    wx.PostEvent(self.GetEventHandler(), AddEvent(self.GetId()))
+    wx.PostEvent(self.GetEventHandler(), custom_events.AddEvent(self.GetId()))
     
   def __remove (self, event):
     """
     Fires the remove event.
     """
-    wx.PostEvent(self.GetEventHandler(), RemoveEvent(self.GetId()))
+    wx.PostEvent(self.GetEventHandler(), custom_events.RemoveEvent(self.GetId()))
     
   def __save (self, event):
     """
     Fires the save event.
     """
-    wx.PostEvent(self.GetEventHandler(), SaveEvent(self.GetId()))
+    wx.PostEvent(self.GetEventHandler(), custom_events.SaveEvent(self.GetId()))
     
   def __reload (self, event):
     """
     Fires the reload event.
     """
-    wx.PostEvent(self.GetEventHandler(), ReloadEvent(self.GetId()))
+    wx.PostEvent(self.GetEventHandler(), custom_events.ReloadEvent(self.GetId()))
 
 """
 A wizard, that adds a new data instances.

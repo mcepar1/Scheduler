@@ -1,346 +1,156 @@
 # -*- coding: Cp1250 -*-
 
 import wx
-import wx.calendar
 import wx_extensions
-import result_gui
+import wx.lib.scrolledpanel
 
-import global_vars
-from data import employment_type
 
-class SchedulerPanel(wx.Panel):
-  def __init__(self, *args, **kwargs):
-    wx.Panel.__init__(self, *args, **kwargs)
-    
-    main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-    
-    self.shift_control = ShiftControl(self, wx.NewId())
-    main_sizer.Add(self.shift_control, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-    
-    
-    helper_sizer = wx.BoxSizer(wx.VERTICAL)
-    self.monthly_hours_control = MothlyHoursControl(self, wx.NewId())
-    helper_sizer.Add(self.monthly_hours_control, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-    
-    self.schedule_control = ScheduleControl(self, wx.NewId())
-    helper_sizer.Add(self.schedule_control, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    
-    main_sizer.Add(helper_sizer, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-    
-    
-    
-    self.Bind(wx.EVT_SET_FOCUS, self.refresh, self)
-    self.SetSizerAndFit(main_sizer)
-    
-  def refresh (self, event=None):
-    self.shift_control.refresh()
-    
-  def schedule(self, event):
-    """Event listener for the start button."""
-    
-    persons = self.schedule_control.get_persons()
-    static_workers, date_workers = self.shift_control.get_workers()
-    date = self.__get_date()
-    
-    window = result_gui.Result(persons, static_workers, date_workers, date, None, wx.NewId(), title='Razpored')
-    window.start()
+from schedule_module_gui import main_window
+from gui import custom_events
+from scheduler import proxy
 
+class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
+  def __init__(self, workplaces, roles, turnus_types, *args, **kwargs):
+    wx.lib.scrolledpanel.ScrolledPanel.__init__(self, *args, **kwargs)
     
-  def __get_date(self):
-    """Returns a datetime.date object."""
-    return self.schedule_control.get_date()
-
-class ScheduleControl(wx.Panel):
-  
-  def __init__(self, *args, **kwargs):
-    wx.Panel.__init__(self, *args, **kwargs)
+    self.workplaces   = workplaces
+    self.roles        = roles
+    self.turnus_types = turnus_types
     
-    self.persons = global_vars.get_nurses ( ).get_all ( )
+    self.toolbar = SchedulersPageToolbar (self, wx.NewId ( ), style = wx.TB_HORIZONTAL | wx.TB_FLAT | wx.TB_NODIVIDER)
+    self.list    = wx.ListCtrl (self, wx.ID_ANY, style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_HRULES)
     
-    main_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Razvrščanje"), wx.HORIZONTAL)
+    self.__build_list ( )
     
-    self.month_picker = wx_extensions.MonthChoice(self, wx.NewId())
-    main_sizer.Add(self.month_picker, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
+    self.Bind (custom_events.EVT_TB_CREATE, self.__show, self.toolbar)
     
-    self.start_button = wx.Button(self, wx.NewId(), 'Start')
-    self.Bind(wx.EVT_BUTTON, self.Parent.schedule, self.start_button)
-    main_sizer.Add(self.start_button, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
+    list_sizer = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, 'Razporedi'), wx.VERTICAL)
+    list_sizer.Add (self.list, 1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
-    self.SetSizerAndFit(main_sizer)
+    sizer = wx.BoxSizer (wx.VERTICAL)
+    sizer.Add (self.toolbar, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (list_sizer,   1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
-  def get_persons(self):
-    """Returns the persons, that are set to be scheduled."""
-    return self.persons
+    self.SetSizerAndFit (sizer)
+    self.SetupScrolling( )
     
-  def get_date(self):
-    """Returns a datetime.date object."""
-    return self.month_picker.get_value()
-    
-class ShiftControl(wx.Panel):
-
-  def __init__(self, *args, **kwargs):
-    wx.Panel.__init__(self, *args, **kwargs)
-    
-    self.workers = {}
-    self.date_workers = {}
-    self.workplace = None
-    self.role = None
-    
-    for workplace in global_vars.get_workplaces ( ).get_all ( ):
-      self.workers[workplace] = {}
-      for role in workplace.roles:
-        self.workers[workplace][role] = {}
-        for turnus in workplace.allowed_turnuses:
-          self.workers[workplace][role][turnus] = 0
-    
-    shift_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Število zaposlenih v izmeni"), wx.VERTICAL)
-    
-    self.workplace_selector = wx_extensions.LinkedChoice(global_vars.get_workplaces ( ).get_all ( ), self, wx.NewId())
-    self.Bind(wx.EVT_CHOICE, self.__set_workplace, self.workplace_selector)
-    shift_sizer.Add(self.workplace_selector, 0, wx.CENTER)
-    
-    roles_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Vloge"), wx.VERTICAL)
-    self.roles = []
-    for role in global_vars.get_roles ( ).get_all ( ):
-      self.roles.append(wx_extensions.LinkedCheckBox(role, self, wx.NewId(), str(role)))
-      self.Bind(wx.EVT_CHECKBOX, self.__role_edited, self.roles[-1])
-      roles_sizer.Add(self.roles[-1], 0, wx.ALIGN_LEFT)
-    shift_sizer.Add(roles_sizer, 0, wx.CENTER)
-    
-    
-    sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
-    
-    self.turnus_types = []
-    for turnus_type in global_vars.get_turnus_types ( ).get_all ( ):
-      sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus_type) + ":"), 0, wx.ALIGN_LEFT)
-      self.turnus_types.append(wx_extensions.LinkedSpinCtr(turnus_type, self, wx.NewId(), style=wx.SP_VERTICAL))
-      self.turnus_types[-1].SetRange(0, 200)
-      self.turnus_types[-1].SetValue(0)
-      self.Bind(wx.EVT_SPINCTRL, self.__number_changed, self.turnus_types[-1])
-      sub_sizer.Add(self.turnus_types[-1], 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-
-    
-    
-    shift_sizer.Add(sub_sizer, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-    
-    self.date_specific_buttons = wx.Button(self, wx.NewId(), label='Uredi za posamezen dan')
-    self.Bind(wx.EVT_BUTTON, self.__show_date_specific, self.date_specific_buttons)
-    shift_sizer.Add(self.date_specific_buttons, 0, wx.CENTER)
-    
-    self.__set_workplace(None)
-    
-    self.SetSizerAndFit(shift_sizer)
-    
-  def refresh (self):
-    self.__set_workplace(None)
-    self.__role_edited(None)
-    
-  def __role_edited(self, event):
-    if not event:
-      self.role = None
-    else:
-      self.role = event.GetEventObject().element
-    self.__set_permissions()
-    
-  def __set_workplace(self, event):
-    self.workplace = self.workplace_selector.get_value()
-    if not self.workplace:
-      self.role = None
-      
-    if self.workplace and self.role not in self.workplace.roles:
-      self.role = None
-      
-    self.__set_permissions()
-    
-        
-  def __set_permissions(self):
-    """This method keeps the whole GUI in sync."""
-    
-    if not self.workplace:
-      for role_checker in self.roles:
-        role_checker.SetValue(False)
-        role_checker.Disable()
-    if not self.role:
-      for turnus_type_spin in self.turnus_types:
-        turnus_type_spin.SetValue(0)
-        turnus_type_spin.Disable()
-        
-        if self.workplace:
-          for role_checker in self.roles:
-            if role_checker.element in self.workplace.roles:
-              role_checker.Enable()
-              role_checker.SetValue(role_checker.element == self.role)
-            else:
-              role_checker.SetValue(False)
-              role_checker.Disable()
-        
-    if self.workplace and self.role:
-      #synchronize the roles first
-      for role_checker in self.roles:
-        if role_checker.element in self.workplace.roles:
-          role_checker.Enable()
-          if role_checker.element == self.role:
-            role_checker.SetValue(True)
-          else:
-            role_checker.SetValue(False)
-        else:
-          role_checker.SetValue(False)
-          role_checker.Disable() 
-      
-      for turnus_type_spin in self.turnus_types:
-        # if the workplace has at least one turnus of the specified type
-        if len (global_vars.get_turnuses ( ).get_by_type(turnus_type_spin.element) & self.workplace.allowed_turnuses):
-          turnus_type_spin.Enable()
-          #load spins with correct numbers
-          try:
-            turnus_type_spin.SetValue(self.workers[self.workplace][self.role][turnus_type_spin.element])
-          except:
-            if self.role not in self.workers[self.workplace]:
-              self.workers[self.workplace][self.role] = {}
-            self.workers[self.workplace][self.role][turnus_type_spin.element] = 0
-            turnus_type_spin.SetValue(self.workers[self.workplace][self.role][turnus_type_spin.element])
-        else:
-          turnus_type_spin.SetValue(0)
-          turnus_type_spin.Disable()
-        
-  def __number_changed(self, event):
-    #might happen, if the workplace was changed during the runtime
-    if self.workplace not in self.workers:
-      self.workers[self.workplace] = {}
-    if self.role not in self.workers[self.workplace]:
-      self.workers[self.workplace][self.role] = {}
-    self.workers[self.workplace][self.role][event.GetEventObject().element] = event.GetEventObject().GetValue()
-    
-  def __show_date_specific(self, event):
-    if self.workplace not in self.date_workers:
-      self.date_workers[self.workplace] = {}
-      
-    if self.role not in self.date_workers[self.workplace]:
-      self.date_workers[self.workplace][self.role] = {}
-    
-    dialog = DateShiftControl(self.workplace, self.role, self.workers[self.workplace][self.role], self.date_workers[self.workplace][self.role], self, wx.NewId(), title=str(self.workplace))
-    dialog.CenterOnScreen()
-    dialog.ShowModal()
-    
-  def get_workers(self):
+  def __build_list (self):
     """
-    Returns a 2 -tuple. The first element of the tuple is a dictionary, that maps 
-    workplaces to roles, roles to turnuses and turnuses to the number of employees 
-    that must work in that turnus. The second element is a dictionary that maps 
-    workplaces to roles, roles to dates, dates to turnuses and turnuses to the number
-    of employees that must work in that turnus in the specific date. The second 
-    element takes priority over the first one.
-      return: 2 - tuple
+    Constructs the list, that displays the existing schedules.
+    """
+    self.list.InsertColumn (0, "Mesec", wx.LIST_FORMAT_CENTER)
+    self.list.InsertColumn (1, "Leto",  wx.LIST_FORMAT_LEFT)
+    
+    for vals in proxy.get_saved_schedules ( ):
+      self.list.Append (vals)
+
+    self.list.SetColumnWidth (0, 80)
+    self.list.SetColumnWidth (1, wx.LIST_AUTOSIZE)
+    self.list.SetMinSize ((133,50))
+    
+    
+  
+    
+  def __show (self, event):
+
+    import global_vars
+    p = proxy.DataToSchedule(event.date, global_vars.get_nurses(), global_vars.get_workplaces(), global_vars.get_roles(), global_vars.get_turnus_types())
+    f = main_window.MainWindow  (p, self)
+    f.Show ( )
+    
+"""
+This is a toolbar, that is displayed on the top of every Page.
+"""
+class SchedulersPageToolbar (wx.ToolBar):
+  
+  CREATE = wx.NewId ( )
+  OPEN   = wx.NewId ( )
+  REMOVE = wx.NewId ( )
+  
+  def __init__ (self, *args, **kwargs):
+    """
+    The default constructor.
+    """
+    wx.ToolBar.__init__(self, *args, **kwargs)
+    
+    self.year_month_choice = MonthYearWrapper (self)
+    
+    self.AddLabelTool(SchedulersPageToolbar.CREATE, 'Nov razpored',           wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR),       shortHelp='Ustvari nov razpored')
+    self.AddControl(self.year_month_choice.get_month_control ( ))
+    self.AddControl(self.year_month_choice.get_year_control ( ))
+    self.AddSeparator ( )
+    
+    self.AddLabelTool(SchedulersPageToolbar.OPEN,   'Odpri obsojeć razpored', wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), shortHelp='Odpri obsoječ razpored')
+    self.AddLabelTool(SchedulersPageToolbar.REMOVE, 'Izbriši',                wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_TOOLBAR),    shortHelp='Izbriši izbrano')
+    self.AddSeparator ( )
+    
+    self.search = wx.SearchCtrl (self, wx.NewId ( ), style=wx.TB_HORIZONTAL | wx.TB_NODIVIDER)
+    self.search.SetDescriptiveText ('Iskanje')
+    self.search.ShowSearchButton (True)
+    self.search.ShowCancelButton (True)
+    
+    self.AddControl(self.search)
+    
+    self.Bind(wx.EVT_TOOL, self.__create,    id = SchedulersPageToolbar.CREATE)
+    #self.Bind(wx.EVT_TOOL, self.__remove, id = NotebookPageToolbar.REMOVE)
+    #self.Bind(wx.EVT_TOOL, self.__save,   id = NotebookPageToolbar.SAVE)
+    #self.Bind(wx.EVT_TOOL, self.__reload, id = NotebookPageToolbar.RELOAD)
+    
+    #self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.__clear_search, self.search)
+    #self.Bind(wx.EVT_TEXT, self.__search)
+    
+    # this hack enables clearing the search field with the escape key
+    #if wx.Platform in ['__WXGTK__', '__WXMSW__']:
+    #  for child in self.search.GetChildren():
+    #    if isinstance(child, wx.TextCtrl):
+    #      child.Bind(wx.EVT_KEY_UP, self.__key_pressed)
+    #      break
+        
+    self.Realize ( )
+    
+  def __create (self, event):
+    """
+    Event listener for the create schedule button.
+    """
+    wx.PostEvent(self, custom_events.CreateEvent (self.GetId ( ), date=self.year_month_choice.get_selected_date ( )))
+
+"""
+This class is a wrapper around the month and year drop-down widgets. Works similar as the  MonthYearSelector
+in the custom widgets. It is implemented in a way so that it can be used in the toolbar.
+"""    
+class MonthYearWrapper:
+  
+  def __init__ (self, parent):
+    """
+    The default constructor.
+      @param parent: the toolbar, that will contain the controls.
     """
     
-    static_workers = {}
+    self.__months = wx_extensions.MonthChoice (parent, wx.ID_ANY)
+    self.__years  = wx.Choice (parent, wx.ID_ANY)
     
-    for workplace in self.workers:
-      for role in self.workers[workplace]:
-        for turnus_type in self.workers[workplace][role]:
-          if self.workers[workplace][role][turnus_type] != 0:
-            for turnus_type_num in self.turnus_types:
-              if turnus_type_num.IsEnabled and turnus_type_num.element == turnus_type:
-                if workplace not in static_workers:
-                  static_workers[workplace] = {}
-                if role not in static_workers[workplace]:
-                  static_workers[workplace][role] = {}
-                static_workers[workplace][role][turnus_type] = self.workers[workplace][role][turnus_type]
-              
+    year = self.__months.get_value ( ).year
+    self.__years.SetItems ([str (year - 1), str (year), str (year + 1)])
+    self.__years.Select (1)
     
-    return (static_workers, self.date_workers)
+  def get_month_control (self):
+    """
+    Returns the control for selecting months.
+      @return: a wx.Control object
+    """
+    return self.__months
   
-class DateShiftControl(wx.Dialog):
-  def __init__(self, workplace, role, workers, date_workers, *args, **kwargs):
-    wx.Dialog.__init__(self, *args, **kwargs)
+  def get_year_control (self):
+    """
+    Return the control for selecting years.
+      @return: a wx.Control object
+    """
+    return self.__years
     
-    self.workplace = workplace
-    self.role = role
-    self.workers = workers
-    self.date_workers = date_workers
-    
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    
-    self.calendar = wx_extensions.EnhancedCalendar(self, wx.NewId(), style=wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_SURROUNDING_WEEKS | wx.calendar.CAL_SEQUENTIAL_MONTH_SELECTION)
-    self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED, self.__update_date, self.calendar)
-    sizer.Add(self.calendar, 0, wx.ALIGN_LEFT | wx.EXPAND)
-    
-    
-    sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
-    
-    self.turnus_types = []
-    for turnus_type in global_vars.get_turnus_types ( ).get_all ( ):
-      sub_sizer.Add(wx.StaticText(self, wx.NewId(), str(turnus_type) + ":"), 0, wx.ALIGN_LEFT)
-      self.turnus_types.append(wx_extensions.LinkedSpinCtr(turnus_type, self, wx.NewId(), style=wx.SP_VERTICAL))
-      self.turnus_types[-1].SetRange(0, 200)
-      self.turnus_types[-1].SetValue(0)
-      self.turnus_types[-1].Disable()
-      self.Bind(wx.EVT_SPINCTRL, self.__number_changed, self.turnus_types[-1])
-      sub_sizer.Add(self.turnus_types[-1], 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-    
-    
-    sizer.Add(sub_sizer, 0, wx.ALIGN_LEFT)
-    
-    self.close = wx.Button(self, wx.NewId(), label='OK')
-    self.Bind(wx.EVT_BUTTON, self.__close, self.close)
-    sizer.Add(self.close, 0, wx.ALIGN_RIGHT)
-    
-    self.SetSizerAndFit(sizer)
-    
-  def __close(self, event):
-    self.Close()
-    
-  def __number_changed(self, event):
-    number = event.GetEventObject().GetValue()
-    turnus_type = event.GetEventObject().element
-    
-    if self.calendar.PyGetDate() not in self.date_workers:
-      self.date_workers[self.calendar.PyGetDate()] = {}
-    self.date_workers[self.calendar.PyGetDate()][turnus_type] = number
-    
-  def __update_date(self, event):
-    date = self.calendar.PyGetDate()
-    
-    for turnus_type_spin in self.turnus_types:
-      if len (global_vars.get_turnuses ( ).get_by_type(turnus_type_spin.element, self.workplace)):
-        turnus_type_spin.Enable()
-      else:
-        turnus_type_spin.Disable()
-    
-    if date not in self.date_workers:
-      self.date_workers[date] = {}
-      for turnus_type_spin in self.turnus_types:
-        if turnus_type_spin.IsEnabled() and turnus_type_spin.element in self.workers:
-          self.date_workers[date][turnus_type_spin.element] = self.workers[turnus_type_spin.element]
-        else:
-          self.date_workers[date][turnus_type_spin.element] = 0
-    
-    turnus_workers = self.date_workers[date]
-    for turnus_type in turnus_workers:
-      for turnus_type_spin in self.turnus_types:
-        if turnus_type_spin.IsEnabled() and turnus_type == turnus_type_spin.element:
-          turnus_type_spin.SetValue(self.date_workers[date][turnus_type])
-      
-      
-    
-    
-class MothlyHoursControl(wx.Panel):
-  
-  def __init__(self, *args, **kwargs):
-    wx.Panel.__init__(self, *args, **kwargs)
-    
-    hours_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), 'Število ur v mesecu'), wx.VERTICAL)
-    
-    sub_sizer = wx.FlexGridSizer(rows=0, cols=2)
-    self.employment_type_hours = []
-    for employment_type in global_vars.get_employment_types ( ).get_all ( ):
-      self.employment_type_hours.append(wx_extensions.LinkedIntCtrl(employment_type, self, wx.NewId(), value=employment_type.monthly_hours, min=0))
-      
-      sub_sizer.Add(wx.StaticText(self, wx.NewId(), label=employment_type.label + ':'), 0, wx.ALIGN_LEFT)
-      sub_sizer.Add(self.employment_type_hours[-1], 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-      
-    hours_sizer.Add(sub_sizer, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT)
-      
-    self.SetSizerAndFit(hours_sizer)
-  
+  def get_selected_date (self):
+    """
+    Returns a datetime.date object, that represents the selected combination.
+      @return: a datetime.date object
+    """
+    return self.__months.get_value ( ).replace (year = int (self.__years.GetItems ( )[self.__years.GetSelection ( )]))
     

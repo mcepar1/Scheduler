@@ -3,15 +3,15 @@
 from utils import holiday
 
 import datetime
-import calendar
 
 import wx
 import wx.grid
 import wx.calendar
+import wx.lib.agw.aui
 import wx.lib.intctrl
 import wx.lib.newevent
 
-
+from utils import calendar_utils
 
 """
 This class behaves the same way as a normal wxCheckBox.
@@ -32,23 +32,9 @@ This class is a wx.Choice, with predefined choices.
 The hard-coded choices are months of the year.
 """    
 class MonthChoice(wx.Choice):
-  MONTHS = [
-              'Januar',
-              'Februar',
-              'Marec',
-              'April',
-              'Maj',
-              'Junij',
-              'Julij',
-              'Avgust',
-              'September',
-              'Oktober',
-              'November',
-              'December'
-           ]
 
   def __init__(self, *args, **kwargs):
-    kwargs['choices'] = MonthChoice.MONTHS
+    kwargs['choices'] = calendar_utils.get_month_names ( )
     wx.Choice.__init__(self, *args, **kwargs)
     
     next_month = datetime.date(day=28, month=datetime.date.today().month, year=datetime.date.today().year) + datetime.timedelta(days=10)
@@ -58,9 +44,8 @@ class MonthChoice(wx.Choice):
     """
     Returns an instance of the datetime.date, with current year, the selected
     month and the first day in the month.
-      return: a datetime.date instance
+      return: a datetime.date object
     """
-    #return MonthChoice.MONTHS[self.GetCurrentSelection()]
     return datetime.date(day=1, month=self.GetCurrentSelection() + 1, year=int(datetime.date.today().year))
 
 """
@@ -79,6 +64,9 @@ class LinkedChoice(wx.Choice):
     
     kwargs['choices'] = [str(element) for element in self.elements]
     wx.Choice.__init__(self, *args, **kwargs)
+    
+    if self.elements:
+      self.Select (0)
     
   def set_elements(self, elements):
     """Replaces the old choices with the ones specified in the list"""
@@ -176,6 +164,36 @@ class LinkedComboBox(wx.ComboBox):
           return employment_type
     else:
       return None
+
+"""
+This class is the same as the wx.aui.AuiNotebook. It is enhanced in a way, that enables it
+to communicate with sizers, for getting the best size.
+"""    
+class EnhancedAUINotebook(wx.lib.agw.aui.AuiNotebook):
+  
+  def __init__ (self, *args, **kwargs):
+    wx.lib.agw.aui.AuiNotebook.__init__(self, *args, **kwargs)
+    
+  def DoGetBestSize (self):
+    """
+    Return an wx.Size object, that represents the best size of this control.
+      @return: a wx.Size object
+    """
+    notebook_size = self.GetBestSize ( ) 
+    panel_size    = wx.Size (0, 0) 
+    for i in range (self.GetPageCount ( )):
+      page_size = self.GetPage (i).GetBestSize ( )
+      if page_size.GetWidth ( ) > panel_size.GetWidth ( ):
+        panel_size.SetWidth (page_size.GetWidth ( ))
+      if page_size.GetHeight ( ) > panel_size.GetHeight ( ):
+        panel_size.SetHeight (page_size.GetHeight ( ))
+    
+    # calculate the best size by summing up the heigth and taking the panels width
+    best_size = wx.Size (0, 0)
+    best_size.SetWidth  (10 + panel_size.GetWidth  ( ))
+    best_size.SetHeight (10 + panel_size.GetHeight ( ) + notebook_size.GetHeight ( ))
+        
+    return best_size 
     
 """
 This class behaves the same way as a normal wxCalendar.
@@ -191,13 +209,9 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
   
     wx.calendar.CalendarCtrl.__init__(self, *args, **kwargs)
     
-    #self.Bind(wx.calendar.EVT_CALENDAR_MONTH, self.__set_holidays, self)
-    #self.Bind(wx.calendar.EVT_CALENDAR_YEAR, self.__set_holidays, self)
-    
     self.Bind(wx.EVT_PAINT, self.__paint)
     
     self.special_days = set ( )
-    #self.__set_holidays(None)
     
   def mark_special_date (self, date):
     """
@@ -237,16 +251,11 @@ class EnhancedCalendar(wx.calendar.CalendarCtrl):
       
     
   def __get_dates(self):
-    """Returns a sorted list of days for the current date and month."""
-    current_date = self.PyGetDate ( )
-    dates = []
-    for day in calendar.Calendar ( ).itermonthdays(current_date.year, current_date.month):
-      if day:
-        dates.append (datetime.date(day=day, month=current_date.month, year=current_date.year))
-              
-    dates.sort ( )
-    
-    return dates
+    """
+    Returns a sorted list of days for the current date and month.
+      @return: an ordered list of datetime.date objects
+    """
+    return calendar_utils.get_same_month_dates (self.PyGetDate ( ))
   
   def Enable (self, arg=True):
     """

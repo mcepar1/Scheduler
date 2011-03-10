@@ -8,9 +8,9 @@ import wx
 import wx.grid
 import wx.lib.newevent
 
-from threading import Thread
-import time
 import os
+from threading import Thread
+
 
 
 # This creates a new Event class and a EVT binder function
@@ -20,18 +20,39 @@ class Result(wx.Panel):
   def __init__(self, persons, workers, date, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.progress_dialog = NonModalProgressDialog(self, wx.NewId(), title="Razvrscanje ...")
+    self.scheduler       = Scheduler(self, persons, workers, date)
     
-    self.scheduler = Scheduler(self, persons, workers, date)
-    self.Bind(EVT_SCHEDULE_MESSAGE, self.__message_recieved)
+    self.progress_panel = ProgressPanel(self, wx.ID_ANY, name='Status razvršèanja ...')
+    self.grid           = wx.grid.Grid (self, wx.NewId())
+    self.warnings       = WarningsPanel (self, wx.NewId())
+    self.save_button    = wx.Button (self, wx.NewId(), label='Shrani')
     
-    self.Hide()
+    self.Bind (EVT_SCHEDULE_MESSAGE, self.__message_recieved)
+    self.Bind (wx.EVT_BUTTON,        self.__save,           self.save_button)
+    
+    
+    result_sizer = wx.BoxSizer(wx.HORIZONTAL)
+    result_sizer.Add (self.grid,     4, wx.ALIGN_LEFT | wx.EXPAND | wx.LEFT, 4)
+    result_sizer.Add (self.warnings, 1, wx.ALIGN_LEFT | wx.EXPAND)
+    
+    main_sizer = wx.BoxSizer(wx.VERTICAL)
+    main_sizer.Add (self.progress_panel, 0, wx.ALIGN_LEFT | wx.EXPAND)
+    main_sizer.Add (result_sizer,        1, wx.ALIGN_LEFT | wx.EXPAND)
+    main_sizer.Add (self.save_button,    0, wx.ALIGN_LEFT | wx.EXPAND)
+    
+    self.SetSizerAndFit(main_sizer)
+    self.Show(True)
+    self.Layout ( )
+    
+    self.grid.Hide ( )
+    self.warnings.Hide ( )
     
   def start (self):
-    self.progress_dialog.CenterOnScreen()
-    self.progress_dialog.Show(True)
-    self.scheduler.start()
-    Timer(self.scheduler).start()
+    self.progress_panel.Show ( )
+    self.grid.Hide ( )
+    self.warnings.Hide ( )
+    
+    self.scheduler.start ( )
     
     
     
@@ -56,9 +77,8 @@ class Result(wx.Panel):
     The event listener for thread synchronization.
     """
     if event.running:
-      self.progress_dialog.update(event.message)
+      self.progress_panel.update(event.message)
     else:
-      self.progress_dialog.Destroy()
       if event.error:
         dlg = wx.MessageDialog(self, event.message, 'Napaka', wx.OK | wx.ICON_INFORMATION)
         dlg.CenterOnScreen()
@@ -69,25 +89,16 @@ class Result(wx.Panel):
         self.__reconstruct()
         
   def __reconstruct(self):
-    main_sizer = wx.BoxSizer(wx.VERTICAL)
+    self.fill_grid ( )
+    self.warnings.display_warnings (self.scheduler.get_warnings ( ))
     
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
-    self.grid = wx.grid.Grid(self, wx.NewId())
-    self.fill_grid()
-    sizer.Add(self.grid, 4, wx.ALIGN_LEFT | wx.EXPAND)
+    self.grid.Show ( )
+    self.warnings.Show ( )
+    self.progress_panel.Hide ( )
     
-    self.warnings = WarningsPanel(self.scheduler.get_warnings(), self, wx.NewId())
-    sizer.Add(self.warnings, 1, wx.ALIGN_LEFT | wx.EXPAND)
-    
-    main_sizer.Add(sizer, 1, wx.ALIGN_LEFT | wx.EXPAND)
-    
-    self.save_button = wx.Button(self, wx.NewId(), label='Shrani')
-    self.Bind(wx.EVT_BUTTON, self.__save, self.save_button)
-    main_sizer.Add(self.save_button, 0, wx.ALIGN_RIGHT)
-    
-    self.SetSizerAndFit(main_sizer)
-    self.Show(True)
     self.Layout ( )
+    self.Refresh ( )
+    
         
   def __save(self, event):
     """Saves the schedule"""
@@ -111,21 +122,27 @@ class Result(wx.Panel):
     dlg.Destroy()
         
 class WarningsPanel(wx.Panel):
-  def __init__(self, warnings, *args, **kwargs):
+  def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
     
     sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Opozorila"), wx.VERTICAL)
-    self.tree = TreeWarnings(warnings, self, wx.NewId(), style=wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT)
+    self.tree = TreeWarnings(self, wx.NewId(), style=wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT)
     sizer.Add(self.tree, 1, wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit(sizer)
+    
+  def display_warnings (self, warnings):
+    self.tree.display_warnings(warnings)
         
 class TreeWarnings(wx.TreeCtrl):
-  def __init__(self, warnings, *args, **kwargs):
+  def __init__(self, *args, **kwargs):
     wx.TreeCtrl.__init__(self, *args, **kwargs)
     
-    root = self.AddRoot("Koren")
     
+    
+            
+  def display_warnings (self, warnings):
+    root = self.AddRoot("Koren")
     for workplace in sorted(warnings.keys()):
       w_item = self.AppendItem(root, str(workplace))
       for role in sorted(warnings[workplace].keys()):
@@ -139,23 +156,63 @@ class TreeWarnings(wx.TreeCtrl):
 """
 This is a custom class that behaves very similar to the wx.ProgressDialog.
 """    
-class NonModalProgressDialog(wx.Dialog):
+class ProgressPanel(wx.Panel):
+  
+  """
+  This variable contains the pulse interval in milliseconds.
+  """
+  TIMER_SPEED = 200
+  
   def __init__(self, *args, **kwargs):
-    wx.Dialog.__init__(self, *args, **kwargs)
+    wx.Panel.__init__(self, *args, **kwargs)
     
-    sizer = wx.BoxSizer(wx.VERTICAL)
+    self.timer   = wx.Timer (self)
+    self.message = ''
     
-    self.text = wx.StaticText(self, wx.NewId(), label='')
-    sizer.Add(self.text, 0, wx.CENTER)
+    self.text  = wx.StaticText (self, wx.ID_ANY, label='')
+    self.gauge = wx.Gauge      (self, wx.ID_ANY, size=(-1,10), style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)
     
-    self.gauge = wx.Gauge(self, wx.NewId(), size=(400, 10))
-    sizer.Add(self.gauge, 0, wx.ALIGN_LEFT)
+    self.Bind(wx.EVT_TIMER, self.__smooth)
+    
+    if self.GetLabel ( ) == '' or self.GetLabel ( ) == 'panel':
+      sizer = wx.BoxSizer(wx.VERTICAL)
+    else:
+      sizer = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, self.GetLabel ( )), wx.VERTICAL)
+    sizer.Add( self.text,  0, wx.ALIGN_TOP |wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.gauge, 0, wx.ALIGN_TOP |wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit(sizer)
+    self.timer.Start (ProgressPanel.TIMER_SPEED)
+    
+  def Show (self, bool=True):
+    """
+    Overrides the main method.
+    """
+    if bool and not self.timer.IsRunning ( ):
+      self.timer.Start (ProgressPanel.TIMER_SPEED)
+    if not bool:
+      self.timer.Stop ( )
+    return super (ProgressPanel, self).Show (bool)
+    
+  def Hide (self):
+    """
+    Overrides the main method.
+    """
+    return self.Show (False)
+    
+  def __smooth(self, event):
+    """
+    Event listener for the timer. Keeps the progress bar smooth.
+    """
+    self.update (self.text.GetLabel ( ))
+    self.gauge.Pulse ( )
     
   def update(self, message):
-    self.text.SetLabel(message)
-    self.gauge.Pulse()
+    self.text.SetLabel (message)
+    
+    
+  def __del__ (self):
+    self.timer.Stop ( )
 
 """
 This class is just a wrapper around the Person
@@ -262,24 +319,5 @@ class Scheduler(Thread):
       workplace.workers = workers.convert (workplace)
             
     return ps
-  
-"""
-Might be a performance risk
-"""  
-class Timer(Thread):
-  #TODO: check performance
-  def __init__(self, log):
-    Thread.__init__(self)
-    self.log = log
-    
-  def run(self):
-    while(self.log.running):
-      try:
-        self.log.send_message()
-        time.sleep(0.3)
-      except:
-        self.running = False
-        
-  
 
         

@@ -52,25 +52,19 @@ class PersonScheduler:
     if not people:
       raise Exception('Ni nobene osebe za razvrscanje')
     
-    schedule_nurses = False
-    
-    for person in people:
-      if isinstance(person, nurse.Nurse):
-        schedule_nurses = True
-      else:
-        raise Exception('Razvršèamo lahko le medicinske sestre sestre.')
+    self.schedule_nurses = True
       
     
     # if this point is reached, the the parameters are legal
     self.file_dir = ''
-    if schedule_nurses:
+    if self.schedule_nurses:
       self.file_dir = os.path.join(PersonScheduler.FILES_DIR, PersonScheduler.NURSE_DIR)
     
     
     self.people = []
     for person in people:
       if person.allowed_turnuses or input_raw:
-        if schedule_nurses:
+        if self.schedule_nurses:
           self.people.append(person_module.Nurse(person))
         self.people[-1].add_month (date)
         #add the next month, because it may overflow
@@ -138,11 +132,7 @@ class PersonScheduler:
       for plug_in in PLUG_INS:
         self.active_plugins.append(plug_in(self.people, self.workplaces, global_vars.get_turnuses ( ).get_all ( ), self.date, self.log))
       for plug_in in CLEAN_UP:
-        self.clean_up_plugins.append(plug_in(self.people, self.workplaces, global_vars.get_turnuses ( ).get_all ( ), self.date, self.log))
-    
-        
-      
-      
+        self.clean_up_plugins.append(plug_in(self.people, self.workplaces, global_vars.get_turnuses ( ).get_all ( ), self.date, self.log))   
     
     
   def __get_previous_month(self, date):

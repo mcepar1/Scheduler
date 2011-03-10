@@ -92,7 +92,7 @@ class HolidayRulePlugin:
     #This is not included in the prescheduler, because it is not prescheduled.
     #It is scheduled automatically, only outside the normal scheduling scope.
     
-    dates = calendar_utils.get_workfree_dates (self.date)
+    dates = calendar_utils.get_pre_workfree_dates (self.date)
     
     workplaces = []
     for workplace in self.workplaces:
@@ -113,8 +113,8 @@ class HolidayRulePlugin:
     
     random.shuffle(workplaces)  
     for workplace in workplaces:
-      for holiday_date in dates:
-        pre_holiday_date = holiday_date - datetime.timedelta(days=1)
+      for pre_holiday_date in dates:
+        holiday_date = pre_holiday_date + datetime.timedelta(days=1)
         
         pre_holiday_workers = workplace.get_workers(pre_holiday_date)
         holiday_workers = workplace.get_workers(holiday_date)

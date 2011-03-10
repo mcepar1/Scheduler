@@ -15,9 +15,10 @@ class Workers:
     self.holiday_dates = set ( )
     self.manual_dates  = {}
     
-    for date in dates:
+    for date in self.all_dates:
       for holiday in calendar_utils.get_workfree_dates (date):
-        self.holiday_dates.add (holiday)
+        if holiday <= self.all_dates[-1]:
+          self.holiday_dates.add (holiday)
     self.holiday_dates = sorted (self.holiday_dates)
     
     self.work_day_workers = {}
@@ -198,20 +199,4 @@ class Workers:
         self.manual_dates[date][workplace] = {}
         for role in roles:
           self.manual_dates[date][workplace][role] = value
-            
-# A debug level method
-def get_workers ( ):
-  import datetime
-  from utils import calendar_utils
-  
-  import global_vars
-  
-  dates = calendar_utils.get_same_month_dates (datetime.date.today ( ))
-  dates += calendar_utils.get_same_month_dates (calendar_utils.get_next_month(datetime.date.today ( )))
-  
-  return Workers (dates, 
-                  global_vars.get_workplaces ( ).get_all ( ), 
-                  global_vars.get_roles ( ).get_all ( ), 
-                  global_vars.get_turnus_types ( ).get_all ( )
-                  )
 

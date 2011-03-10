@@ -4,21 +4,10 @@ import wx
 import os
 
 import get_panels
-from schedule.scheduler_gui import SchedulerPanel
-#from scheduler_gui import SchedulerPanel
+import utils_gui
+from scheduler_gui import SchedulesPanel
 
-def make_icon(img):
-  """
-  The various platforms have different requirements for the
-  icon size...
-  """
-  if "wxMSW" in wx.PlatformInfo:
-    img = img.Scale(16, 16)
-  elif "wxGTK" in wx.PlatformInfo:
-    img = img.Scale(22, 22)
-  # wxMac can be any size upto 128x128, so leave the source img alone....
-  icon = wx.IconFromBitmap(img.ConvertToBitmap() )
-  return icon
+
 
 class MainWindow(wx.Frame):
 
@@ -40,7 +29,7 @@ class MainWindow(wx.Frame):
     self.sizer = wx.BoxSizer(wx.VERTICAL)
     
     notebook = wx.Notebook(self)
-    notebook.AddPage(SchedulerPanel(workplaces, roles, turnus_types, notebook), "Urnik")
+    notebook.AddPage(SchedulesPanel (workplaces, roles, turnus_types, notebook, wx.ID_ANY), "Razporedi")
     notebook.AddPage(get_panels.get_nurse_panel (nurses, notebook), "Medicinske sestre")
     notebook.AddPage(get_panels.get_employment_type_panel (employment_types, notebook), "Vrste zaposlitve")
     notebook.AddPage(get_panels.get_turnus_panel (turnuses, notebook), "Turnusi")
@@ -55,7 +44,7 @@ class MainWindow(wx.Frame):
     self.SetSizer(self.sizer)
     self.SetAutoLayout(1)
     self.sizer.Fit(self)
-    self.SetIcon(make_icon(wx.Image(name = MainWindow.ICON_PATH)))
+    self.SetIcon(utils_gui.make_icon(wx.Image(name = MainWindow.ICON_PATH)))
   
 class SplashScreen(wx.Frame):
   SPLASH_PATH = os.path.join ('persistence', 'gui', 'splash.png')
@@ -78,7 +67,7 @@ class SplashScreen(wx.Frame):
     
     self.text.SetFont(wx.Font(20, wx.FONTFAMILY_SCRIPT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
     
-    self.SetIcon(make_icon(wx.Image(name = SplashScreen.ICON_PATH)))
+    self.SetIcon(utils_gui.make_icon(wx.Image(name = SplashScreen.ICON_PATH)))
     self.SetSizerAndFit (sizer)
     self.CenterOnScreen ( )
     self.Show ( )

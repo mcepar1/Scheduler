@@ -13,21 +13,20 @@ from scheduler.workers import Workers
 The main panel for editing the scheduling data.
 """
 class SchedulerPanel(wx.lib.scrolledpanel.ScrolledPanel):
-  def __init__(self, workplaces, roles, turnus_types, *args, **kwargs):
+  def __init__(self, proxy, *args, **kwargs):
     """
     The default constructor.
+      @param proxy: the class that maps the data model into the schedule model.
     """
     wx.lib.scrolledpanel.ScrolledPanel.__init__(self, *args, **kwargs)
     
     
-    from scheduler import workers
-    #import wx.lib.buttons
-    self.worker_container    = workers.get_workers ( )
+    self.worker_container    = proxy.get_workers ( )
     bitmap = wx.ArtProvider ( ).GetBitmap(wx.ART_TICK_MARK, wx.ART_BUTTON)
     
-    self.workplace_role_pair = WorkplaceRoleSelector (workplaces, roles, self, wx.ID_ANY)
+    self.workplace_role_pair = WorkplaceRoleSelector (proxy.get_workplaces ( ), proxy.get_roles ( ), self, wx.ID_ANY)
     self.start_button        = wx.lib.buttons.ThemedGenBitmapTextButton (self, wx.ID_ANY, bitmap, 'Zaženi')
-    self.shift_control       = ShiftControl (turnus_types.get_all ( ), self.worker_container, self, wx.ID_ANY)
+    self.shift_control       = ShiftControl (proxy.get_turnus_types ( ), self.worker_container, self, wx.ID_ANY)
     
     self.Bind(custom_events.EVT_UPDATED, self.__pair_selected, self.workplace_role_pair)
     self.Bind(wx.EVT_BUTTON, self.__start, self.start_button)
@@ -51,11 +50,7 @@ class SchedulerPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     Starts the scheduling.
     """
-    #TODO: rewrite the whole procedure.
-    from gui import result_gui
-    import global_vars
-    window = result_gui.Result(global_vars.get_nurses ( ).get_all ( ),self.worker_container, self.worker_container.get_range ( )[0], None, wx.NewId(), title='Razpored')
-    window.start()
+    wx.PostEvent(self, custom_events.StartEvent (self.GetId ( ), workers=self.worker_container))
 
 """
 This class is used to select the workplace - role pair.
@@ -69,8 +64,8 @@ class WorkplaceRoleSelector(wx.Panel):
     """
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.workplace_selector = custom_widgets.CustomRadioBox (workplaces.get_all ( ), self, wx.ID_ANY, name='Delovišèa', selectable=workplaces.get_all ( ))
-    self.role_selector      = custom_widgets.CustomRadioBox (roles.get_all ( ),      self, wx.ID_ANY, name='Vloge')
+    self.workplace_selector = custom_widgets.CustomRadioBox (workplaces, self, wx.ID_ANY, name='Delovišèa', selectable=workplaces)
+    self.role_selector      = custom_widgets.CustomRadioBox (roles,      self, wx.ID_ANY, name='Vloge')
     
     self.Bind(custom_events.EVT_UPDATED, self.__synchronize_workplace, self.workplace_selector)
     self.Bind(custom_events.EVT_UPDATED, self.__synchronize_role,      self.role_selector)
