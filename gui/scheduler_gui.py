@@ -39,7 +39,6 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     Constructs the list, that displays the existing schedules.
     """
-    self.list.SetDoubleBuffered (True)
     self.list.InsertColumn (0, "Mesec", wx.LIST_FORMAT_CENTER)
     self.list.InsertColumn (1, "Leto",  wx.LIST_FORMAT_LEFT)
     
@@ -56,7 +55,7 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
   def __show (self, event):
 
     import global_vars
-    p = proxy.DataToSchedule(event.date, global_vars.get_nurses(), global_vars.get_workplaces(), global_vars.get_roles(), global_vars.get_turnus_types())
+    p = proxy.DataToSchedule(event.date, global_vars.get_nurses(), global_vars.get_scheduling_units(), global_vars.get_turnus_types())
     f = main_window.MainWindow  (p, self)
     f.Show ( )
     
@@ -74,7 +73,6 @@ class SchedulersPageToolbar (wx.ToolBar):
     The default constructor.
     """
     wx.ToolBar.__init__(self, *args, **kwargs)
-    self.SetDoubleBuffered (True)
     
     self.year_month_choice = MonthYearWrapper (self)
     

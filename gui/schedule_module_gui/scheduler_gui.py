@@ -24,7 +24,7 @@ class SchedulerPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.worker_container    = proxy.get_workers ( )
     bitmap = wx.ArtProvider ( ).GetBitmap(wx.ART_TICK_MARK, wx.ART_BUTTON)
     
-    self.workplace_role_pair = WorkplaceRoleSelector (proxy.get_workplaces ( ), proxy.get_roles ( ), self, wx.ID_ANY)
+    self.workplace_role_pair = custom_widgets.ScheduleUnitSelector (proxy.get_schedule_units_container ( ), self, wx.ID_ANY)
     self.start_button        = wx.lib.buttons.ThemedGenBitmapTextButton (self, wx.ID_ANY, bitmap, 'Zaženi')
     self.shift_control       = ShiftControl (proxy.get_turnus_types ( ), self.worker_container, self, wx.ID_ANY)
     
@@ -67,8 +67,7 @@ class ShiftControl (wx.Panel):
     wx.Panel.__init__(self, *args, **kwargs)
     
     self.worker_container   = workers
-    self.workplace          = None
-    self.role               = None
+    self.schedule_unit      = None
     
     
     
@@ -99,25 +98,22 @@ class ShiftControl (wx.Panel):
     
     self.SetSizerAndFit (sizer)
     
-  def set_unit(self, workplace_role_pair):
+  def set_unit(self, schedule_unit):
     """
     Sets which workplace role pair is currently beeing edited by the application.
-      workplace_role_pair: a 2-tuple with a workplace as it's first element and a role as it's second
+      @param schedule_unit: a data object
     """
-    # TODO: a tuple was chosen to keep the set_unit method as a single attribute method throughout the application
-    # TODO: document this!
-    self.workplace = workplace_role_pair[0]
-    self.role      = workplace_role_pair[1]
+    self.schedule_unit = schedule_unit
     
-    self.work_days_selector.set_unit ((self.workplace, self.role))
-    self.holidays_selector.set_unit  ((self.workplace, self.role))
-    self.date_specific.set_unit      ((self.workplace, self.role))
+    self.work_days_selector.set_unit (self.schedule_unit)
+    self.holidays_selector.set_unit  (self.schedule_unit)
+    self.date_specific.set_unit      (self.schedule_unit)
     
   def __updated (self, event):
     """
     Event listener for the shift selectors.
     """
-    self.set_unit ([self.workplace, self.role])
+    self.set_unit (self.schedule_unit)
     
 """
 This class handles the date specific shifts.
@@ -132,10 +128,9 @@ class DateShiftControl(wx.Panel):
     """
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.workplace = None
-    self.role      = None
+    self.scheduling_unit = None
     
-    self.workers       = workers_instance
+    self.workers         = workers_instance
     
     self.calendar       = wx_extensions.EnhancedCalendar (self, wx.ID_ANY, style=wx.calendar.CAL_MONDAY_FIRST | wx.calendar.CAL_SHOW_SURROUNDING_WEEKS | wx.calendar.CAL_SEQUENTIAL_MONTH_SELECTION)
     self.enable_shifts  = wx.CheckBox (self, wx.ID_ANY, 'Uredi datum')
@@ -166,17 +161,16 @@ class DateShiftControl(wx.Panel):
     
     self.__set_permissions ( )
     
-  def set_unit(self, workplace_role_pair):
+  def set_unit(self, scheduling_unit):
     """
-    Sets which workplace role pair is currently beeing edited by the application.
-      workplace_role_pair: a 2-tuple with a workplace as it's first element and a role as it's second
+    Sets which scheduling unit is currently being edited by the application.
+      @param scheduling_unit: a data object
     """
-    self.workplace = workplace_role_pair[0]
-    self.role      = workplace_role_pair[1]
+    self.scheduling_unit = scheduling_unit
     
     self.__set_permissions ( )
     
-    self.shift_selector.set_unit ((self.workplace, self.role, self.calendar.PyGetDate ( )))
+    self.shift_selector.set_unit ((self.scheduling_unit, self.calendar.PyGetDate ( )))
     
     if self.enable_shifts.GetValue ( ):
       self.shift_selector.Enable ( )
@@ -191,7 +185,7 @@ class DateShiftControl(wx.Panel):
     """
     self.__set_permissions ( )
     
-    self.shift_selector.set_unit ((self.workplace, self.role, self.calendar.PyGetDate ( )))
+    self.shift_selector.set_unit ((self.scheduling_unit, self.calendar.PyGetDate ( )))
     if self.enable_shifts.GetValue ( ):
       self.shift_selector.Enable ( )
     else:
@@ -202,21 +196,21 @@ class DateShiftControl(wx.Panel):
     Event listener for the edit date checker.
     """
     if self.enable_shifts.GetValue ( ):
-      self.workers.add_manual_date (self.calendar.PyGetDate ( ), self.workplace, self.role, self.shift_selector.get_values ( ))
+      self.workers.add_manual_date (self.calendar.PyGetDate ( ), self.scheduling_unit, self.shift_selector.get_values ( ))
       self.calendar.mark_special_date (self.calendar.PyGetDate ( ))
     else:
-      self.workers.remove_manual_date (self.calendar.PyGetDate ( ), self.workplace, self.role)
+      self.workers.remove_manual_date (self.calendar.PyGetDate ( ), self.scheduling_unit)
       self.calendar.unmark_special_date (self.calendar.PyGetDate ( ))
     
     self.shift_selector.Enable (self.enable_shifts.GetValue ( ))
     self.__set_permissions ( )
     
   def __set_permissions (self):
-    if self.workplace and self.role:
+    if self.scheduling_unit:
       self.calendar.Enable ( )
       self.enable_shifts.Enable ( )
       
-      self.enable_shifts.SetValue (self.workers.is_date_manual (self.calendar.PyGetDate ( ), self.workplace, self.role))
+      self.enable_shifts.SetValue (self.workers.is_date_manual (self.calendar.PyGetDate ( ), self.scheduling_unit))
       
     else:
       self.calendar.Disable ( )
@@ -240,8 +234,7 @@ class ShiftSelector(wx.Panel):
     """
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.workplace = None
-    self.role      = None
+    self.schedule_unit    = None
     
     self.workers_instance = workers_instance
     self.get_method       = get_method
@@ -290,30 +283,29 @@ class ShiftSelector(wx.Panel):
     """
     self.Enable (False)
     
-  def set_unit(self, workplace_role):
+  def set_unit(self, schedule_unit):
     """
     Sets which workplace role pair is currently beeing edited by the application.
-      workplace_role: a 2-tuple with a workplace as it's first element and a role as it's second
+      @param schedule_unit: a data object
     """
-    self.workplace = workplace_role[0]
-    self.role      = workplace_role[1]
+    self.schedule_unit = schedule_unit
     self._set_permissions ( )
     
   def _spinned (self, event):
     """
     Event listener for the turnus type spin controls. Fires an update event.
     """
-    self.add_method (self.workers_instance, self.workplace, self.role, event.GetEventObject ( ).element, event.GetEventObject ( ).GetValue ( ))
+    self.add_method (self.workers_instance, self.schedule_unit, event.GetEventObject ( ).element, event.GetEventObject ( ).GetValue ( ))
     wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
     
   def _set_permissions(self):
     """
     Keeps the GUI in sync with the data.
     """
-    if self.workplace and self.role:
-      turnus_types = self.workplace.get_turnus_types ( )
+    if self.schedule_unit:
+      turnus_types = self.schedule_unit.get_turnus_types ( )
       for spin_control in self.spin_controls:
-        spin_control.SetValue (self.get_method (self.workers_instance, self.workplace, self.role, spin_control.element))
+        spin_control.SetValue (self.get_method (self.workers_instance, self.schedule_unit, spin_control.element))
         if spin_control.element in turnus_types and self.IsEnabled ( ):
           spin_control.Enable ( )
         else:
@@ -336,15 +328,13 @@ class DateShiftSelector (ShiftSelector):
     
     self.date = None
     
-  def set_unit(self, workplace_role_date):
+  def set_unit(self, schedule_unit_date):
     """
-    Sets which workplace role pair is currently beeing edited by the application.
-      workplace_role_dates: a 3-tuple with a workplace as it's first element, a role as it's second and
-        a datetime.date as it's last
+    Sets which schedule unit is currently being edited by the application.
+      @param schedule_unit_date: a 2-tuple with a schedule unit as it's first element and a datetime.date 
+        as it's last
     """
-    self.workplace = workplace_role_date[0]
-    self.role      = workplace_role_date[1]
-    self.date      = workplace_role_date[2]
+    self.schedule_unit, self.date = schedule_unit_date
     self._set_permissions ( )
     
   def get_values (self):
@@ -380,10 +370,10 @@ class DateShiftSelector (ShiftSelector):
     """
     Keeps the GUI in sync with the data.
     """
-    if self.workplace and self.role and self.date:
-      turnus_types = self.workplace.get_turnus_types ( )
+    if self.schedule_unit and self.date:
+      turnus_types = self.schedule_unit.get_turnus_types ( )
       for spin_control in self.spin_controls:
-        spin_control.SetValue (self.get_method (self.workers_instance, self.workplace, self.role, spin_control.element, self.date))
+        spin_control.SetValue (self.get_method (self.workers_instance, self.schedule_unit, spin_control.element, self.date))
         if spin_control.element in turnus_types and self.IsEnabled ( ):
           spin_control.Enable ( )
         else:

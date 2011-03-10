@@ -9,7 +9,13 @@ The proxy class. The responsibility to manage dates is handled outside the scope
 """
 class Workers:
   
-  def __init__(self, dates, workplaces, roles, turnus_types):
+  def __init__(self, dates, schedule_units, turnus_types):
+    """
+    The default constructor.
+      @param dates: a list of datetime.date objects
+      @param schedule_units: a list of data objects
+      @param turnus_types: a list data objects
+    """
     
     self.all_dates     = dates
     self.holiday_dates = set ( )
@@ -25,178 +31,142 @@ class Workers:
     self.holiday_workers  = {}
     self.manual_workers   = {}
     
-    self.__build_dict(self.work_day_workers, dates, workplaces, roles, turnus_types)
-    self.__build_dict(self.holiday_workers,  dates, workplaces, roles, turnus_types)
-    self.__build_dict(self.manual_workers,   dates, workplaces, roles, turnus_types)
+    self.__build_dict(self.work_day_workers, dates, schedule_units, turnus_types)
+    self.__build_dict(self.holiday_workers,  dates, schedule_units, turnus_types)
+    self.__build_dict(self.manual_workers,   dates, schedule_units, turnus_types)
     
-    self.__build_manual(dates, workplaces, roles)
+    self.__build_manual(dates, schedule_units)
     
 
-  def add_worday_dates (self, workplace, role, turnus_type, workers):
+  def add_worday_dates (self, schedule_unit, turnus_type, workers):
     """
     Adds a work day date into the container.
-      workplace: a data object
-      role: a data object
-      turnus_type: a data object
-      workers: the number of workers
+      @param schedule_unit: a data object
+      @param turnus_type: a data object
+      @param workers: the number of workers
     """
     for date in self.all_dates:
-      self.work_day_workers[date][workplace][role][turnus_type] = workers
+      self.work_day_workers[date][schedule_unit][turnus_type] = workers
     
-  def add_holiday_dates (self, workplace, role, turnus_type, workers):
+  def add_holiday_dates (self, schedule_unit, turnus_type, workers):
     """
     Adds a holiday date into the container.
-      workplace: a data object
-      role: a data object
-      turnus_type: a data object
-      workers: the number of workers
+      @param schedule_unit: a data object
+      @param turnus_type: a data object
+      @param workers: the number of workers
     """
     for date in self.holiday_dates:
-      self.holiday_workers[date][workplace][role][turnus_type] = workers
+      self.holiday_workers[date][schedule_unit][turnus_type] = workers
     
-  def add_manual_date (self, date, workplace, role, turnus_type_workers):
+  def add_manual_date (self, date, schedule_unit, turnus_type_workers):
     """
     Adds a holiday date into the container.
-      dates: a datetime.date object
-      workplace: a data object
-      role: a data object
-      turnus_type_workers: a map that maps turnus types (data objects) into the number of workers
+      @param date: a datetime.date object
+      @param schedule_unit: a data object
+      @param turnus_type_workers: a map that maps turnus types (data objects) into the number of workers
     """
     for turnus_type in turnus_type_workers:
-      self.manual_workers[date][workplace][role][turnus_type] = turnus_type_workers[turnus_type]
-    self.manual_dates[date][workplace][role] = True
+      self.manual_workers[date][schedule_unit][turnus_type] = turnus_type_workers[turnus_type]
+    self.manual_dates[date][schedule_unit] = True
     
-  def remove_manual_date (self, date, workplace, role):
+  def remove_manual_date (self, date, schedule_unit):
     """
     Removes a manually added  date from the container.
-      dates: a list of datetime.date objects
-      workplace: a data object
-      role: a data object
+      @param date: a list of datetime.date objects
+      @param schedule_unit: a data object
     """
-    for turnus_type in self.manual_workers[date][workplace][role]:
-      self.manual_workers[date][workplace][role][turnus_type] = 0
-    self.manual_dates[date][workplace][role] = False
+    for turnus_type in self.manual_workers[date][schedule_unit]:
+      self.manual_workers[date][schedule_unit][turnus_type] = 0
+    self.manual_dates[date][schedule_unit] = False
     
-  def is_date_manual (self, date, workplace, role):
+  def is_date_manual (self, date, schedule_unit):
     """
     Checks, if the specified date was tampered manually.
-      return: true, if it was, false otherwise
+      @param schedule_unit: a data object
+      @return: true, if it was, false otherwise
     """
-    return  self.manual_dates[date][workplace][role]
+    return  self.manual_dates[date][schedule_unit]
 
   def get_range (self):
     """
     Returns the minimum and maximum date, that is valid for this workers object.
-      return: a 2-tuple: the first element is the minimum datetime.date object, the second is the maximum
+      @return: a 2-tuple: the first element is the minimum datetime.date object, the second is the maximum
         datetime.date object
     """
     return (min (self.all_dates), max (self.all_dates))
-    
-  def get_all (self):
-    """
-    Returns all workers, ordered by date priority.
-      return: a dictionary, that maps:
-        dates to workplaces
-        workplaces to roles
-        roles to turnus types
-        turnus types to the number of workers
-    """
-    raise Exception ('Implement!')
   
-  def get_manual_date_workers (self, workplace, role, turnus_type, date):
+  def get_workers (self, date, schedule_unit, turnus_type):
+    """
+    Return the amount of workers for the specified parameters.
+      @param date: a datetime.date object
+      @param schedule_unit: a data object
+      @param turnus_type: a data object
+      @return: the number of workers
+    """
+    return self.get_manual_date_workers (schedule_unit, turnus_type, date)
+  
+  def get_manual_date_workers (self, schedule_unit, turnus_type, date):
     """
     Gets the amount of workers at the given date. 
-      workplace: a data object
-      role: a data object
-      turnus_type: a data object
-      date: a datetime.date object
-      return: the amount of workers in the specified data
+      @param schedule_unit: a data object
+      @param turnus_type: a data object
+      @param date: a datetime.date object
+      @return: the amount of workers in the specified data
     """
-    if self.manual_workers[date][workplace][role][turnus_type]:
-      return self.manual_workers[date][workplace][role][turnus_type]
+    if self.manual_workers[date][schedule_unit][turnus_type]:
+      return self.manual_workers[date][schedule_unit][turnus_type]
     elif date in self.holiday_dates:
-      return self.holiday_workers[date][workplace][role][turnus_type]
+      return self.holiday_workers[date][schedule_unit][turnus_type]
     else:
-      return self.work_day_workers[date][workplace][role][turnus_type]
+      return self.work_day_workers[date][schedule_unit][turnus_type]
     
   
-  def get_workday_workers (self, workplace, role, turnus_type):
+  def get_workday_workers (self, schedule_unit, turnus_type):
     """
     Returns the amount of work day workers for the specified data.
-      date: a datetime.date object
-      workplace: a data object
-      role: a data object
-      turnus_type: a data object
-      return: the amount of workers in the specified data
+      @param schedule_unit: a data object
+      @param turnus_type: a data object
+      @return: the amount of workers in the specified data
     """
     for date in self.all_dates:
-      return self.work_day_workers[date][workplace][role][turnus_type]
+      return self.work_day_workers[date][schedule_unit][turnus_type]
       
   
-  def get_holiday_workers (self, workplace, role, turnus_type):
+  def get_holiday_workers (self, schedule_unit, turnus_type):
     """
     Returns the amount of holiday workers for the specified data.
-      date: a datetime.date object
-      workplace: a data object
-      role: a data object
-      turnus_type: a data object
-      return: the amount of workers in the specified data
+      @param schedule_unit: a data object
+      @param turnus_type: a data object
+      @return: the amount of workers in the specified data
     """
     for date in self.holiday_dates:    
-      return self.holiday_workers[date][workplace][role][turnus_type]
-    
-  def convert (self, workplace):
-    """
-    Converts this instance into the current workers-workplace relation.
-      return: the map, that maps dates into the roles into the turnus types.
-    """
-    #TODO: remove this
-    map = {}
-    for date in self.all_dates:
-      map[date] = {}
-      for role in self.work_day_workers[date][workplace]:
-        map[date][role] = {}
-        for turnus_type in self.work_day_workers[date][workplace][role]:
-          if self.manual_dates[date][workplace][role]:
-            map[date][role][turnus_type] = self.manual_workers[date][workplace][role][turnus_type]
-          elif date in self.holiday_dates:
-            map[date][role][turnus_type] = self.holiday_workers[date][workplace][role][turnus_type]
-          else:
-            map[date][role][turnus_type] = self.work_day_workers[date][workplace][role][turnus_type]
-            
-    return map
+      return self.holiday_workers[date][schedule_unit][turnus_type]
     
   
-  def __build_dict (self, dict, dates, workplaces, roles, turnus_types, value = 0):
+  def __build_dict (self, dict, dates, schedule_units, turnus_types, value = 0):
     """
     Creates the map.
-      dates: a list of datetime.date objects
-      workplaces: a list of data objects
-      roles: a list of data objects
-      turnus_type: a list of data objects
-      value: the value that will be assigned to all of the elements. The default value is 0.
+      @param dates: a list of datetime.date objects
+      @param schedule_units: a list of data objects
+      @param turnus_types: a list of data objects
+      @param value: the value that will be assigned to all of the elements. The default value is 0.
     """
     for date in dates:
       dict[date] = {}
-      for workplace in workplaces:
-        dict[date][workplace] = {}
-        for role in roles:
-          dict[date][workplace][role] = {}
-          for turnus_type in turnus_types:
-            dict[date][workplace][role][turnus_type] = value
+      for schedule_unit in schedule_units:
+        dict[date][schedule_unit] = {}
+        for turnus_type in turnus_types:
+          dict[date][schedule_unit][turnus_type] = value
             
-  def __build_manual (self, dates, workplaces, roles, value=False):
+  def __build_manual (self, dates, schedule_units, value=False):
     """
     Construct a map, that memorizes, which dates have been manually edited.
-      dates: a list of datetime.date objects
-      workplaces: a list of data objects
-      roles: a list of data objects
+      @param dates: a list of datetime.date objects
+      @param schedule_units: a list of data objects
       value: the value that will be assigned to all of the elements. The default value is false.
     """
     for date in dates:
       self.manual_dates[date] = {}
-      for workplace in workplaces:
-        self.manual_dates[date][workplace] = {}
-        for role in roles:
-          self.manual_dates[date][workplace][role] = value
+      for schedule_unit in schedule_units:
+        self.manual_dates[date][schedule_unit] = value
 

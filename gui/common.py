@@ -125,7 +125,6 @@ class NotebookPageToolbar (wx.ToolBar):
     The default constructor.
     """
     wx.ToolBar.__init__(self, *args, **kwargs)
-    self.SetDoubleBuffered (True)
     
     self.AddLabelTool(NotebookPageToolbar.ADD, 'Dodaj', wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR), shortHelp='Dodaj')
     self.AddLabelTool(NotebookPageToolbar.REMOVE, 'Izbriši', wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_TOOLBAR), shortHelp='Izbriši izbrano')

@@ -44,7 +44,6 @@ class MainWindow(wx.Frame):
     sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
-    #self.SetAutoLayout (True)
     self.SetMinSize ((100,100))
     self.SetIcon(utils_gui.make_icon(wx.Image(name = MainWindow.ICON_PATH)))
   

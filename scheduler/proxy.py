@@ -46,22 +46,20 @@ This class is a bridge between the data model, the GUI and the scheduling logic.
 """
 class DataToSchedule:
   
-  def __init__ (self, date, persons, workplaces, roles, turnus_types):
+  def __init__ (self, date, persons, schedule_units, turnus_types):
     """
     The default constructor.
-      @param date:         the datetime.date object, that represents the scheduling date (day is not important)
-      @param persons:      the data container object, that contains persons
-      @param workplaces:   the data container object, that contains workplaces
-      @param roles:        the data container object, that contains roles
-      @param turnus_types: the data container object, that contains turnus types
+      @param date:           the datetime.date object, that represents the scheduling date (day is not important)
+      @param persons:        the data container object, that contains persons
+      @param schedule_units: the data container object, that contains workplaces
+      @param turnus_types:   the data container object, that contains turnus types
     """
     
-    self.date         = date
-    self.persons      = persons
-    self.workplaces   = workplaces
-    self.roles        = roles
-    self.turnus_types = turnus_types
-    self.workers      = workers.Workers(get_schedule_dates (self.date), self.workplaces.get_all ( ), self.roles.get_all ( ), self.turnus_types.get_all ( ))
+    self.date           = date
+    self.persons        = persons
+    self.schedule_units = schedule_units
+    self.turnus_types   = turnus_types
+    self.workers        = workers.Workers(get_schedule_dates (self.date), self.schedule_units.get_all ( ), self.turnus_types.get_all ( ))
     
   def get_workers (self):
     """
@@ -70,19 +68,19 @@ class DataToSchedule:
     """
     return self.workers
   
-  def get_workplaces (self):
+  def get_schedule_units_container (self):
     """
-    Returns a list of workplaces.
-      @return: a list of data objects
+    Returns a list of schedule units.
+      @return: a data container
     """
-    return self.workplaces.get_all ( )
+    return self.schedule_units
   
-  def get_roles (self):
+  def get_schedule_units (self):
     """
-    Returns a list of roles.
+    Returns a list of schedule units.
       @return: a list of data objects
     """
-    return self.roles.get_all ( )
+    return self.schedule_units.get_all ( )
 
   def get_turnus_types (self):
     """

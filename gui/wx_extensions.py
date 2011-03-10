@@ -306,7 +306,6 @@ class EnhancedGrid (wx.grid.Grid):
       container: an instance of the data container
     """
     wx.grid.Grid.__init__(self, *args, **kwargs)
-    self.SetDoubleBuffered (True)
     
     self.container = container
     self.index_map = {}
