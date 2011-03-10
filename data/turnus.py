@@ -151,9 +151,6 @@ class TurnusContainer (general.DataContainer):
     else:    
       return turnuses
     
-  def __str__(self):
-    return ", ".join([str(turnus) for turnus in self.turnuses])
-    
 def load ( ):
   """
   Loads and returns a container instance.

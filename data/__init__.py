@@ -47,12 +47,20 @@ def load (log=DummyLog()):
   employment_types.synchronize_data (*data)
   data            += employment_types.get_all ( )
   
+  # level up
+  import scheduling_unit
+  
+  log.send_message ('Nalagam pare delovišèe - vloga', 70)
+  scheduling_units = scheduling_unit.load ( )
+  scheduling_units.synchronize_data (*data)
+  data            += scheduling_units.get_all ( )
+  
   # last level - persons
   import nurse
-  log.send_message ('Nalagam medicinske setre...', 70)
+  log.send_message ('Nalagam medicinske setre...', 80)
   nurses = nurse.load ( )
   nurses.synchronize_data (*data)
   
   
   log.send_message ('Konèano...', 100)
-  return vacations, titles, turnus_types, roles, turnuses, workplaces, employment_types, nurses
+  return vacations, titles, turnus_types, roles, turnuses, workplaces, scheduling_units, employment_types, nurses

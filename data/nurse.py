@@ -9,7 +9,7 @@ class Nurse (general.DataClass):
 
   HEADERS = ["MAT. ŠTEV.", "IME", "PRIIMEK", "ROJSTNI DAN"]
 
-  def __init__(self, work_id, name, surname, birthday, titles=None, roles=None, employment_type=None, workplaces=None):
+  def __init__(self, work_id, name, surname, birthday, titles=None, employment_type=None):
     """
     This is the constructor.
       work_id: is the unique work id
@@ -34,10 +34,6 @@ class Nurse (general.DataClass):
     else:
       self.titles = [[],[]]
       
-    if roles:
-      self.roles = roles
-    else:
-      self.roles = dict()
     
     # tells if the night turnuses are scheduled in packages
     self.packet_night_turnuses = False
@@ -61,26 +57,8 @@ class Nurse (general.DataClass):
         except:
           raise Exception('V aplikaciji ni vrst zaposlitve.')
     
-    # contains all turnuses, that the person can use  
-    self.allowed_turnuses = self.employment_type.allowed_turnuses
-    
-    # this dictionary maps dates to a set of turnuses
-    # if a date maps to a set that contains a turnus,
-    # the turnus is considered to be an invalid move
-    self.forbidden_turnuses = {}
-    
-    # almost identical to forbidden_turnuses
-    self.vacations = {}
-    
-    # on which workplaces the nurse works
-    self.workplaces = set ()
-    if workplaces:
-      for workplace in workplaces:
-        self.add_workplace(workplace)
-    
-    # maps a date to a 3 - tuple (turnus, worspace, role)
-    # if a entry exists in this dict, it will be pre-scheduled    
-    self.predefined = {}
+    # maps scheduling units, to the turnuses, that are allowed for the scheduling unit  
+    self.scheduling_units_map = {}
       
   
   def as_data_list(self):
@@ -93,102 +71,51 @@ class Nurse (general.DataClass):
     This method should always correspond with the HEADERS variable."""
     return [translate (self.work_id), translate (self.name), translate (self.surname), translate (self.birthday)]
   
-  def add_allowed_turnus(self, turnus):
+  def add_allowed_turnus(self, scheduling_unit, turnus):
     """
     Adds a new turnus, to the turnuses, that the person can work.
-      turnus: is the new allowed turnus
+      @param scheduling_unit: the scheduling unit, that the person will work in the specified turnus
+      @param turnus: the turnus that the person can work
     """
-    self.allowed_turnuses.add(turnus)
+    if scheduling_unit not in self.scheduling_units_map:
+      self.scheduling_units_map[scheduling_unit] = set ( )
+    self.scheduling_units_map[scheduling_unit].add (turnus)
     
-  def remove_allowed_turnus(self, turnus):
+  def remove_allowed_turnus(self, scheduling_unit, turnus):
     """
     Removes a turnus, from the allowed turnuses.
-      turnus: the turnus, that will be removed
+      @param scheduling_unit: the scheduling unit, that the person will have the turnus removed
+      @param turnus: the turnus, that will be removed
     """
-    self.allowed_turnuses.remove(turnus)
+    self.scheduling_units_map[scheduling_unit].remove (turnus)
+    if not self.scheduling_units_map[scheduling_unit]:
+      del self.scheduling_units_map[scheduling_unit]
+      
     
-  def is_turnus_allowed(self, turnus):
+  def is_turnus_allowed(self, scheduling_unit, turnus):
     """
     Checks, if the nurse can work in the specified turnus.
-      return: true if she can, false otherwise
+      @param scheduling_unit: the scheduling unit, that will be checked
+      @param turnus: the turnus, that will be checked
+      @return: true if she can, false otherwise
     """
-    return turnus in self.allowed_turnuses
+    if scheduling_unit in self.scheduling_units_map:
+      return turnus in self.scheduling_units_map[scheduling_unit]
+    else:
+      return False
     
-  def add_invalid_turnus(self, date, turnus):
+  def get_allowed_turnuses(self, scheduling_unit):
     """
-    Adds a turnus to a list of forbidden turnuses
-      date: is the date that does not allow the turnus
-      turnus: is the invalid turnus
+    Returns a list of turnuses, that this nurse can work in, for the specified scheduling unit.
+      @param scheduling_unit: a data object
+      @return: a list of Turnus objects
     """
+    if scheduling_unit in self.scheduling_units_map:
+      return sorted (self.scheduling_units_map[scheduling_unit])
+    else:
+      return []
     
     
-    if date not in self.forbidden_turnuses:
-      self.forbidden_turnuses[date] = set()
-      
-    self.remove_predefined(date)  
-    self.forbidden_turnuses[date].add(turnus)
-    
-  def remove_invalid_turnus(self, date, turnus):
-    """
-    Removes a turnus form a list of forbidden turnuses
-      date: is the date that does no allow the turnus
-      turnus: is the invalid turnus
-    """
-    
-    if date in self.forbidden_turnuses:
-      self.forbidden_turnuses[date].remove(turnus)
-      
-    if date in self.vacations:
-      del self.vacations[date]
-      
-    
-    
-  def add_vacation(self, date, vacation):
-    """
-    Adds a vacation to the vacation list
-      date: is the date, that the nurse will be on vacation
-      vacation: is the vacation instance
-    """
-    
-    self.forbidden_turnuses[date] = set(self.get_allowed_turnuses())
-    
-    self.vacations[date] = set([vacation])
-    
-    
-  def remove_vacation(self, date, vacation):
-    """
-    Removes a vacation from the list.
-      date: is the date of the vacation
-      vacation: is the type of the vacation
-    """
-    
-    del self.vacations[date]
-    self.forbidden_turnuses[date] = set()
-      
-    
-  def add_workplace(self, workplace):
-    """Adds a workplace to the nurse."""
-    self.workplaces.add(workplace)
-    self.roles[workplace] = set ()
-    
-  def remove_workplace(self, workplace):
-    """Removes a workplace from the nurse"""
-    self.workplaces.remove(workplace)
-    # removing an unadded workplace should not be possible
-    del self.roles[workplace]
-    
-    # do not forget to clean the predefined entries
-    for date in self.predefined.keys():
-      if self.predefined[date][1] == workplace:
-        self.remove_predefined(date)
-        
-  def is_workplace_allowed(self, workplace):
-    """
-    Checks if the nurse can work in this workplace.
-      return true, if it can, false otherwise
-    """
-    return workplace in self.workplaces
-
   def get_titles(self):
     """
     Returns two lists. The first is an ordered list of prefix titles, the second is an ordered list of suffix
@@ -205,41 +132,7 @@ class Nurse (general.DataClass):
       suffixes: an ordered list of suffix titles
     """
     self.titles[0] = prefixes
-    self.titles[1] = suffixes 
-    
-  def add_role(self, workplace, role):
-    """Adds a role to the nurse"""
-    self.roles[workplace].add(role)
-    
-  def remove_role(self, workplace, role):
-    """Removes a role from the nurse."""
-    # removing an un-added role should not be possible
-    self.roles[workplace].remove(role)
-    
-  def add_predefined(self, date, turnus, workplace, role):
-    """
-    Adds a predefined date in the schedule.
-      date: the date that will be added
-      turnus: the turnus, that will be added
-      workplace: the workplace, that will be added
-      role: the role that will be added
-    """
-    self.predefined[date] = (turnus, workplace, role)
-    
-  def remove_predefined(self, date):
-    """
-    Removes the predefined date, if necessary.
-      date: the date that will be removed
-    """
-    if date in self.predefined:
-      del self.predefined[date]
-      
-  def is_predefined(self, date):
-    """
-    Checks, if the date is predefined.
-      return: true, if predefined, false otherwise
-    """
-    return date in self.predefined
+    self.titles[1] = suffixes
 
       
   def set_employment_type(self, employment_type):
@@ -249,33 +142,6 @@ class Nurse (general.DataClass):
     """
     self.employment_type = employment_type
     self.allowed_turnuses = self.employment_type.allowed_turnuses
-      
-  def get_allowed_turnuses(self):
-    """
-    Returns a list of turnuses, that this nurse can attain.
-      return: a list of Turnus objects
-    """
-  
-    return self.allowed_turnuses
-  
-  def is_turnus_forbidden(self, turnus, date):
-    """
-    Checks, if the turnus is allowed for the specific date.
-      turnus: is the checked turnus
-      date: is the date checked
-      return: true, if the turnus isn't allowed, false otherwise
-    """
-    
-    if turnus not in self.allowed_turnuses:
-      return True
-    
-    if date not in self.forbidden_turnuses:
-      return False
-    
-    if turnus in self.forbidden_turnuses[date]:
-      return True
-    
-    return False
     
   def get_academic_name(self):
     """
@@ -306,63 +172,24 @@ class Nurse (general.DataClass):
         titles_r[titles_r.index(data)] = data
       self.set_titles(titles_l, titles_r)
       
-      #set the workplaces
-      if data in self.workplaces:
-        #first reset the roles map
-        roles_temp = self.roles[data]
-        del self.roles[data]
-        self.roles[data] = roles_temp
-        
-        #now we check the predefined
-        dates = self.predefined.keys()
-        for date in dates:
-          if self.predefined[date][1] == data:
-            self.predefined[date] = (self.predefined[date][0], data, self.predefined[date][2])
-            
-        #now the workplaces entry
-        self.workplaces.remove (data)
-        self.workplaces.add    (data)
-        
-      #set the roles
-      for workplace in self.roles:
-        if data in self.roles[workplace]:
-          self.roles[workplace].remove (data)
-          self.roles[workplace].add    (data)
-          
-          #now we check the predefined
-          dates = self.predefined.keys()
-          for date in dates:
-            if self.predefined[date][1] == workplace and self.predefined[date][2] == data:
-              self.predefined[date] = (self.predefined[date][0], workplace, data)
               
       #set the employment type
       if self.employment_type == data:
         self.employment_type = data
         
-      #set the turnuses
-      if data in self.allowed_turnuses:
-        self.allowed_turnuses.remove (data)
-        self.allowed_turnuses.add (data)
+      #set the scheduling units
+      if data in self.scheduling_units_map:
+        turnuses = self.scheduling_units_map[data]
+        del self.scheduling_units_map[data]
+        self.scheduling_units_map[data] = turnuses
         
-        #check the invalid dictionary
-        for date in self.forbidden_turnuses:
-          if data in self.forbidden_turnuses[date]:
-            self.forbidden_turnuses[date].remove (data)
-            self.forbidden_turnuses[date].add    (data)
-            
-        #check the predifined
-        for date in self.predefined:
-          if self.predefined[date][0] == data:
-            self.predefined[date] = (data, self.predefined[date][1], self.predefined[date][2])
-      
-      
-      #set the vacations
-      for date in self.vacations:
-        if data in self.vacations[date]:
-          self.vacations[date].remove (data)
-          self.vacations[date].add    (data)
-      
-    
+      #set the turnuses
+      for scheduling_unit in self.scheduling_units_map:
+        if data in self.scheduling_units_map[scheduling_unit]:
+          self.scheduling_units_map[scheduling_unit].remove (data)
+          self.scheduling_units_map[scheduling_unit].add    (data)
+        
+  
   def __str__(self):
     return self.name + " " + self.surname
   
@@ -379,11 +206,11 @@ class Nurse (general.DataClass):
           if not locale.strcoll(self.name, other.name):
             return cmp (self.birthday, other.birthday)
           else:
-            return locale.strcoll(self.surname, other.surname)
+            return locale.strcoll (self.surname, other.surname)
         else:
-          return locale.strcoll(self.surname, other.surname)
+          return locale.strcoll (self.surname, other.surname)
       else:
-        return locale.strcoll(self.work_id, other.work_id)
+        return locale.strcoll (self.work_id, other.work_id)
     
     
     except:

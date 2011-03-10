@@ -8,6 +8,7 @@ import wx.lib.intctrl
 import datetime
 
 from utils import time_conversion
+from gui import wx_extensions
 
 """
 Superclass for the static panels.
@@ -339,3 +340,43 @@ class StaticVacationPanel (StaticPanel):
     
     self.set_error_msg('')
     return True
+  
+class StaticSchedulingUnitPanel (StaticPanel):
+  
+  def __init__ (self, container, *args, **kwargs):
+    """
+    The default constructor
+      container: a data container object
+    """
+    StaticPanel.__init__ (self, container, *args, **kwargs)
+    
+    #TODO: remove this
+    import global_vars
+    self.attributes.append (wx_extensions.LinkedChoice (global_vars.get_workplaces ( ).get_all ( ), self, wx.ID_ANY))
+    self.attributes.append (wx_extensions.LinkedChoice (global_vars.get_roles      ( ).get_all ( ), self, wx.ID_ANY))
+    
+    self._set_attributes (self.attributes)
+    
+  def get_attributes(self):
+    """
+    Return a list of all attributes.
+      return: a list, that contains this panel's attribute values.
+    """
+    attributes = []
+    for atr in self.attributes:
+      attributes.append (atr.get_value ( ))
+    
+    
+    return attributes
+  
+  def is_valid (self):
+    """
+    Checks, if all the input fields have a valid entry. Also sets the error message
+      return: true, if it is valid, false otherwise
+    """
+    for atr in self.attributes:
+      if not atr.get_value ( ):
+        self.set_error_msg ('Vsa polja so obvezna.')
+        return False
+    return True
+    

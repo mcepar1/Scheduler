@@ -4,6 +4,7 @@ import input_nurses as inurses
 import input_turnuses as iturnuses
 import input_vacations as ivacations
 import input_workplaces as iworkplaces
+import input_scheduling_units as ischeduling_units
 import input_employment_types as iemployment_types
 import input_titles as ititles
 import input_turnus_types as iturnus_types
@@ -36,6 +37,9 @@ def input_vacations():
   
 def input_workplaces():
   iworkplaces.input_workplaces()
+  
+def input_scheduling_units():
+  ischeduling_units.input_scheduling_units()
   
 def input_employment_types():
   iemployment_types.input_emplyment_types()

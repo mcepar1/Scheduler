@@ -42,12 +42,13 @@ def get_turnus_panel (container, parent):
   from dynamic_data import EditTurnusPanel
   return __make_panel(container, parent, static_panel=static_data.StaticTurnusPanel, edit_panel=EditTurnusPanel)
 
-def get_workplace_panel (container, parent):
+def get_scheduling_unit_panel (container, parent):
   """
-  Returns the workplace panel.
+  Returns the scheduling unit panel.
   """
-  from dynamic_data import EditWorkplacePanel
-  return __make_panel(container, parent, static_data.StaticWorkplacePanel, EditWorkplacePanel)
+  from dynamic_data import EditSchedilungUnitPanel
+  return __make_panel(container, parent, static_data.StaticSchedulingUnitPanel, EditSchedilungUnitPanel)
+
 
 def get_vacation_panel (container, parent):
   """

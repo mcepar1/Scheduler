@@ -51,58 +51,6 @@ class SchedulerPanel(wx.lib.scrolledpanel.ScrolledPanel):
     Starts the scheduling.
     """
     wx.PostEvent(self, custom_events.StartEvent (self.GetId ( ), workers=self.worker_container))
-
-"""
-This class is used to select the workplace - role pair.
-"""    
-class WorkplaceRoleSelector(wx.Panel):
-  def __init__ (self, workplaces, roles, *args, **kwargs):
-    """
-    The default constructor.
-      workplaces: a data container object
-      roles: a data container object
-    """
-    wx.Panel.__init__(self, *args, **kwargs)
-    
-    self.workplace_selector = custom_widgets.CustomRadioBox (workplaces, self, wx.ID_ANY, name='Delovišèa', selectable=workplaces)
-    self.role_selector      = custom_widgets.CustomRadioBox (roles,      self, wx.ID_ANY, name='Vloge')
-    
-    self.Bind(custom_events.EVT_UPDATED, self.__synchronize_workplace, self.workplace_selector)
-    self.Bind(custom_events.EVT_UPDATED, self.__synchronize_role,      self.role_selector)
-    
-    
-    sizer = wx.BoxSizer (wx.HORIZONTAL)
-    sizer.Add (self.workplace_selector, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    sizer.Add (self.role_selector,      0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    self.SetSizerAndFit (sizer)
-    
-  def __synchronize_workplace (self, event):
-    """
-    Keeps the role elements in sync with the selected workplace and continues the event propagation.
-    """
-    workplace = self.workplace_selector.get_selected ( )
-    self.role_selector.set_selectable (workplace.roles)
-    
-    wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
-    
-  def __synchronize_role (self, event):
-    """
-    Propagates the event.
-    """
-    wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
-    
-  def get_selection (self):
-    """
-    Returns a 2-tuple, that has a workplace as it's first element and a role as it's second.
-      return: a 2-tuple, both elements are none if a single element is not selected.
-    """
-    workplace = self.workplace_selector.get_selected ( )
-    role      = self.role_selector.get_selected ( )
-    
-    if workplace and role:
-      return (workplace, role)
-    else:
-      return (None, None)
  
 """
 This class selects the handles the selection of number of nurses for the specific shift.

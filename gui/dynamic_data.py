@@ -7,7 +7,8 @@ import wx_extensions
 import wx.lib.intctrl
 import wx.lib.expando
 import wx.lib.ticker
-import custom_events
+
+import custom_events, custom_widgets
 
 import locale
 
@@ -23,28 +24,22 @@ class EditNursePanel(wx.Panel):
     """
     The default constructor.
     """
-    from data.nurse import Nurse
     wx.Panel.__init__(self, *args, **kwargs)
     
     self.person = None
     
     self.header             = HeaderNursePanel       (self, wx.ID_ANY)
     self.title_selector     = TitlePanel             (global_vars.get_titles ( ), self, wx.ID_ANY)
-    self.turnus_checkers    = CheckerPanel           ('Turnusi',   global_vars.get_turnuses ( ), Nurse.is_turnus_allowed, Nurse.add_allowed_turnus, Nurse.remove_allowed_turnus, self, wx.ID_ANY)
-    self.workplace_checkers = CheckerPanel           ('Delovišèa', global_vars.get_workplaces ( ), Nurse.is_workplace_allowed, Nurse.add_workplace, Nurse.remove_workplace,      self, wx.ID_ANY)
-    self.role_selector      = RolePanel              (global_vars.get_roles ( ), self, wx.ID_ANY)
+    self.turnus_permissions = TurnusPermissions (self, wx.ID_ANY)
     self.special_properties = SpecialNurseProperties (self, wx.ID_ANY)
     #TODO: remove this!
     self.rest_button        = wx.Button              (self, wx.ID_ANY, 'Vezano na datum')
     
-    self.Bind(custom_events.EVT_UPDATED, self.__workplaces_to_roles, self.workplace_checkers)
     self.Bind (wx.EVT_BUTTON, self.__obsolete, self.rest_button)
     
     grid_sizer = wx.FlexGridSizer (cols=2)
     grid_sizer.Add (self.title_selector,     0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
-    grid_sizer.Add (self.turnus_checkers,    0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
-    grid_sizer.Add (self.workplace_checkers, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
-    grid_sizer.Add (self.role_selector,      0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    grid_sizer.Add (self.turnus_permissions, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     grid_sizer.Add (self.special_properties, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     grid_sizer.Add (self.rest_button,        0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     
@@ -70,17 +65,10 @@ class EditNursePanel(wx.Panel):
     self.person = person
     
     self.header.set_unit             (self.person)
-    self.turnus_checkers.set_unit    (self.person)
+    self.turnus_permissions.set_unit (self.person)
     self.title_selector.set_unit     (self.person)
-    self.workplace_checkers.set_unit (self.person)
-    self.role_selector.set_unit      (self.person)
     self.special_properties.set_unit (self.person) 
     
-  def __workplaces_to_roles(self, event):
-    """
-    Keeps the workplace drop down of the RolePanel in sync with the workplace checkers. 
-    """
-    self.set_unit(self.person)
 
 """
 This class is responsible for editing the turunes' dynamic data.
@@ -97,7 +85,7 @@ class EditTurnusPanel (wx.Panel):
     
     self.turnus = None
     
-    self.turnus_type_checkers = CheckerPanel ('Vrste turnusov', global_vars.get_turnus_types ( ), Turnus.has_type, Turnus.add_type, Turnus.remove_type, self, wx.ID_ANY)
+    self.turnus_type_checkers = CheckerPanel (global_vars.get_turnus_types ( ), Turnus.has_type, Turnus.add_type, Turnus.remove_type, self, wx.ID_ANY, name='Vrste turnusov')
     
     sizer = wx.BoxSizer (wx.VERTICAL)
     sizer.Add(self.turnus_type_checkers, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
@@ -116,35 +104,31 @@ class EditTurnusPanel (wx.Panel):
 """
 This class is responsible for editing the workplace data.
 """
-class EditWorkplacePanel (wx.Panel):
+class EditSchedilungUnitPanel (wx.Panel):
   
   def __init__(self, *args, **kwargs):
     """
     The default constructor
     """
-    from data.workplace import Workplace
+    from data.scheduling_unit import SchedulingUnit
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.workplace = None
+    self.scheduling_unit = None
     
-    self.turnus_checkers = CheckerPanel ('Turnusi', global_vars.get_turnuses ( ), Workplace.is_allowed_turnus, Workplace.add_allowed_turnus, Workplace.remove_allowed_turnus, self, wx.ID_ANY)
-    self.role_checkers   = CheckerPanel ('Vloge',   global_vars.get_roles ( ), Workplace.has_role, Workplace.add_role, Workplace.remove_role,                                  self, wx.ID_ANY)
+    self.turnus_checkers = CheckerPanel (global_vars.get_turnuses ( ), SchedulingUnit.is_allowed_turnus, SchedulingUnit.add_allowed_turnus, SchedulingUnit.remove_allowed_turnus, self, wx.ID_ANY, name='Dovoljeni turnusi')
     
     sizer = wx.BoxSizer (wx.VERTICAL)
     sizer.Add (self.turnus_checkers, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    sizer.Add (self.role_checkers,   0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
     
-  def set_unit(self, workplace):
+  def set_unit(self, scheduling_unit):
     """
-    Sets the workplace, represented by this panel.
-      workplace: a workplace data object
+    Sets the scheduling unit, represented by this panel.
+      @param scheduling_unit: a data object
     """
-    self.workplace = workplace
-    
-    self.turnus_checkers.set_unit (self.workplace)
-    self.role_checkers.set_unit   (self.workplace)
+    self.scheduling_unit = scheduling_unit   
+    self.turnus_checkers.set_unit (self.scheduling_unit)
     
 """
 This class is responsible for editing employment type data.
@@ -225,7 +209,7 @@ class EditEmploymentTypePanel (wx.Panel):
       
       self.monthly_hours.Disable  ( )
       self.comment_text.Disable ( )
-    
+   
 """
 This class contains two list boxes and is used to assert the nurse's titles.
 """        
@@ -382,10 +366,64 @@ class TitlePanel (wx.Panel):
     self.__set_titles_width ( )
 
 """
+This class is used to set the individual nurse's turnus allowances.
+"""
+class TurnusPermissions (wx.Panel):
+  
+  def __init__ (self, *args, **kwargs):
+    """
+    The default constructor
+    """
+    wx.Panel.__init__ (self, *args, **kwargs)
+    
+    from data.nurse import Nurse
+    self.person = None
+    
+    self.scheduling_unit_selector = custom_widgets.ScheduleUnitSelector (global_vars.get_scheduling_units ( ), self, wx.ID_ANY)
+    self.turnus_checkers          = ParameterCheckerPanel (global_vars.get_turnuses ( ), Nurse.is_turnus_allowed, Nurse.add_allowed_turnus, Nurse.remove_allowed_turnus, self, wx.ID_ANY)
+    
+    self.Bind(custom_events.EVT_UPDATED, self.__scheduling_unit_selsected, self.scheduling_unit_selector)
+    
+    sizer = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, 'Turnusi'), wx.VERTICAL)
+    sizer.Add (self.turnus_checkers,          1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND | wx.BOTTOM, 5)
+    sizer.Add (self.scheduling_unit_selector, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    
+    
+    self.SetSizerAndFit (sizer)
+    self.set_unit (self.person)
+    
+  def set_unit (self, person):
+    """
+    Sets the data object, that will be edited.
+      data_object: the data object
+    """
+    self.person = person
+    self.turnus_checkers.set_unit ((self.person, self.scheduling_unit_selector.get_selection ( )))
+    self.__set_permissions ( )
+    
+  def __scheduling_unit_selsected (self, event):
+    """
+    The event listener for the schedule units selectors.
+    """
+    self.set_unit (self.person)
+    
+  def __set_permissions (self):
+    """
+    Keeps the GUI in sync with the data model.
+    """
+    if self.person:
+      self.scheduling_unit_selector.Enable ( )
+      self.turnus_checkers.Enable ( )
+    else:
+      self.scheduling_unit_selector.Disable ( )
+      self.turnus_checkers.Disable ( )
+    
+
+"""
 This class represents a panel, that consists only from checkers that handle the same data class.
 """
 class CheckerPanel (wx.Panel):
-  def __init__(self, title, data_container, check_method, add_method, remove_method, *args, **kwargs):
+  def __init__(self, data_container, check_method, add_method, remove_method, *args, **kwargs):
     """
     The default constructor.
       data_container: a data container object
@@ -404,9 +442,12 @@ class CheckerPanel (wx.Panel):
     
       
     for checker in self.checkers:
-      self.Bind(wx.EVT_CHECKBOX, self.__checker_edited, checker)
-      
-    sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), title), wx.VERTICAL)   
+      self.Bind(wx.EVT_CHECKBOX, self._checker_edited, checker)
+    
+    if self.GetLabel ( ) == '' or self.GetLabel ( )== 'panel':
+      sizer = wx.BoxSizer (wx.VERTICAL)
+    else:  
+      sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), self.GetLabel ( )), wx.VERTICAL)   
     for checker in self.checkers:
       sizer.Add (checker, 0, wx.ALIGN_TOP, wx.ALIGN_LEFT)
     self.SetSizerAndFit (sizer)
@@ -417,22 +458,21 @@ class CheckerPanel (wx.Panel):
       data_object: the data object
     """
     self.data_object = data_object
-    self.__set_permissions ( )
+    self._set_permissions ( )
     
-  def __checker_edited (self, event):
+  def _checker_edited (self, event):
+    """Event listener for the checkers."""
 
     if event.IsChecked ( ):
       self.add_method    (self.data_object, event.GetEventObject ( ).element)
     else:
       self.remove_method (self.data_object, event.GetEventObject ( ).element)
            
-    self.__set_permissions ( )
+    self._set_permissions ( )
     
-    # propagate the event, if the information might be needed on a higher level (workplaces => roles)
-    wx.PostEvent(self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId()))
       
           
-  def __set_permissions (self):
+  def _set_permissions (self):
     """Checks and unchecks the checkers according to the current state."""
     
     if self.data_object:
@@ -446,6 +486,64 @@ class CheckerPanel (wx.Panel):
       for checker in self.checkers:
         checker.SetValue (False)
         checker.Disable ( )
+        
+"""
+This class is the same as the checker panel, but it can handle one additional parameter with the
+methods.
+"""
+class ParameterCheckerPanel (CheckerPanel):
+  
+  def __init__ (self, title, data_container, check_method, add_method, remove_method, *args, **kwargs):
+    """
+    The default constructor.
+      @param title: the title
+      @param data_container: a data container instance
+      @param check_method: the method, that will be used to determine, how to set the checker
+      @param add_method: the method, that will be used to add instances
+      @param remove_method: the method, that will be used to remove instances
+    """
+    CheckerPanel.__init__(self, title, data_container, check_method, add_method, remove_method, *args, **kwargs)
+    
+    # the parameter for the methods
+    self.parameter = None
+    
+  def set_unit (self, data_object_parameter):
+    """
+    This method will set the objects, that are edited.
+      @param data_container_parameter: a 2-tuple, the first element is the data object, the second element
+        is the parameter for the methods.
+    """
+    self.data_object, self.parameter = data_object_parameter
+    
+    self._set_permissions ( )
+    
+  def _checker_edited (self, event):
+    """Event listener for the checkers."""
+
+    if event.IsChecked ( ):
+      self.add_method    (self.data_object, self.parameter, event.GetEventObject ( ).element)
+    else:
+      self.remove_method (self.data_object, self.parameter, event.GetEventObject ( ).element)
+           
+    self._set_permissions ( )
+    
+  def _set_permissions (self):
+    """Checks and unchecks the checkers according to the current state."""
+    
+    if self.data_object and self.parameter:
+      for checker in self.checkers:
+        checker.Enable ( )
+        if self.check_method (self.data_object, self.parameter, checker.element):
+          checker.SetValue (True)
+        else:
+          checker.SetValue (False)
+    else:
+      for checker in self.checkers:
+        checker.SetValue (False)
+        checker.Disable ( )
+    
+     
+    
    
 
 """

@@ -3,8 +3,8 @@
 This script contains global variables, that are accessed throughout the whole GUI.
 To set their initial values use the vnos_zacetnih_podatkov.py script. 
 """
-vacations, titles, turnus_types, roles, turnuses, workplaces, employment_types, nurses = \
-(None,     None,   None,         None,  None,     None,       None,             None)
+vacations, titles, turnus_types, roles, turnuses, workplaces, scheduling_units, employment_types, nurses = \
+(None,     None,   None,         None,  None,     None,       None,             None,             None)
 
 def set_vacations (data_container):
   global vacations
@@ -29,6 +29,10 @@ def set_turnuses (data_container):
 def set_workplaces (data_container):
   global workplaces
   workplaces = data_container
+  
+def set_scheduling_units (data_container):
+  global scheduling_units
+  scheduling_units = data_container
 
 def set_employment_types (data_container):
   global employment_types
@@ -56,6 +60,9 @@ def get_turnuses ( ):
 
 def get_workplaces ( ):
   return workplaces
+
+def get_scheduling_units ( ):
+  return scheduling_units
 
 def get_employment_types ( ):
   return employment_types

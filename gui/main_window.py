@@ -21,12 +21,12 @@ class MainWindow(wx.Frame):
                turnus_types, 
                roles, 
                turnuses, 
-               workplaces, 
+               workplaces,
+               scheduling_units,
                employment_types, 
                nurses):
     wx.Frame.__init__(self, MainWindow.PARENT, title = MainWindow.TITLE, style = wx.DEFAULT_FRAME_STYLE)
     
-    self.sizer = wx.BoxSizer(wx.VERTICAL)
     
     notebook = wx.Notebook(self)
     notebook.AddPage(SchedulesPanel (workplaces, roles, turnus_types, notebook, wx.ID_ANY), "Razporedi")
@@ -34,16 +34,18 @@ class MainWindow(wx.Frame):
     notebook.AddPage(get_panels.get_employment_type_panel (employment_types, notebook), "Vrste zaposlitve")
     notebook.AddPage(get_panels.get_turnus_panel (turnuses, notebook), "Turnusi")
     notebook.AddPage(get_panels.get_vacation_panel (vacations, notebook), "Dopusti")
-    notebook.AddPage(get_panels.get_workplace_panel (workplaces, notebook), "Delovišèa")
+    notebook.AddPage(get_panels.get_scheduling_unit_panel (scheduling_units, notebook), "Delovišèa - vloge")
+    notebook.AddPage(get_panels.get_simple_panel (workplaces, notebook), "Delovišèa")
     notebook.AddPage(get_panels.get_simple_panel (titles, notebook), "Nazivi")
     notebook.AddPage(get_panels.get_simple_panel (turnus_types, notebook), "Vrste turnusov")
     notebook.AddPage(get_panels.get_simple_panel (roles, notebook), 'Vloge')
     
-    self.sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    sizer.Add(notebook,1,wx.ALIGN_LEFT | wx.EXPAND)
     
-    self.SetSizer(self.sizer)
-    self.SetAutoLayout(1)
-    self.sizer.Fit(self)
+    self.SetSizerAndFit (sizer)
+    #self.SetAutoLayout (True)
+    self.SetMinSize ((100,100))
     self.SetIcon(utils_gui.make_icon(wx.Image(name = MainWindow.ICON_PATH)))
   
 class SplashScreen(wx.Frame):
@@ -89,6 +91,7 @@ class SplashScreen(wx.Frame):
            global_vars.set_roles,
            global_vars.set_turnuses,
            global_vars.set_workplaces,
+           global_vars.set_scheduling_units,
            global_vars.set_employment_types,
            global_vars.set_nurses]
     
@@ -96,7 +99,7 @@ class SplashScreen(wx.Frame):
       method (args[i])
     
     frame = MainWindow (*args)
-    wx.GetApp ( ).SetTopWindow(frame)
     self.Hide ( )
     frame.Show(True)
+    wx.GetApp ( ).SetTopWindow(frame)
     self.Destroy ( )

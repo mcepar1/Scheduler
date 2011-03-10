@@ -13,15 +13,16 @@ import data.input
 
 
 def parse():
-  error_ret = (False, False, False, False, False, False, False, False, True)
+  error_ret = (False, False, False, False, False, False, False, False, False, True)
   
   try:
-    options, _ = getopt.gnu_getopt(sys.argv[1:], 'sptdevnarl', ['medicinske_sestre', 'pomoc', 'turnusi', 'dopusti', 'delovisca', 'zaposlitve', 'nazivi', 'vsi', 'vrste_turnusov', 'vloge'])
+    options, _ = getopt.gnu_getopt(sys.argv[1:], 'sptdevnarlu', ['medicinske_sestre', 'pomoc', 'turnusi', 'dopusti', 'delovisca', 'zaposlitve', 'nazivi', 'vsi', 'vrste_turnusov', 'vloge', 'delovisce_vloga'])
     
     insert_nurses = False
     insert_turnuses = False
     insert_vacations = False
     insert_workplaces = False
+    insert_scheduling_units = False
     insert_employment_types = False
     insert_titles = False
     insert_turnus_types = False
@@ -51,24 +52,27 @@ def parse():
         insert_turnus_types = True
       if option in ('-l', '--vloge'):
         insert_roles = True
+      if option in ('-u', '--delovisce_vloga'):
+        insert_scheduling_units = True
       if option in ('-a', '--vsi'):
         insert_nurses = True
         insert_turnuses = True
         insert_vacations = True
         insert_workplaces = True
+        insert_scheduling_units = True
         insert_employment_types = True
         insert_titles = True
         insert_turnus_types = True
         insert_roles = True
         print_help = False
-    return insert_nurses, insert_turnuses, insert_vacations, insert_workplaces, insert_employment_types, insert_titles, insert_turnus_types, insert_roles, print_help
+    return insert_nurses, insert_turnuses, insert_vacations, insert_workplaces, insert_scheduling_units, insert_employment_types, insert_titles, insert_turnus_types, insert_roles, print_help
       
   except getopt.GetoptError:
     print 'Podali ste napacne parametre.\n'
   
   return error_ret
 
-def load_inports(insert_nurses=False, insert_turnuses=False, insert_vacations=False, insert_workplaces=False, insert_employment_types=False, insert_titles=False, insert_turnus_types=False, insert_roles=False, print_help=True):
+def load_inports(insert_nurses=False, insert_turnuses=False, insert_vacations=False, insert_workplaces=False, insert_scheduling_units=False, insert_employment_types=False, insert_titles=False, insert_turnus_types=False, insert_roles=False, print_help=True):
   
   if print_help:
     help()
@@ -91,6 +95,9 @@ def load_inports(insert_nurses=False, insert_turnuses=False, insert_vacations=Fa
       
     if insert_titles:
       data.input.input_titles()
+      
+    if insert_scheduling_units:
+      data.input.input_scheduling_units()
       
     if insert_employment_types:
       data.input.input_employment_types()
@@ -122,6 +129,8 @@ def help():
       izbrise obstojece vrste turnusov in vnese nove
     -l ali --vloge
       izbrise obstojece vloge in vnese nove
+    -u ali --delovisce_vloga
+      izbrise obstojece delovisce - vloga pare in vnese nove
     -p ali --pomoc:
       izpise to sporocilo"""
     

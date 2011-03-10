@@ -18,3 +18,11 @@ def make_icon(img):
   # wxMac can be any size upto 128x128, so leave the source img alone....
   icon = wx.IconFromBitmap(img.ConvertToBitmap() )
   return icon
+
+def has_name (wx_panel):
+  """
+  Checks if the panel has an user defined name.
+    @param wx_panel: a wx.Panel object
+    @return: true, if the panel has an user specified name, false otherwise.
+  """
+  return wx_panel.GetLabel ( ) != '' and wx_panel.GetLabel ( ) != 'panel'
