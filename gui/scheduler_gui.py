@@ -13,12 +13,13 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
   def __init__(self, workplaces, roles, turnus_types, *args, **kwargs):
     wx.lib.scrolledpanel.ScrolledPanel.__init__(self, *args, **kwargs)
     
+    
     self.workplaces   = workplaces
     self.roles        = roles
     self.turnus_types = turnus_types
     
-    self.toolbar = SchedulersPageToolbar (self, wx.NewId ( ), style = wx.TB_HORIZONTAL | wx.TB_FLAT | wx.TB_NODIVIDER)
-    self.list    = wx.ListCtrl (self, wx.ID_ANY, style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_HRULES)
+    self.toolbar = SchedulersPageToolbar          (self, wx.NewId ( ), style = wx.TB_HORIZONTAL | wx.TB_FLAT | wx.TB_NODIVIDER)
+    self.list    = wx_extensions.EnhancedListCtrl (self, wx.ID_ANY, style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_HRULES)
     
     self.__build_list ( )
     
@@ -38,6 +39,7 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     Constructs the list, that displays the existing schedules.
     """
+    self.list.SetDoubleBuffered (True)
     self.list.InsertColumn (0, "Mesec", wx.LIST_FORMAT_CENTER)
     self.list.InsertColumn (1, "Leto",  wx.LIST_FORMAT_LEFT)
     
@@ -72,6 +74,7 @@ class SchedulersPageToolbar (wx.ToolBar):
     The default constructor.
     """
     wx.ToolBar.__init__(self, *args, **kwargs)
+    self.SetDoubleBuffered (True)
     
     self.year_month_choice = MonthYearWrapper (self)
     
@@ -84,7 +87,7 @@ class SchedulersPageToolbar (wx.ToolBar):
     self.AddLabelTool(SchedulersPageToolbar.REMOVE, 'Izbriši',                wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_TOOLBAR),    shortHelp='Izbriši izbrano')
     self.AddSeparator ( )
     
-    self.search = wx.SearchCtrl (self, wx.NewId ( ), style=wx.TB_HORIZONTAL | wx.TB_NODIVIDER)
+    self.search = wx.SearchCtrl (self, wx.ID_FIND, style=wx.TB_HORIZONTAL | wx.TB_NODIVIDER)
     self.search.SetDescriptiveText ('Iskanje')
     self.search.ShowSearchButton (True)
     self.search.ShowCancelButton (True)
@@ -105,7 +108,9 @@ class SchedulersPageToolbar (wx.ToolBar):
     #    if isinstance(child, wx.TextCtrl):
     #      child.Bind(wx.EVT_KEY_UP, self.__key_pressed)
     #      break
-        
+    self.EnableTool (SchedulersPageToolbar.OPEN, False)
+    self.EnableTool (SchedulersPageToolbar.REMOVE, False)
+    self.search.Disable ( )
     self.Realize ( )
     
   def __create (self, event):

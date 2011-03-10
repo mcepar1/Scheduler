@@ -241,7 +241,7 @@ class DataContainer:
     for string in self.filter:
       passes_string = False
       for column in stringified:
-        passes_string |= column.lower().startswith(string)
+        passes_string |= column.upper ( ).startswith(string.upper ( ))
       passes_all &= passes_string
       
     return passes_all

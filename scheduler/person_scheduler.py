@@ -27,7 +27,7 @@ PLUG_INS = [modules.PreSchedulerPlugin, modules.HolidayRulePlugin]
 """
 Contains the plug-ins, that are used after the scheduling phase.
 """
-CLEAN_UP = []#modules.WeekMorning, modules.FillHours]
+CLEAN_UP = [modules.WeekMorning, modules.FillHours]
 
 class PersonScheduler:
   FILES_DIR = os.path.join("persistence", "scheduler")
@@ -171,7 +171,7 @@ class PersonScheduler:
     for plugin in self.active_plugins:
       plugin.perform_task (overtime=False) 
     
-    """
+    
     #for each date and workplace go through each allowed turnus and add 
     #one employee, until reaching the point, where the overtime is needed
     #or enough workers are working in a turnus
@@ -209,11 +209,11 @@ class PersonScheduler:
           
     self.log.send_message('Tretja faza razvrscanja ...')
     #finally add all the people, including the ones with the overtime
-    """
+    
     #invoke the plugins
     for plugin in self.active_plugins:
       plugin.perform_task (overtime=True)
-    """
+    
     scheduled = True
     people = set(self.people)
     
@@ -227,7 +227,7 @@ class PersonScheduler:
           scheduled = scheduled | self.__schedule_workplace(workplace, date, people, overtime=True)
     
           
-    """
+    
     self.log.send_message('Zadnja faza razvrscanja ...')
     for plugin in self.clean_up_plugins:
       plugin.perform_task (overtime=True)      

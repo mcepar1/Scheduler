@@ -593,7 +593,7 @@ class HeaderNursePanel (wx.Panel):
       self.employment_types.Enable ( )
       self.employment_types.set_selection (self.nurse.employment_type)
     else:
-      self.person_info.SetLabel (HeaderNursePanel.INVALID_LABEL)
+      self.person_info.SetText (HeaderNursePanel.INVALID_LABEL)
       self.employment_types.set_selection (None)
       self.employment_types.Disable ( )
     

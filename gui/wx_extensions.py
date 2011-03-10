@@ -10,6 +10,7 @@ import wx.calendar
 import wx.lib.agw.aui
 import wx.lib.intctrl
 import wx.lib.newevent
+import wx.lib.mixins.listctrl
 
 from utils import calendar_utils
 
@@ -116,6 +117,19 @@ class LinkedSpinCtr(wx.SpinCtrl):
     wx.SpinCtrl.__init__(self, *args, **kwargs)
     
     self.element = element
+    
+"""
+This class is the list control, that auto sizes the last column.
+"""
+class EnhancedListCtrl (wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
+  
+  def __init__ (self, *args, **kwargs):
+    """
+    The default constructor.
+    """
+    wx.ListCtrl.__init__ (self, *args, **kwargs)
+    wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__ (self)
+    
 
 """
 This class behaves the same way as a normal wxComboBox.
@@ -292,6 +306,7 @@ class EnhancedGrid (wx.grid.Grid):
       container: an instance of the data container
     """
     wx.grid.Grid.__init__(self, *args, **kwargs)
+    self.SetDoubleBuffered (True)
     
     self.container = container
     self.index_map = {}
