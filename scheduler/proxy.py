@@ -4,10 +4,40 @@ This file contains the classes and methods, that act as bridges between all appl
 """
 import workers
 import locations
+import person_scheduler
 import person as person_module
 
 from utils import calendar_utils
 
+import os
+import cPickle as pickle
+
+def save (person_scheduler, overwrite=False):
+  """
+  Saves the person scheduler. It does not overwrite an existing scheduler, unless told to do so.
+    @param person_scheduler: a person_scheduler object
+    @param overwrite: a boolean. Default value is set to False.
+    @return: True, if the save was successful, False otherwise. 
+  """
+  if overwrite:
+    pickle.dump (person_scheduler, file (locations.get_file_path (person_scheduler.get_date ( )), 'wb'))
+    return True
+  elif not overwrite and os.path.exists (locations.get_file_path (person_scheduler.get_date ( ))):
+    return False
+  else:
+    pickle.dump (person_scheduler, file (locations.get_file_path (person_scheduler.get_date ( )), 'wb'))
+    return True
+  
+def load (date):
+  """
+  Loads and returns an existing scheduler, as specified by the date.
+    @date:   a datetime.date object
+    @return: a person scheduler object, if the load was successful, None otherwise.
+  """
+  try:
+    return pickle.load (file (locations.get_file_path (date), 'rb'))
+  except:
+    return None
 
 def get_saved_schedules ( ):
   """
@@ -47,15 +77,17 @@ This class is a bridge between the data model, the GUI and the scheduling logic.
 """
 class DataToSchedule:
   
-  def __init__ (self, date, persons, schedule_units, turnus_types):
+  def __init__ (self, load, date, persons, schedule_units, turnus_types):
     """
     The default constructor.
+      @param load:           the boolean, that tells, if we are trying to load an existing schedule or creating a new one
       @param date:           the datetime.date object, that represents the scheduling date (day is not important)
       @param persons:        the data container object, that contains persons
       @param schedule_units: the data container object, that contains workplaces
       @param turnus_types:   the data container object, that contains turnus types
     """
     
+    self.load           = load
     self.date           = date
     self.persons        = persons
     self.schedule_units = schedule_units
@@ -83,27 +115,50 @@ class DataToSchedule:
     """
     return self.turnus_types.get_all ( )
   
-  def get_persons (self):
+  def save (self, person_scheduler, overwrite):
+    """
+    Saves the target person scheduler.
+      @param person_scheduler: a person scheduler object
+      @param overwrite: a boolean, that defines if we are allowed to overwrite an existing file. If it set 
+             to True, we can overwrite.
+      @return: True, if the save was successful, False otherwise
+    """
+    return save  (person_scheduler, overwrite)
+    
+  def get_scheduler (self):
+    """
+    Returns the scheduler object.
+      @return: a person scheduler
+    """
+    if self.load:
+      ps = load (self.get_date ( ))
+    else:
+      ps = person_scheduler.PersonScheduler(self.__get_persons ( ), 
+                                            self.__get_scheduling_units ( ), 
+                                            self.__get_date ( ),
+                                            self.get_workers ( ))
+    return ps
+    
+  def __get_persons (self):
     """
     Returns a list of all data persons.
       @return: a list of data objects
     """
     return self.__create_data_people (self.persons).get_all ( )
   
-  def get_scheduling_units (self):
+  def __get_scheduling_units (self):
     """
     Returns a list of all scheduling units.
       @return: a list of data objects
     """
     return self.schedule_units.get_all ( )
   
-  def get_date (self):
+  def __get_date (self):
     """
     Returns the scheduling date. Day is not important.
       @return: a datetime.dat object
     """ 
-    return self.date
-      
+    return self.date    
   
   def __get_date_string (self):
     """
@@ -125,8 +180,7 @@ class DataToSchedule:
     for person in people.get_all ( ):
       scheduler_people.append (person_module.Nurse (person))
       scheduler_people[-1].add_dates (dates)
-  
-    #TODO: implement loading here
+    
     from data import general, nurse
     return general.DataContainer ('', nurse.Nurse, elements_list=scheduler_people)
   

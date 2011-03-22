@@ -24,7 +24,7 @@ class PersonScheduler:
   """    
   MODULES = [modules.PreSchedulerModule, modules.HolidayRuleModule, modules.CoreModule]
 
-  def __init__(self, people, scheduling_units, date, workers, log=log.DummyLog()):
+  def __init__(self, people, scheduling_units, date, workers, log = log.DummyLog ( )):
     """
     The default constructor.
       @param people: a list of data objects
@@ -32,75 +32,88 @@ class PersonScheduler:
       @param date: a datetime.date object, that represents the scheduling date (day is not important)
       @param workers: an object, that contains information, about how many people must work at any given
         date, scheduling unit and turnus
-      @param log: the logger (optional)
+      @param log: a logger object (optional).
     """
     
-    self.log = log
+    self.__log = log
     
-    self.log.send_message('Ustvarjam razvrscevalnik ...')
+    self.__log.send_message('Ustvarjam razvrscevalnik ...')
     
     if not people:
       raise Exception('Ni nobene osebe za razvrscanje')    
     
-    self.people           = people
-    self.scheduling_units = scheduling_units
-    self.date             = date
-    self.workers          = workers
+    self.__date             = date
+    self.__workers          = workers
     
     #set various maps, for the ease of access
-    self.mapper           = schedule_utils.Mapper (self.people, self.scheduling_units)
-    
-        
-    
-    self.active_modules   = []
-    self.clean_up_modules = []
+    self.__mapper           = schedule_utils.Mapper (people, scheduling_units)
 
-    for module in PersonScheduler.MODULES:
-      self.active_modules.append (module (self.mapper, self.workers, self.date, self.log))
-    for module in PersonScheduler.CLEAN_UP:
-      self.clean_up_modules.append (module (self.mapper, self.workers, self.date, self.log))   
-    
-          
 
   def schedule(self):
+    """
+    Schedules.
+    """
     
-    self.log.send_message('Prva faza razvršèanja ...')
+    # initialize modules
+    active_modules   = []
+    clean_up_modules = []
+    for module in PersonScheduler.MODULES:
+      active_modules.append   (module (self.__mapper, self.__workers, self.__date, self.__log))
+    for module in PersonScheduler.CLEAN_UP:
+      clean_up_modules.append (module (self.__mapper, self.__workers, self.__date, self.__log))
+      
+      
+    
+    self.__log.send_message('Prva faza razvršèanja ...')
     #invoke the plugins
-    for plugin in self.active_modules:
-      plugin.perform_task (overtime=False) 
+    for module in active_modules:
+      module.perform_task (overtime=False) 
     
           
-    self.log.send_message('Druga faza razvršèanja ...')
+    self.__log.send_message('Druga faza razvršèanja ...')
     #repeat the process for the part-time employees
     
     #invoke the plugins
-    for plugin in self.active_modules:
-      plugin.perform_task (overtime=False)
+    for module in active_modules:
+      module.perform_task (overtime=False)
     
     
-    self.log.send_message('Tretja faza razvršèanja ...')
+    self.__log.send_message('Tretja faza razvršèanja ...')
     #finally add all the people, including the ones with the overtime
     
     
     #invoke the plugins
-    for plugin in self.active_modules:
-      plugin.perform_task (overtime=True)
+    for module in active_modules:
+      module.perform_task (overtime=True)
     
           
 
-    self.log.send_message('Zadnja faza razvršèanja ...')
-    for plugin in self.clean_up_modules:
-      plugin.perform_task (overtime=True)      
+    self.__log.send_message('Zadnja faza razvršèanja ...')
+    for module in clean_up_modules:
+      module.perform_task (overtime=True)
+      
+  def get_date (self):
+    """
+    Returns this scheduler's date.
+      @return: a datetime.date object
+    """    
+    return self.__date
+  
+  def set_log (self, log):
+    """
+    Sets this scheduler's logger.
+    """
+    self.__log = log
   
   
   def get_schedule_matrix (self):
     """
     Returns a matrix, that is close to what the final output might be.
     """
-    dates = self.workers.get_dates ( )
+    dates = self.__workers.get_dates ( )
     scheduled = {}
     
-    for person in self.people:
+    for person in self.__mapper.get_all_people ( ):
       scheduled[person] = []
       for date in dates:
         temp = person.get_scheduled(date)
@@ -111,11 +124,11 @@ class PersonScheduler:
       headers.append(time_conversion.date_to_string(date))
     headers.append('Nadure')
     lines = [headers]
-    for person in self.people:
+    for person in self.__mapper.get_all_people ( ):
       lines.append([])
       lines[-1].append(str(person))
       lines[-1] += scheduled[person]
-      lines[-1].append(str(person.get_monthly_hours_difference(self.date)))
+      lines[-1].append(str(person.get_monthly_hours_difference(self.__date)))
       
     return lines
   
@@ -129,18 +142,18 @@ class PersonScheduler:
     map = {}
     
     headers = ['Oseba']
-    for date in self.workers.get_dates ( ):
+    for date in self.__workers.get_dates ( ):
       headers.append(time_conversion.date_to_string(date))
     
-    for scheduling_unit in self.mapper.get_scheduling_units ( ):
+    for scheduling_unit in self.__mapper.get_scheduling_units ( ):
       map[scheduling_unit] = [headers] 
       people = []
-      for person in self.mapper.get_scheduling_unit_people (scheduling_unit):
+      for person in self.__mapper.get_scheduling_unit_people (scheduling_unit):
         people.append(person)
       
       for person in people:
         person_schedule = [str(person)]
-        for date in self.workers.get_dates ( ):
+        for date in self.__workers.get_dates ( ):
             turnus = person.get_turnus(date, scheduling_unit)
             if turnus:
               person_schedule.append(turnus.code[0])
@@ -159,12 +172,12 @@ class PersonScheduler:
     """
     temp = {}
     
-    for scheduling_unit in sorted (self.scheduling_units):
-      for date in self.workers.get_dates ( ):
+    for scheduling_unit in sorted (self.__mapper.get_scheduling_units ( )):
+      for date in self.__workers.get_dates ( ):
         turnus_types = scheduling_unit.get_turnus_types ( )
         for turnus_type in sorted(turnus_types):
-          needed = self.workers.get_workers (date, scheduling_unit, turnus_type)
-          scheduled = schedule_utils.get_alerady_scheduled_by_type (self.mapper, scheduling_unit, [turnus_type], date)
+          needed = self.__workers.get_workers (date, scheduling_unit, turnus_type)
+          scheduled = schedule_utils.get_alerady_scheduled_by_type (self.__mapper, scheduling_unit, [turnus_type], date)
           if scheduled < needed or scheduled > needed:
             if scheduling_unit not in temp:
               temp[scheduling_unit] = {}
@@ -177,3 +190,18 @@ class PersonScheduler:
               temp[scheduling_unit][turnus_type][date] = 'Preveè:' + str(scheduled - needed)
     
     return temp
+  
+  def __getstate__ (self):
+    """
+    Do not save the log.
+    """
+    return (self.__date, self.__workers, self.__mapper)
+  
+  def __setstate__ (self, state):
+    """
+    Add a dummy log.
+    """
+    self.__date    = state[0]
+    self.__workers = state[1]
+    self.__mapper  = state[2]
+    self.__log     = log.DummyLog ( )

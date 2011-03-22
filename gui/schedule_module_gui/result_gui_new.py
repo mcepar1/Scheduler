@@ -5,7 +5,6 @@ import wx.grid
 import wx.lib.newevent
 
 from utils import time_conversion, exporter
-from scheduler import person_scheduler
 
 import os
 from threading import Thread
@@ -119,7 +118,7 @@ class Result(wx.Panel):
       if not self.scheduler.save():
         action = wx.MessageBox(parent=self, message='Za ta mesec ze obstaja shranjen razpored, ki se bo uporabil pri razvrcanju naslednjega meseca. Ali ga zelite prepisati?', style=wx.YES_NO | wx.ICON_EXCLAMATION)
         if action == wx.YES:
-          self.scheduler.save(force=True)
+          self.scheduler.save(overwrite=True)
         else:
           return
         
@@ -277,6 +276,7 @@ class Scheduler(Thread):
     self.__running = True
     self.__status  = None
     self.scheduler = None
+    self.proxy     = None
     
   def send_message(self, message=None, running=True, error=False):
     """
@@ -318,11 +318,10 @@ class Scheduler(Thread):
     else:
       raise Exception('Razpored ne obstaja')
     
-  def save(self, force=False):
+  def save(self, overwrite=False):
     """A wrapper around the Person's save method"""
-    return #TODO: implement
     if self.scheduler:
-      return self.scheduler.save(force=force)
+      return self.proxy.save(self.scheduler, overwrite=overwrite)
     else:
       raise Exception ('Razpored ne obstaja')
     
@@ -335,6 +334,7 @@ class Scheduler(Thread):
     
     self.running = True
     #try:
+    self.proxy     = proxy
     self.scheduler = self.__initialize_scheduler (proxy)
     self.scheduler.schedule ( )
     #except Exception as e:
@@ -353,13 +353,9 @@ class Scheduler(Thread):
     """
     
     self.send_message('Predpriprave ...')
-    
-    ps = person_scheduler.PersonScheduler(proxy.get_persons ( ), 
-                                          proxy.get_scheduling_units ( ), 
-                                          proxy.get_date ( ),
-                                          proxy.get_workers ( ), 
-                                          log=self)
             
+    ps = proxy.get_scheduler ( )
+    ps.set_log (self)
     return ps
 
         

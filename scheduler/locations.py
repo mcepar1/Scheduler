@@ -15,8 +15,22 @@ def __get_files (dir):
     if str(file).endswith('dat'):
       files.append(file)
   return files
+
+def __date_to_filename (date):
+  """
+  Constructs a filename from the given date.
+    @param date: a datetime.date object
+    @return: a string
+  """
+  return str (date.month) + '_' + str (date.year) + '.dat'
   
+def get_file_path (date):
+  """
+  Returns the file path for the specified date.
+    @param date: a datetime.date object
+    @return: a string
+  """
+  return os.path.join (DATA_DIR, __date_to_filename (date))
 
-
-DATA_DIR = os.path.join('persistence', 'scheduler', 'nurses')
+DATA_DIR = os.path.join ('persistence', 'scheduler', 'nurses')
 FILES    = __get_files (DATA_DIR)
