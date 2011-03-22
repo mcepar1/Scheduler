@@ -92,7 +92,7 @@ class Nurse (general.DataClass):
       del self.scheduling_units_map[scheduling_unit]
       
     
-  def is_turnus_allowed(self, scheduling_unit, turnus):
+  def is_turnus_allowed (self, scheduling_unit, turnus):
     """
     Checks, if the nurse can work in the specified turnus.
       @param scheduling_unit: the scheduling unit, that will be checked
@@ -104,7 +104,7 @@ class Nurse (general.DataClass):
     else:
       return False
     
-  def get_allowed_turnuses(self, scheduling_unit):
+  def get_allowed_turnuses (self, scheduling_unit):
     """
     Returns a list of turnuses, that this nurse can work in, for the specified scheduling unit.
       @param scheduling_unit: a data object
@@ -156,6 +156,21 @@ class Nurse (general.DataClass):
       suffixes_s.append(str (title))
       
     return str (u', '.join(prefixes_s) + u' ' + unicode (self) + u' ' + ', '.join(suffixes_s))
+  
+  def get_scheduling_units (self):
+    """
+    Returns a list of all the scheduling units, that this person can work in.
+      @return: a list of data objects
+    """
+    return self.scheduling_units_map.keys ( )
+  
+  def has_scheduling_unit (self, scheduling_unit):
+    """
+    Checks, if the person works in the specified scheduling unit.
+      @param scheduling_unit: a data object
+      @return: true if does, false otherwise
+    """
+    return scheduling_unit in self.scheduling_units_map
   
   def synchronize_data(self, *args):
     """

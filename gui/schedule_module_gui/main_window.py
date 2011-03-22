@@ -41,8 +41,7 @@ class MainWindow(wx.Frame):
     #TODO: rewrite the whole procedure.
     self.generated_results += 1
     import result_gui_new
-    import global_vars
-    page = result_gui_new.Result(global_vars.get_nurses ( ).get_all ( ), event.workers, event.workers.get_range ( )[0], self.notebook, wx.NewId())
+    page = result_gui_new.Result(event.proxy, self.notebook, wx.NewId())
     self.notebook.AddPage(page, 'Razpored ' + str (self.generated_results), True)
     page.start ( )
     

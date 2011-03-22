@@ -113,6 +113,21 @@ def get_next_month (date):
   new_date = datetime.date (date.year, date.month, 25) + datetime.timedelta (days = 14)
   new_date = datetime.date (new_date.year, new_date.month, 1)
   return new_date
+
+def get_weekends (date):
+  """
+  Returns a list of two-tuples, that contain datetime.date objects (Saturday and Sunday). Returns only 
+  the weekends that have the Saturday in the current month.
+  @param date: a datetiem.date object
+  @return: a list of ordered 2-tuples that contain datetime.date objects.  
+  """
+  weekends = []
+  
+  for date in get_same_month_dates (date):
+    if date.weekday() == 5:
+      weekends.append ((date, date + datetime.timedelta (days=1)))
+        
+  return weekends
   
   
   

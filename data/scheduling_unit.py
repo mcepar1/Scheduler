@@ -115,11 +115,25 @@ class SchedulingUnit (general.DataClass):
     """
     return role == self.role
   
+  def get_allowed_turnuses (self):
+    """
+    Returns a list of all turnuses.
+      @return: a set of data objects
+    """
+    return self.allowed_turnuses
+  
+  def has_holiday_rule (self):
+    """
+    Checks if the scheduling unit's workplace has the holiday rule.
+      @return: True if it has, False otherwise
+    """
+    return self.get_workplace ( ).has_holiday_rule ( )
+  
   def __str__ (self):
     return str (self.workplace) + ' - ' + str (self.role)
     
   def __hash__ (self):
-    return hash(str(self))
+    return hash (str(self))
     
   def __eq__ (self, other):
     return self.__cmp__(other) == 0

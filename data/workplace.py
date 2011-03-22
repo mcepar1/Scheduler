@@ -36,6 +36,13 @@ class Workplace (general.DataClass):
     This method should always correspond with the HEADERS variable."""
     
     return [translate (self.label), translate (self.holiday_rule)]
+  
+  def has_holiday_rule (self):
+    """
+    Checks, if the workplace has the holiday rule.
+      @return: True if it has, False otherwise
+    """
+    return self.holiday_rule
  
     
   def synchronize_data(self, *args):

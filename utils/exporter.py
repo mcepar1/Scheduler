@@ -11,14 +11,12 @@ def exportCSV(workplace_matrix, path):
   
   writer = csv.writer(file(path, 'wb'))
     
-  for workplace in sorted(workplace_matrix.keys()):
-    for role in sorted(workplace_matrix[workplace].keys()):
-      writer.writerow((str(workplace), ''))
-      writer.writerow((str(role), ''))
+  for scheduling_unit in sorted(workplace_matrix.keys()):
+    writer.writerow((str(scheduling_unit), ''))
+    
+    for row in workplace_matrix[scheduling_unit]:
+      writer.writerow(row)
       
-      for row in workplace_matrix[workplace][role]:
-        writer.writerow(row)
-        
-      writer.writerow((''))
-      writer.writerow((''))
-      writer.writerow((''))
+    writer.writerow((''))
+    writer.writerow((''))
+    writer.writerow((''))

@@ -4,6 +4,7 @@ This file contains the classes and methods, that act as bridges between all appl
 """
 import workers
 import locations
+import person as person_module
 
 from utils import calendar_utils
 
@@ -68,19 +69,12 @@ class DataToSchedule:
     """
     return self.workers
   
-  def get_schedule_units_container (self):
+  def get_scheduling_units_container (self):
     """
     Returns a list of schedule units.
       @return: a data container
     """
     return self.schedule_units
-  
-  def get_schedule_units (self):
-    """
-    Returns a list of schedule units.
-      @return: a list of data objects
-    """
-    return self.schedule_units.get_all ( )
 
   def get_turnus_types (self):
     """
@@ -89,12 +83,52 @@ class DataToSchedule:
     """
     return self.turnus_types.get_all ( )
   
+  def get_persons (self):
+    """
+    Returns a list of all data persons.
+      @return: a list of data objects
+    """
+    return self.__create_data_people (self.persons).get_all ( )
+  
+  def get_scheduling_units (self):
+    """
+    Returns a list of all scheduling units.
+      @return: a list of data objects
+    """
+    return self.schedule_units.get_all ( )
+  
+  def get_date (self):
+    """
+    Returns the scheduling date. Day is not important.
+      @return: a datetime.dat object
+    """ 
+    return self.date
+      
+  
   def __get_date_string (self):
     """
     Returns the scheduling date, that this class handles:
       @return: a string
     """
     return calendar_utils.get_py_month_name (self.date) + ' ' + str (self.date.year)
+  
+  def __create_data_people (self, people):
+    """
+    Returns a data container, with the scheduler's data model people.
+      @param people: a data container object
+      @return: a data container object
+    """
+    scheduler_people = []
+    dates = calendar_utils.get_same_month_dates (calendar_utils.get_previous_month (self.date)) + \
+            calendar_utils.get_same_month_dates (self.date) + \
+            calendar_utils.get_same_month_dates (calendar_utils.get_next_month (self.date))
+    for person in people.get_all ( ):
+      scheduler_people.append (person_module.Nurse (person))
+      scheduler_people[-1].add_dates (dates)
+  
+    #TODO: implement loading here
+    from data import general, nurse
+    return general.DataContainer ('', nurse.Nurse, elements_list=scheduler_people)
   
   def __str__ (self):
     return self.__get_date_string ( )

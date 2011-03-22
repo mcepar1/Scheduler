@@ -8,77 +8,39 @@ from utils import holiday, calendar_utils
 from data import turnus_type
 from scheduler import schedule_utils
 
-import global_vars
-
 import datetime
 import random
 
 """
 The main plug-in class.
 """
-class HolidayRulePlugin:
+class HolidayRuleModule:
   
-  def __init__(self, people, workplaces, turnuses, date, logger):
+  def __init__(self, mapper, workers, date, logger):
     """
     The default constructor. Only the parameters listed bellow are used, the rest are 
     discarded.
-      people: a sequence of people, that will be pre-scheduled
-      date: an instance of the datetime.date object, that has the correct month and year
+      @param mapper: a mapper object
+      @param workers: the workers object
+      @param date: a datetime.date object, that has the correct month and year
+      @logger: a logger
     """
     
-    self.people = people
-    self.workplaces = workplaces
-    self.turnuses = turnuses
-    self.date = date
-    self.log = logger
-    
-    #maps workplaces to people
-    self.workplace_people = {}
-    for workplace in self.workplaces:
-      self.workplace_people[workplace] = set()
-    
-    for workplace in self.workplaces:
-      self.workplace_people[workplace] = set()
-      for person in self.people:
-        if workplace in person.workplaces:
-          self.workplace_people[workplace].add(person)
-    
-    #maps turnuses to people
-    self.turnus_people = {}
-    for turnus in self.turnuses:
-      self.turnus_people[turnus] = set ()
-    
-    for person in self.people:
-      for turnus in person.allowed_turnuses:
-        if turnus not in self.turnus_people:
-          self.turnus_people[turnus] = set()
-        self.turnus_people[turnus].add(person)
-        
-    #determine the people without overtime
-    self.no_overtime_people = set()
-    for person in self.people:
-      if not person.employment_type.has_overtime:
-        self.no_overtime_people.add(person)
-    
-    # maps roles to people    
-    self.role_people = {}
-    for person in self.people:
-      for workplace in person.roles:
-        for role in person.roles[workplace]:
-          if role not in self.role_people:
-            self.role_people[role] = set()
-          self.role_people[role].add (person)
+    self.mapper  = mapper
+    self.workers = workers
+    self.date    = date
+    self.log     = logger
     
   def perform_task(self, overtime=False):
     """Schedules."""
         
     if overtime:
-      people = set(self.people) - self.no_overtime_people
+      people = self.mapper.get_no_overtime_people ( )
     else:
-      people = set(self.people)
+      people = self.mapper.get_all_people ( )
     
-    self.__preschedule_packet_night_turnuses(people, overtime)  
-    self.__preschedule_workfree_days(people, overtime)
+    self.__preschedule_packet_night_turnuses (people, overtime)  
+    self.__preschedule_workfree_days (people, overtime)
      
      
 
@@ -94,170 +56,151 @@ class HolidayRulePlugin:
     
     dates = calendar_utils.get_pre_workfree_dates (self.date)
     
-    workplaces = []
-    for workplace in self.workplaces:
-      if workplace.holiday_rule:
-        workplaces.append(workplace)
+    scheduling_units = []
+    for scheduling_unit in self.mapper.get_scheduling_units ( ):
+      if scheduling_unit.has_holiday_rule ( ):
+        scheduling_units.append (scheduling_unit)
         
-    pre_holiday_turnuses = []
-    for turnus in self.turnuses:
-      if turnus_type.TurnusType('Popoldanski') in turnus.types:
-        pre_holiday_turnuses.append(turnus)
-      if turnus_type.TurnusType('Celodnevni') in turnus.types:
-        pre_holiday_turnuses.append(turnus)
-        
-    holiday_turnuses = []
-    for turnus in self.turnuses:
-      if turnus.holiday:
-        holiday_turnuses.append(turnus)
     
-    random.shuffle(workplaces)  
-    for workplace in workplaces:
+    random.shuffle (scheduling_units)  
+    for scheduling_unit in scheduling_units:
+      
+      pre_holiday_turnuses = []
+      for turnus in self.mapper.get_turnuses (scheduling_unit):
+        if turnus_type.TurnusType('Popoldanski') in turnus.types:
+          pre_holiday_turnuses.append(turnus)
+        if turnus_type.TurnusType('Celodnevni') in turnus.types:
+          pre_holiday_turnuses.append(turnus)
+          
+      holiday_turnuses = []
+      for turnus in self.mapper.get_turnuses (scheduling_unit):
+        if turnus.holiday and turnus_type.TurnusType('Celodnevni') in turnus.types:
+          holiday_turnuses.append(turnus)
+      
       for pre_holiday_date in dates:
         holiday_date = pre_holiday_date + datetime.timedelta(days=1)
         
-        pre_holiday_workers = workplace.get_workers(pre_holiday_date)
-        holiday_workers = workplace.get_workers(holiday_date)
-        
-        roles = list(set(pre_holiday_workers.keys()) & set(holiday_workers.keys()))
-        
-        random.shuffle(pre_holiday_turnuses)
-        random.shuffle(holiday_turnuses)
-        random.shuffle(roles)
-        for role in roles:
-          for pre_holiday_turnus in pre_holiday_turnuses:
-            for holiday_turnus in holiday_turnuses:
+        random.shuffle (pre_holiday_turnuses)
+        random.shuffle (holiday_turnuses)
+        for pre_holiday_turnus in pre_holiday_turnuses:
+          for holiday_turnus in holiday_turnuses:
+            
+            pre_holiday_workers = self.workers.get_workers_by_type (pre_holiday_date, scheduling_unit, pre_holiday_turnus)
+            holiday_workers     = self.workers.get_workers_by_type (holiday_date,     scheduling_unit, holiday_turnus)
+            
+            scheduled = True
+            
+            while (schedule_utils.get_alerady_scheduled_by_type (self.mapper, scheduling_unit, pre_holiday_turnus.types, pre_holiday_date) < pre_holiday_workers) \
+            and   (schedule_utils.get_alerady_scheduled_by_type (self.mapper, scheduling_unit, holiday_turnus.types,     holiday_date)     < holiday_workers) \
+            and scheduled:
+            
+              scheduled = False
+            
+              #does not take into account both days
+              heuristic_people = schedule_utils.get_heuristic_sorted_people (people & self.mapper.get_scheduling_unit_people (scheduling_unit) & self.mapper.get_turnus_people (holiday_turnus), holiday_date)
               
-              # there is no guarantee that a workplace will have all holiday and preholdiay turnuses
-              if not (set (pre_holiday_turnus.types) & set (pre_holiday_workers[role])):
-                continue
-              if not (set (holiday_turnus.types) & set (holiday_workers[role])):
-                continue
-              
-              scheduled = True
-              
-              while self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, role, pre_holiday_turnus.types, pre_holiday_date), pre_holiday_workers[role]) \
-              and   self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, role, holiday_turnus.types, holiday_date), holiday_workers[role]) \
-              and scheduled:
-              
-                scheduled = False
-              
-                #does not take into account both days
-                heuristic_people = schedule_utils.get_heuristic_sorted_people(people & self.workplace_people[workplace] & self.turnus_people[holiday_turnus] & self.role_people[role], holiday_date)
-                
-                for person in heuristic_people:
-                  if \
-                  self.__is_valid_move_preschedule(workplace, role, pre_holiday_turnus, pre_holiday_date, person, overtime) \
-                  and \
-                  self.__is_valid_move_preschedule(workplace, role, holiday_turnus, holiday_date, person, overtime):
-                    person.schedule_turnus(pre_holiday_date, pre_holiday_turnus, workplace, role)
-                    person.schedule_turnus(holiday_date, holiday_turnus, workplace, role)
-                    scheduled = True
-                    break
+              for person in heuristic_people:
+                if \
+                self.__is_valid_move_preschedule (scheduling_unit, pre_holiday_turnus, pre_holiday_date, person, overtime) \
+                and \
+                self.__is_valid_move_preschedule (scheduling_unit, holiday_turnus, holiday_date, person, overtime):
+                  person.schedule_turnus (pre_holiday_date, pre_holiday_turnus, scheduling_unit)
+                  person.schedule_turnus (holiday_date,     holiday_turnus,     scheduling_unit)
+                  scheduled = True
+                  break
                 
   def __preschedule_packet_night_turnuses(self, people, overtime):
     """Schedules the Friday-Saturday-Sunday night turnus package"""
     
-    packet_people = set()
+    packet_people = set ( )
     for person in people:
       if person.packet_night_turnuses:
         packet_people.add(person)
-        
-    pre_holiday_night_turnuses = []
-    holiday_night_turnuses = []
-    for turnus in self.turnuses:
-      if turnus_type.TurnusType('Noèni') in turnus.types:
-        if turnus.holiday:
-          holiday_night_turnuses.append(turnus)
-        else:
-          pre_holiday_night_turnuses.append(turnus)
           
-    workplaces = []
-    for workplace in self.workplaces:
-      if workplace.holiday_rule:
-        workplaces.append(workplace)
+    scheduling_units = self.mapper.get_scheduling_units ( )
+    random.shuffle (list (scheduling_units))
         
-    date_packs = self.__get_friday_saturday_sunday_dates()
-    random.shuffle(date_packs)
+    date_packs = self.__get_friday_saturday_sunday_dates ( )
+    random.shuffle (date_packs)
     
-    random.shuffle(workplaces)  
-    for workplace in workplaces:
+      
+    for scheduling_unit in scheduling_units:
+      
+      pre_holiday_night_turnuses = []
+      holiday_night_turnuses     = []
+      for turnus in self.mapper.get_turnuses (scheduling_unit=scheduling_unit):
+        if turnus_type.TurnusType('Noèni') in turnus.types: #TODO: document hard-coded
+          if turnus.holiday:
+            holiday_night_turnuses.append(turnus)
+          elif turnus.workday:
+            pre_holiday_night_turnuses.append(turnus)
+      
       for date_pack in date_packs:
         
-        workers = [workplace.get_workers(date_pack[0]), workplace.get_workers(date_pack[1]), workplace.get_workers(date_pack[2])]
-        roles = list(set(workers[0].keys()) & set(workers[1].keys()) & set(workers[2].keys()))
-        
-        random.shuffle(roles)
         random.shuffle(pre_holiday_night_turnuses)
         random.shuffle(holiday_night_turnuses)
         
-        for role in roles:
-          for pre_holiday_night_turnus in pre_holiday_night_turnuses:
-            for holiday_night_turnus in holiday_night_turnuses:
+        for pre_holiday_night_turnus in pre_holiday_night_turnuses:
+          for holiday_night_turnus in holiday_night_turnuses:
+            
+            workers = [self.workers.get_workers_by_type (date_pack[0], scheduling_unit, pre_holiday_night_turnus), 
+                       self.workers.get_workers_by_type (date_pack[1], scheduling_unit, pre_holiday_night_turnus), 
+                       self.workers.get_workers_by_type (date_pack[2], scheduling_unit, holiday_night_turnus)]
+            
+            scheduled = True
+            
+            while (schedule_utils.get_alerady_scheduled_by_type (self.mapper, scheduling_unit, pre_holiday_night_turnus.types, date_pack[0]) < workers[0]) \
+            and   (schedule_utils.get_alerady_scheduled_by_type (self.mapper, scheduling_unit, pre_holiday_night_turnus.types, date_pack[1]) < workers[1]) \
+            and   (schedule_utils.get_alerady_scheduled_by_type (self.mapper, scheduling_unit, holiday_night_turnus.types,     date_pack[2]) < workers[2]) \
+            and   scheduled:
+            
+              scheduled = False
+            
+              #does not take into account all days
+              heuristic_people = schedule_utils.get_heuristic_sorted_people (packet_people & self.mapper.get_scheduling_unit_people (scheduling_unit) & self.mapper.get_turnus_people (turnus), date_pack[2])
               
-              # there is no guarantee that a workplace will have all holiday and preholdiay turnuses
-              if not (set (pre_holiday_night_turnus.types) & set (workers[0][role])):
-                continue
-              if not (set (pre_holiday_night_turnus.types) & set (workers[1][role])):
-                continue
-              if not (set (holiday_night_turnus.types) & set (workers[2][role])):
-                continue
-              
-              scheduled = True
-              
-              while self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, role, pre_holiday_night_turnus.types, date_pack[0]), workers[0][role]) \
-              and   self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, role, pre_holiday_night_turnus.types, date_pack[1]), workers[1][role]) \
-              and   self.__can_continue_scheduling(self.__get_alerady_scheduled_by_type(workplace, role, holiday_night_turnus.types, date_pack[2]), workers[2][role]) \
-              and   scheduled:
-              
-                scheduled = False
-              
-                #does not take into account all days
-                heuristic_people = schedule_utils.get_heuristic_sorted_people(packet_people & self.workplace_people[workplace] & self.turnus_people[holiday_night_turnus] & self.role_people[role], date_pack[2])
-                
-                for person in heuristic_people:
-                  if self.__is_valid_move_preschedule_packet(workplace, role, pre_holiday_night_turnus, date_pack[0], person, overtime):
-                    person.schedule_turnus(date_pack[0], pre_holiday_night_turnus, workplace, role)
-                    if not person.is_blocked (date_pack[0] - datetime.timedelta(days=1), pre_holiday_night_turnus):
-                      person.add_invalid_turnus(date_pack[0] - datetime.timedelta(days=1),pre_holiday_night_turnus)
+              for person in heuristic_people:
+                if self.__is_valid_move_preschedule_packet(scheduling_unit, pre_holiday_night_turnus, date_pack[0], person, overtime):
+                  person.schedule_turnus(date_pack[0], pre_holiday_night_turnus, scheduling_unit)
+                  if not person.is_blocked (date_pack[0] - datetime.timedelta(days=1), pre_holiday_night_turnus):
+                    person.add_invalid_turnus(date_pack[0] - datetime.timedelta(days=1),pre_holiday_night_turnus)
+                  
+                  if self.__is_valid_move_preschedule_packet(scheduling_unit, pre_holiday_night_turnus, date_pack[1], person, overtime):
+                    person.schedule_turnus(date_pack[1], pre_holiday_night_turnus, scheduling_unit)
                     
-                    if self.__is_valid_move_preschedule_packet(workplace, role, pre_holiday_night_turnus, date_pack[1], person, overtime):
-                      person.schedule_turnus(date_pack[1], pre_holiday_night_turnus, workplace, role)
+                    if self.__is_valid_move_preschedule_packet(scheduling_unit, holiday_night_turnus, date_pack[2], person, overtime):
+                      person.schedule_turnus(date_pack[2], holiday_night_turnus, scheduling_unit)
+                      scheduled = True
                       
-                      if self.__is_valid_move_preschedule_packet(workplace, role, holiday_night_turnus, date_pack[2], person, overtime):
-                        person.schedule_turnus(date_pack[2], holiday_night_turnus, workplace, role)
-                        scheduled = True
-                        
-                        if not person.is_blocked (date_pack[2] + datetime.timedelta(days=1), pre_holiday_night_turnus):
-                          person.add_invalid_turnus(date_pack[2] + datetime.timedelta(days=1),pre_holiday_night_turnus)
-                        break
-                        
-                      else:
-                        person.clear_date(date_pack[0])
-                        person.clear_date(date_pack[1])
-                        
-                        person.remove_invalid_turnus(date_pack[2] + datetime.timedelta(days=1),pre_holiday_night_turnus)
+                      if not person.is_blocked (date_pack[2] + datetime.timedelta(days=1), pre_holiday_night_turnus):
+                        person.add_invalid_turnus(date_pack[2] + datetime.timedelta(days=1),pre_holiday_night_turnus)
+                      break
                       
                     else:
                       person.clear_date(date_pack[0])
-                      person.remove_invalid_turnus(date_pack[0] - datetime.timedelta(days=1),pre_holiday_night_turnus)
+                      person.clear_date(date_pack[1])
+                      
+                      person.remove_invalid_turnus(date_pack[2] + datetime.timedelta(days=1),pre_holiday_night_turnus)
+                    
+                  else:
+                    person.clear_date(date_pack[0])
+                    person.remove_invalid_turnus(date_pack[0] - datetime.timedelta(days=1),pre_holiday_night_turnus)
         
       
       
-  def __is_valid_move_preschedule(self, workplace, role, turnus, date, person, overtime):
+  def __is_valid_move_preschedule(self, scheduling_unit, turnus, date, person, overtime):
     """
     Checks, if the person is allowed to work, on the combination of attributes. This function
     is identical to the is_valid_move function. The only difference is that it does not
     check the holiday workplace rule.
-      workplace: is the workplace checked
-      role: is the role checked
+      scheduling_unit: is the scheduling unit checked
       turnus: is the turnus checked
       date: is the date checked
       person: is the person checked
       overtime: if the overtime is allowed for the person
     """
     
-    if not schedule_utils.is_valid_move (workplace, role, turnus, date, person, overtime):
+    if not schedule_utils.is_valid_move (scheduling_unit, turnus, date, person, overtime):
       return False
       
     if holiday.is_workfree(date):      
@@ -281,13 +224,12 @@ class HolidayRulePlugin:
               
     return True
   
-  def __is_valid_move_preschedule_packet(self, workplace, role, turnus, date, person, overtime, depth=0, check_turnuses=[]):
+  def __is_valid_move_preschedule_packet(self, scheduling_unit, turnus, date, person, overtime, depth=0, check_turnuses=[]):
     """
     Checks, if the person is allowed to work, on the combination of attributes. This function
     is identical to the is_valid_move_preschedule function. The only difference is that 
     it does not check for night turnus packets.
-      workplace: is the workplace checked
-      role: is the role checked
+      scheduling_unit: is the scheduling unit checked
       turnus: is the turnus checked
       date: is the date checked
       person: is the person checked
@@ -300,7 +242,7 @@ class HolidayRulePlugin:
                       method from the outside.
     """
     
-    if not schedule_utils.is_valid_move (workplace, role, turnus, date, person, overtime):
+    if not schedule_utils.is_valid_move (scheduling_unit, turnus, date, person, overtime):
       return False
       
       #check for free days
@@ -322,7 +264,7 @@ class HolidayRulePlugin:
               
     return True
   
-  def __can_continue_scheduling(self, scheduled_types, workers):
+  def __can_continue_scheduling (self, scheduled_types, workers):
     """
     Checks, if the workplace has enough people working at it, to be considered
     full.
@@ -339,45 +281,6 @@ class HolidayRulePlugin:
     
     return False
   
-  def __get_alerady_scheduled_by_type(self, workplace, role, types, date):
-    """
-    Return the number of currently scheduled people for the specific types
-    date and workplace
-      workplace: is the workplace
-      role: is the role
-      types: is the sequence of types
-      date: is the date
-      return: a dictionary, that maps types to the number of scheduled turnuses
-              for each type
-    """
-    
-    map = {}
-    
-    for type in types:
-      turnuses = global_vars.get_turnuses ( ).get_by_type(type, workplace)
-      map[type] = 0
-      for turnus in turnuses:
-        map[type] += self.__get_already_scheduled(workplace, role, turnus, date)
-      
-    return map
-  
-  def __get_already_scheduled(self, workplace, role, turnus, date):
-    """
-    Returns the number of currently scheduled people, for the specific turnus, 
-    date and workplace.
-      workplace: is the workplace
-      role: is the role
-      turnus: is the turnus
-      date: is the date
-      return: the number of people
-    """
-    
-    number = 0
-    for person in self.people:
-      if person.is_scheduled_exact(workplace, role, turnus, date):
-        number += 1
-    
-    return number
   
   def __get_friday_saturday_sunday_dates(self):
     """Returns a sorted list of 3-tuples (Friday, Saturday, Sunday) for the scheduling date"""

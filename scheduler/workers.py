@@ -95,6 +95,13 @@ class Workers:
     """
     return (min (self.all_dates), max (self.all_dates))
   
+  def get_dates (self):
+    """
+    Returns an ordered list of all valid dates for this object.
+      @return: an ordered list of datetime.date objects
+    """
+    return sorted (self.all_dates)
+  
   def get_workers (self, date, schedule_unit, turnus_type):
     """
     Return the amount of workers for the specified parameters.
@@ -141,6 +148,19 @@ class Workers:
     """
     for date in self.holiday_dates:    
       return self.holiday_workers[date][schedule_unit][turnus_type]
+    
+  def get_workers_by_type (self, date, scheduling_unit, turnus):
+    """
+    Returns the amount of workers for the specified turnus, date and scheduling unit.
+    The final amount is defined as the maximum value of turnus types.
+      @param date: a datetiem.date object.
+      @param scheduling_unit: a data object
+      @param turnus: a data object
+    """
+    workers = set ([0])
+    for turnus_type in turnus.types:
+      workers.add (self.get_workers (date, scheduling_unit, turnus_type))
+    return max (workers)
     
   
   def __build_dict (self, dict, dates, schedule_units, turnus_types, value = 0):

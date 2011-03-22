@@ -1,12 +1,11 @@
 # -*- coding: Cp1250 -*-
 
-import global_vars
-from utils import time_conversion, exporter
-from scheduler import person_scheduler
-
 import wx
 import wx.grid
 import wx.lib.newevent
+
+from utils import time_conversion, exporter
+from scheduler import person_scheduler
 
 import os
 from threading import Thread
@@ -16,11 +15,18 @@ from threading import Thread
 # This creates a new Event class and a EVT binder function
 (ScheduleMessageEvent, EVT_SCHEDULE_MESSAGE) = wx.lib.newevent.NewEvent()
 
+"""
+This class represents the final view of the scheduled nurses.
+"""
 class Result(wx.Panel):
-  def __init__(self, persons, workers, date, *args, **kwargs):
+  def __init__(self, proxy, *args, **kwargs):
+    """
+    The default constructor.
+      @param proxy: the intermediate class between the data model and the scheduler's model.
+    """
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.scheduler       = Scheduler(self, persons, workers, date)
+    self.scheduler      = Scheduler(self, proxy)
     
     self.progress_panel = ProgressPanel(self, wx.ID_ANY, name='Status razvrščanja ...')
     self.grid           = wx.grid.Grid (self, wx.NewId())
@@ -145,12 +151,10 @@ class TreeWarnings(wx.TreeCtrl):
     root = self.AddRoot("Koren")
     for workplace in sorted(warnings.keys()):
       w_item = self.AppendItem(root, str(workplace))
-      for role in sorted(warnings[workplace].keys()):
-        r_item = self.AppendItem(w_item, str(role))
-        for turnus in sorted(warnings[workplace][role].keys()):
-          t_item = self.AppendItem(r_item, str(turnus))
-          for date in sorted(warnings[workplace][role][turnus].keys()):
-            self.AppendItem(t_item, time_conversion.date_to_string(date) + ': ' + warnings[workplace][role][turnus][date])
+      for turnus in sorted(warnings[workplace].keys()):
+        t_item = self.AppendItem(w_item, str(turnus))
+        for date in sorted(warnings[workplace][turnus].keys()):
+          self.AppendItem(t_item, time_conversion.date_to_string(date) + ': ' + warnings[workplace][turnus][date])
 
     
 """
@@ -215,21 +219,63 @@ class ProgressPanel(wx.Panel):
     self.timer.Stop ( )
 
 """
-This class is just a wrapper around the Person
+This class is the scheduling thread.
 """
 class Scheduler(Thread):
   
-  def __init__(self, parent, *args):
+  """
+  This class contains the current status of the whole thread.
+  """
+  class RunningStatus:
+    
+    def __init__ (self, active, error, status):
+      """
+      The default constructor.
+        @param running: a boolean, that specifies is the scheduling process is still running. True if it is,
+          false otherwise.
+        @param error: a boolean, that tells if an error occurred during the scheduling process. True if it has,
+          false otherwise.
+        @param message: a string, that contains the status of the thread.
+      """
+      self.__active  = active
+      self.__error   = error
+      self.__status  = status
+      
+    def is_active (self):
+      """
+      Checks if the thread is still performing the scheduling process.
+        @return: true if it is, false otherwise 
+      """
+      return self.__active
+    
+    def is_error (self):
+      """
+      Checks if an error occurred during the scheduling process.
+        @return: true if it is, false otherwise
+      """
+      return self.__error
+    
+    def get_status (self):
+      """
+      Return the current status.
+        @return: a string
+      """
+      return self.__status
+      
+  
+  def __init__(self, parent, *args, **kwargs):
     """
     The default constructor.
       parent: an instance of the wx.Window
-      *args: look the __schedule method
+      @param args: look the __schedule method
     """
     
-    Thread.__init__(self, target=self.__schedule, args=args)
+    #TODO: remove this
     self.wx_parent = parent
-    self.running = True
-    self.message = ''
+    
+    Thread.__init__(self, target=self.__schedule, args=args)
+    self.__running = True
+    self.__status  = None
     self.scheduler = None
     
   def send_message(self, message=None, running=True, error=False):
@@ -273,50 +319,46 @@ class Scheduler(Thread):
       raise Exception('Razpored ne obstaja')
     
   def save(self, force=False):
-    """A wrapper around the Personsave method"""
-    
+    """A wrapper around the Person's save method"""
+    return #TODO: implement
     if self.scheduler:
       return self.scheduler.save(force=force)
     else:
       raise Exception ('Razpored ne obstaja')
     
     
-  def __schedule(self, persons, workers, date):
+  def __schedule(self, proxy):
     """
     This method creates the scheduler and start's scheduling.
-      persons: a list of persons, that will be scheduled
-      static_workers: a dictionary, that maps workplaces to turnuses and then to
-                      the number of workers
-      date_workers: similar as static workers, only that it maps workplaces to dates
-                    and dates to turnuses, ...
-      date: a datetime.date instance that contains the month and year that will 
-            be scheduled
+      @param proxy: the intermediate class between the data model and the scheduling model.
     """
     
     self.running = True
     #try:
-    self.scheduler = self.__initialize_scheduler(persons, workers, date)
-    self.scheduler.schedule()
+    self.scheduler = self.__initialize_scheduler (proxy)
+    self.scheduler.schedule ( )
     #except Exception as e:
     #  self.send_message(message=str(e), running=False, error=True)
           
-    self.send_message('Razvrscevanje koncano.', running=False, error=False)
+    self.send_message ('Razvrscevanje koncano.', running=False, error=False)
     self.running = False
     
     
     
-  def __initialize_scheduler(self, persons, workers, date):
+  def __initialize_scheduler(self, proxy):
     """
     This method initializes the scheduler.
-      arguments: look at __schedule method
-      return: an instance of the PersonScheduler
+      @param proxy: the intermediate class between the data and the scheduler's model
+      @return: a Scheduler object
     """
     
     self.send_message('Predpriprave ...')
     
-    ps = person_scheduler.PersonScheduler(persons, global_vars.get_workplaces ( ).get_all ( ), date, log=self)
-    for workplace in ps.workplaces:
-      workplace.workers = workers.convert (workplace)
+    ps = person_scheduler.PersonScheduler(proxy.get_persons ( ), 
+                                          proxy.get_scheduling_units ( ), 
+                                          proxy.get_date ( ),
+                                          proxy.get_workers ( ), 
+                                          log=self)
             
     return ps
 

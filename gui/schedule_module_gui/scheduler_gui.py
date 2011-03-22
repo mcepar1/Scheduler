@@ -20,13 +20,12 @@ class SchedulerPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     wx.lib.scrolledpanel.ScrolledPanel.__init__(self, *args, **kwargs)
     
-    
-    self.worker_container    = proxy.get_workers ( )
+    self.proxy               = proxy
     bitmap = wx.ArtProvider ( ).GetBitmap(wx.ART_TICK_MARK, wx.ART_BUTTON)
     
-    self.workplace_role_pair = custom_widgets.ScheduleUnitSelector (proxy.get_schedule_units_container ( ), self, wx.ID_ANY)
+    self.workplace_role_pair = custom_widgets.ScheduleUnitSelector (self.proxy.get_scheduling_units_container ( ), self, wx.ID_ANY)
     self.start_button        = wx.lib.buttons.ThemedGenBitmapTextButton (self, wx.ID_ANY, bitmap, 'Zaženi')
-    self.shift_control       = ShiftControl (proxy.get_turnus_types ( ), self.worker_container, self, wx.ID_ANY)
+    self.shift_control       = ShiftControl (self.proxy.get_turnus_types ( ), self.proxy.get_workers ( ), self, wx.ID_ANY)
     
     self.Bind(custom_events.EVT_UPDATED, self.__pair_selected, self.workplace_role_pair)
     self.Bind(wx.EVT_BUTTON, self.__start, self.start_button)
@@ -50,7 +49,7 @@ class SchedulerPanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     Starts the scheduling.
     """
-    wx.PostEvent(self, custom_events.StartEvent (self.GetId ( ), workers=self.worker_container))
+    wx.PostEvent(self, custom_events.StartEvent (self.GetId ( ), proxy=self.proxy))
  
 """
 This class selects the handles the selection of number of nurses for the specific shift.

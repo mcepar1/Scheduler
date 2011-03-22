@@ -24,22 +24,30 @@ class EmploymentType (general.DataClass):
     """
     
     self.label = label
-    self.weekly_hours  = weekly_hours
-    self.has_overtime  = has_overtime
-    self.comment       = comment
-    self.monthly_hours = monthly_hours
+    self.weekly_hours    = weekly_hours
+    self.__has_overtime  = has_overtime
+    self.comment         = comment
+    self.monthly_hours   = monthly_hours
     
     self.allowed_turnuses = set(allowed_turnuses)
     
   def as_data_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [self.label, self.weekly_hours, self.has_overtime]
+    return [self.label, self.weekly_hours, self.has_overtime ( )]
     
   def as_list(self):
     """Returns this object's attribute values in a list. 
     This method should always correspond with the HEADERS variable."""
-    return [translate (self.label), translate (self.weekly_hours), translate (self.has_overtime)]
+    return [translate (self.label), translate (self.weekly_hours), translate (self.has_overtime ( ))]
+  
+  def has_overtime (self):
+    """
+    Checks, if this employment type allows persons to work overtime.
+      @return: True if they can, False otherwise
+    """
+    return self.__has_overtime
+    
   
   def synchronize_data(self, *args):
     """
@@ -67,7 +75,7 @@ class EmploymentType (general.DataClass):
     try:
       if  not locale.strcoll(self.label, other.label):
         if self.weekly_hours == other.weekly_hours:
-          return cmp (self.has_overtime, other.has_overtime)
+          return cmp (self.has_overtime ( ), other.has_overtime( ))
         else:
           return cmp(self.weekly_hours, other.weekly_hours)
       else:
