@@ -21,4 +21,5 @@ RemoveEvent, EVT_TB_REMOVE = wx.lib.newevent.NewCommandEvent ( )
 SaveEvent,   EVT_TB_SAVE   = wx.lib.newevent.NewCommandEvent ( )
 ReloadEvent, EVT_TB_RELOAD = wx.lib.newevent.NewCommandEvent ( )
 SearchEvent, EVT_TB_SEARCH = wx.lib.newevent.NewCommandEvent ( )
+ToggleEvent, EVT_TB_TOGGLE = wx.lib.newevent.NewCommandEvent ( )
 

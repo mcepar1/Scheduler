@@ -131,7 +131,7 @@ class DataToSchedule:
       @return: a person scheduler
     """
     if self.load:
-      ps = load (self.get_date ( ))
+      ps = load (self.__get_date ( ))
     else:
       ps = person_scheduler.PersonScheduler(self.__get_persons ( ), 
                                             self.__get_scheduling_units ( ), 

@@ -7,7 +7,6 @@ import os
 
 from gui import custom_events, wx_extensions
 from gui.utils_gui import make_icon
-from scheduler_gui import SchedulerPanel
 
 
 """
@@ -22,26 +21,95 @@ class MainWindow(wx.Frame):
   def __init__(self, proxy, parent):
     wx.Frame.__init__(self, parent, title = MainWindow.TITLE + ': ' + str (proxy), style = wx.DEFAULT_FRAME_STYLE)
     
-    self.generated_results = 0
+    self.generated_results = 1
     
-    
+    self.notebook_toolbar = NotebookPageToolbar (self, wx.ID_ANY, style = wx.TB_HORIZONTAL | wx.TB_FLAT | wx.TB_NODIVIDER)
     self.notebook = wx_extensions.EnhancedAUINotebook (self, wx.ID_ANY)
-    self.notebook.AddPage(SchedulerPanel(proxy, self.notebook, wx.ID_NEW), "Turnusi")
+    import schedule_page
+    self.notebook.AddPage(schedule_page.SchedulePage (proxy, self.notebook, wx.ID_NEW), 'Razpored ' + str (self.generated_results))
     
-    self.Bind(custom_events.EVT_TB_START, self.__start, id=wx.ID_NEW)
+    self.Bind (custom_events.EVT_TB_START,  self.__start,   id=wx.ID_NEW)
+    self.Bind (custom_events.EVT_TB_TOGGLE, self.__toggle,  self.notebook_toolbar)
+    self.Bind (custom_events.EVT_TB_SEARCH, self.__display, self.notebook_toolbar)
     
     sizer = wx.BoxSizer(wx.VERTICAL)
-    sizer.Add(self.notebook, 1, wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add(self.notebook_toolbar, 0, wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add(self.notebook,         1, wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
     self.SetIcon(make_icon(wx.Image(name = MainWindow.ICON_PATH)))
+    self.Maximize ( )
+    
+    self.__set_permissions ( )
     
     
   def __start (self, event):
-    #TODO: rewrite the whole procedure.
-    self.generated_results += 1
-    import result_gui_new
-    page = result_gui_new.Result(event.proxy, self.notebook, wx.NewId())
-    self.notebook.AddPage(page, 'Razpored ' + str (self.generated_results), True)
-    page.start ( )
+    self.notebook.GetCurrentPage ( ).add_schedule ( )
+    self.__set_permissions ( )
+    
+  def __toggle (self, event):
+    page = self.notebook.GetCurrentPage ( )
+    page.toggle_workers (event.toggle)
+    self.__set_permissions ( )
+    
+  def __display (self, event):
+    page = self.notebook.GetCurrentPage ( )
+    page.set_displayed (event.name)
+    
+  def __set_permissions (self):
+    page = self.notebook.GetCurrentPage ( )
+    self.notebook_toolbar.set_choices(page.get_results ( ), page.get_displayed ( ))
+    self.notebook_toolbar.set_toggle (page.is_workers_shown ( ))
+    
+"""
+This is a toolbar, that is linked with the notebook's pages.
+"""
+class NotebookPageToolbar (wx.ToolBar):
+  
+  def __init__ (self, *args, **kwargs):
+    """
+    The default constructor.
+    """  
+    wx.ToolBar.__init__ (self, *args, **kwargs)
+    
+    self.AddCheckLabelTool (wx.ID_EDIT, 'Prikaži število', wx.ArtProvider.GetBitmap (wx.ART_LIST_VIEW, wx.ART_TOOLBAR), shortHelp='Prikaži število zaposlenih v turnusu.')
+    self.AddSeparator ( )
+    self.AddControl (wx.Choice (self, wx.ID_VIEW_LIST))
+    
+    self.Bind (wx.EVT_TOOL,   self.__toggle, id = wx.ID_EDIT)
+    self.Bind (wx.EVT_CHOICE, self.__choice, id = wx.ID_VIEW_LIST)
+    
+    self.Realize ( )
+    
+  def set_toggle (self, toggle):
+    """
+    Sets the toggle button.
+      @param toggle: a boolean that defines the toggle state.
+    """
+    self.ToggleTool (wx.ID_EDIT, toggle)
+    
+  def set_choices (self, choices, selected=None):
+    """
+    Sets the choices in the drop-down menu and selects a choice, if the parameter was specified.
+      @param choices: a list of strings
+      @param selected: a string. Default is value is set to None.
+    """
+    wx_choice = self.FindControl (wx.ID_VIEW_LIST)
+    wx_choice.Clear ( )
+    wx_choice.AppendItems (choices)
+    
+    if selected != None and selected in choices:
+      wx_choice.Select (choices.index (selected))
+      
+  def __toggle (self, event):
+    """
+    Event listener for the toggle button.
+    """
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.ToggleEvent (self.GetId ( ), toggle=event.IsChecked ( )))
+    
+  def __choice (self, event):
+    """
+    Event listener for the choice menu.
+    """
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.SearchEvent (self.GetId ( ), name=event.GetString ( )))
     

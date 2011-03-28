@@ -55,7 +55,7 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
   def __show (self, event):
 
     import global_vars
-    p = proxy.DataToSchedule (False, event.date, global_vars.get_nurses(), global_vars.get_scheduling_units(), global_vars.get_turnus_types())
+    p = proxy.DataToSchedule (True, event.date, global_vars.get_nurses(), global_vars.get_scheduling_units(), global_vars.get_turnus_types())
     f = main_window.MainWindow  (p, self)
     f.Show ( )
     

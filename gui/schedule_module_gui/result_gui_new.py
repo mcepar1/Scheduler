@@ -27,10 +27,10 @@ class Result(wx.Panel):
     
     self.scheduler      = Scheduler(self, proxy)
     
-    self.progress_panel = ProgressPanel(self, wx.ID_ANY, name='Status razvršèanja ...')
-    self.grid           = wx.grid.Grid (self, wx.NewId())
-    self.warnings       = WarningsPanel (self, wx.NewId())
-    self.save_button    = wx.Button (self, wx.NewId(), label='Shrani')
+    self.progress_panel = ProgressPanel (self, wx.ID_ANY, name='Status razvršèanja ...')
+    self.grid           = wx.grid.Grid  (self, wx.ID_ANY)
+    self.warnings       = WarningsPanel (self, wx.ID_ANY)
+    self.save_button    = wx.Button     (self, wx.ID_ANY, label='Shrani')
     
     self.Bind (EVT_SCHEDULE_MESSAGE, self.__message_recieved)
     self.Bind (wx.EVT_BUTTON,        self.__save,           self.save_button)
@@ -40,17 +40,15 @@ class Result(wx.Panel):
     result_sizer.Add (self.grid,     4, wx.ALIGN_LEFT | wx.EXPAND | wx.LEFT, 4)
     result_sizer.Add (self.warnings, 1, wx.ALIGN_LEFT | wx.EXPAND)
     
-    main_sizer = wx.BoxSizer(wx.VERTICAL)
+    main_sizer = wx.BoxSizer (wx.VERTICAL)
     main_sizer.Add (self.progress_panel, 0, wx.ALIGN_LEFT | wx.EXPAND)
     main_sizer.Add (result_sizer,        1, wx.ALIGN_LEFT | wx.EXPAND)
     main_sizer.Add (self.save_button,    0, wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit(main_sizer)
-    self.Show(True)
-    self.Layout ( )
     
-    self.grid.Hide ( )
-    self.warnings.Hide ( )
+    self.progress_panel.Hide ( )
+    self.fill_grid ( )
     
   def start (self):
     self.progress_panel.Show ( )
@@ -62,10 +60,12 @@ class Result(wx.Panel):
     
     
   def fill_grid(self):
-    table = self.scheduler.get_result()
+    table = self.scheduler.get_result ( )
     headers = table[0]
     rows = table[1:]
     
+    self.grid.ClearGrid ( )
+    self.grid.SetTable (None)
     self.grid.CreateGrid(len(rows), len(headers))
       
     for i in range(len(headers)):
@@ -185,7 +185,6 @@ class ProgressPanel(wx.Panel):
     sizer.Add (self.gauge, 0, wx.ALIGN_TOP |wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit(sizer)
-    self.timer.Start (ProgressPanel.TIMER_SPEED)
     
   def Show (self, bool=True):
     """
@@ -262,7 +261,7 @@ class Scheduler(Thread):
       return self.__status
       
   
-  def __init__(self, parent, *args, **kwargs):
+  def __init__(self, parent, proxy, *args, **kwargs):
     """
     The default constructor.
       parent: an instance of the wx.Window
@@ -273,10 +272,10 @@ class Scheduler(Thread):
     self.wx_parent = parent
     
     Thread.__init__(self, target=self.__schedule, args=args)
-    self.__running = True
+    self.__running = False
     self.__status  = None
-    self.scheduler = None
-    self.proxy     = None
+    self.proxy     = proxy
+    self.scheduler = self.__initialize_scheduler (self.proxy)
     
   def send_message(self, message=None, running=True, error=False):
     """

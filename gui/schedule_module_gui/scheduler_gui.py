@@ -2,8 +2,8 @@
 
 import wx
 import wx.calendar
-import wx.lib.scrolledpanel
 import wx.lib.buttons
+#import wx.lib.scrolledpanel
 
 from gui import custom_events, custom_widgets, wx_extensions
 
@@ -12,17 +12,19 @@ from scheduler.workers import Workers
 """
 The main panel for editing the scheduling data.
 """
-class SchedulerPanel(wx.lib.scrolledpanel.ScrolledPanel):
+class SchedulerPanel(wx.Panel):
   def __init__(self, proxy, *args, **kwargs):
     """
     The default constructor.
       @param proxy: the class that maps the data model into the schedule model.
     """
-    wx.lib.scrolledpanel.ScrolledPanel.__init__(self, *args, **kwargs)
+    wx.Panel.__init__(self, *args, **kwargs)
     
     self.proxy               = proxy
     bitmap = wx.ArtProvider ( ).GetBitmap(wx.ART_TICK_MARK, wx.ART_BUTTON)
     
+    
+    title                    = wx.StaticText (self, wx.ID_ANY, 'Število zaposlenih v turnusu')
     self.workplace_role_pair = custom_widgets.ScheduleUnitSelector (self.proxy.get_scheduling_units_container ( ), self, wx.ID_ANY)
     self.start_button        = wx.lib.buttons.ThemedGenBitmapTextButton (self, wx.ID_ANY, bitmap, 'Zaženi')
     self.shift_control       = ShiftControl (self.proxy.get_turnus_types ( ), self.proxy.get_workers ( ), self, wx.ID_ANY)
@@ -31,13 +33,13 @@ class SchedulerPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.Bind(wx.EVT_BUTTON, self.__start, self.start_button)
     
     sizer = wx.GridBagSizer ( )
-    sizer.Add (self.workplace_role_pair, (0,0), (1,1), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    sizer.Add (self.start_button,        (0,1), (1,1), wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.SHAPED)
-    sizer.Add (self.shift_control,       (1,0), (1,2), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (title,                    (0,0), (1,2), wx.ALIGN_CENTER)
+    sizer.Add (self.workplace_role_pair, (1,0), (1,1), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.start_button,        (1,1), (1,1), wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.SHAPED)
+    sizer.Add (self.shift_control,       (2,0), (1,2), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     
-    self.SetSizerAndFit(sizer)
-    self.SetupScrolling ( )
+    self.SetSizerAndFit (sizer)
     
   def __pair_selected (self, event):
     """
