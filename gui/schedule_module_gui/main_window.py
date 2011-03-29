@@ -28,22 +28,23 @@ class MainWindow(wx.Frame):
     import schedule_page
     self.notebook.AddPage(schedule_page.SchedulePage (proxy, self.notebook, wx.ID_NEW), 'Razpored ' + str (self.generated_results))
     
-    self.Bind (custom_events.EVT_TB_START,  self.__start,   id=wx.ID_NEW)
+    self.Bind (custom_events.EVT_TB_ADD,    self.__add,     id=wx.ID_NEW)
     self.Bind (custom_events.EVT_TB_TOGGLE, self.__toggle,  self.notebook_toolbar)
     self.Bind (custom_events.EVT_TB_SEARCH, self.__display, self.notebook_toolbar)
+    self.Bind (custom_events.EVT_TB_START,  self.__start,   self.notebook_toolbar)
     
-    sizer = wx.BoxSizer(wx.VERTICAL)
+    sizer = wx.BoxSizer (wx.VERTICAL)
     sizer.Add(self.notebook_toolbar, 0, wx.ALIGN_LEFT | wx.EXPAND)
     sizer.Add(self.notebook,         1, wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
-    self.SetIcon(make_icon(wx.Image(name = MainWindow.ICON_PATH)))
+    self.SetIcon (make_icon (wx.Image (name = MainWindow.ICON_PATH)))
     self.Maximize ( )
     
     self.__set_permissions ( )
     
     
-  def __start (self, event):
+  def __add (self, event):
     self.notebook.GetCurrentPage ( ).add_schedule ( )
     self.__set_permissions ( )
     
@@ -54,7 +55,12 @@ class MainWindow(wx.Frame):
     
   def __display (self, event):
     page = self.notebook.GetCurrentPage ( )
-    page.set_displayed (event.name)
+    page.set_displayed (self.notebook_toolbar.get_selected_choice ( ))
+    
+  def __start (self, event):
+    page = self.notebook.GetCurrentPage ( )
+    self.__display (event)
+    page.start_scheduling ( )
     
   def __set_permissions (self):
     page = self.notebook.GetCurrentPage ( )
@@ -72,12 +78,14 @@ class NotebookPageToolbar (wx.ToolBar):
     """  
     wx.ToolBar.__init__ (self, *args, **kwargs)
     
-    self.AddCheckLabelTool (wx.ID_EDIT, 'Prikaži število', wx.ArtProvider.GetBitmap (wx.ART_LIST_VIEW, wx.ART_TOOLBAR), shortHelp='Prikaži število zaposlenih v turnusu.')
+    self.AddCheckLabelTool (wx.ID_EDIT,  'Prikaži število',     wx.ArtProvider.GetBitmap (wx.ART_LIST_VIEW,       wx.ART_TOOLBAR), shortHelp='Prikaži število zaposlenih v turnusu.')
+    self.AddLabelTool      (wx.ID_RESET, 'Zaženi razporejanje', wx.ArtProvider.GetBitmap (wx.ART_EXECUTABLE_FILE, wx.ART_TOOLBAR), shortHelp='Zaženi razporejanje')
     self.AddSeparator ( )
     self.AddControl (wx.Choice (self, wx.ID_VIEW_LIST))
     
     self.Bind (wx.EVT_TOOL,   self.__toggle, id = wx.ID_EDIT)
     self.Bind (wx.EVT_CHOICE, self.__choice, id = wx.ID_VIEW_LIST)
+    self.Bind(wx.EVT_TOOL,    self.__start,  id = wx.ID_RESET)
     
     self.Realize ( )
     
@@ -87,6 +95,14 @@ class NotebookPageToolbar (wx.ToolBar):
       @param toggle: a boolean that defines the toggle state.
     """
     self.ToggleTool (wx.ID_EDIT, toggle)
+    
+  def get_selected_choice (self):
+    """
+    Returns the selected choice.
+      @return: a string
+    """
+    wx_choice = self.FindControl (wx.ID_VIEW_LIST)
+    return wx_choice.GetStringSelection ( )
     
   def set_choices (self, choices, selected=None):
     """
@@ -111,5 +127,11 @@ class NotebookPageToolbar (wx.ToolBar):
     """
     Event listener for the choice menu.
     """
-    wx.PostEvent (self.GetEventHandler ( ), custom_events.SearchEvent (self.GetId ( ), name=event.GetString ( )))
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.SearchEvent (self.GetId ( )))
+    
+  def __start (self, event):
+    """
+    Event listener for the start / run button.
+    """
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.StartEvent (self.GetId ( )))
     

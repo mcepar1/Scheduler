@@ -58,6 +58,15 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     self.Layout ( )
     self.ScrollChildIntoView (self.results[-1])
     
+  def start_scheduling (self):
+    """
+    Starts to schedule the displayed schedule.
+    """
+    for result in self.results:
+      if result.IsShown ( ):
+        result.start ( )
+        break
+    
   def is_workers_shown (self):
     """
     Checks, if the workers panel is being displayed.

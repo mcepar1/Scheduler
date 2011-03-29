@@ -30,7 +30,7 @@ class SchedulerPanel(wx.Panel):
     self.shift_control       = ShiftControl (self.proxy.get_turnus_types ( ), self.proxy.get_workers ( ), self, wx.ID_ANY)
     
     self.Bind(custom_events.EVT_UPDATED, self.__pair_selected, self.workplace_role_pair)
-    self.Bind(wx.EVT_BUTTON, self.__start, self.start_button)
+    self.Bind(wx.EVT_BUTTON, self.__add, self.start_button)
     
     sizer = wx.GridBagSizer ( )
     sizer.Add (title,                    (0,0), (1,2), wx.ALIGN_CENTER)
@@ -47,11 +47,11 @@ class SchedulerPanel(wx.Panel):
     """
     self.shift_control.set_unit (self.workplace_role_pair.get_selection ( ))
     
-  def __start (self, event):
+  def __add (self, event):
     """
-    Starts the scheduling.
+    Add a new schedule.
     """
-    wx.PostEvent(self, custom_events.StartEvent (self.GetId ( ), proxy=self.proxy))
+    wx.PostEvent(self, custom_events.AddEvent (self.GetId ( ), proxy=self.proxy))
  
 """
 This class selects the handles the selection of number of nurses for the specific shift.

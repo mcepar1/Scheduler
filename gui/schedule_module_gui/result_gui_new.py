@@ -26,6 +26,7 @@ class Result(wx.Panel):
     wx.Panel.__init__(self, *args, **kwargs)
     
     self.scheduler      = Scheduler(self, proxy)
+    self.proxy          = proxy
     
     self.progress_panel = ProgressPanel (self, wx.ID_ANY, name='Status razvršèanja ...')
     self.grid           = wx.grid.Grid  (self, wx.ID_ANY)
@@ -51,10 +52,18 @@ class Result(wx.Panel):
     self.fill_grid ( )
     
   def start (self):
-    self.progress_panel.Show ( )
+    self.Freeze ( )
+    
     self.grid.Hide ( )
     self.warnings.Hide ( )
+    self.Layout ( )
+    self.progress_panel.Show ( )
+    self.Layout ( )
     
+    self.scheduler = Scheduler(self, self.proxy)
+    
+    self.Thaw ( )
+    self.Layout ( )
     self.scheduler.start ( )
     
     
@@ -147,6 +156,7 @@ class TreeWarnings(wx.TreeCtrl):
     
             
   def display_warnings (self, warnings):
+    self.DeleteAllItems ( )
     root = self.AddRoot("Koren")
     for workplace in sorted(warnings.keys()):
       w_item = self.AppendItem(root, str(workplace))
@@ -164,7 +174,7 @@ class ProgressPanel(wx.Panel):
   """
   This variable contains the pulse interval in milliseconds.
   """
-  TIMER_SPEED = 200
+  TIMER_SPEED = 500
   
   def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)
@@ -325,7 +335,7 @@ class Scheduler(Thread):
       raise Exception ('Razpored ne obstaja')
     
     
-  def __schedule(self, proxy):
+  def __schedule(self):
     """
     This method creates the scheduler and start's scheduling.
       @param proxy: the intermediate class between the data model and the scheduling model.
@@ -333,8 +343,7 @@ class Scheduler(Thread):
     
     self.running = True
     #try:
-    self.proxy     = proxy
-    self.scheduler = self.__initialize_scheduler (proxy)
+    self.scheduler = self.__initialize_scheduler (self.proxy)
     self.scheduler.schedule ( )
     #except Exception as e:
     #  self.send_message(message=str(e), running=False, error=True)
