@@ -5,6 +5,7 @@ This file contains functions, that are used throughout the scheduling process.
 """
 from utils import time_conversion, holiday, calendar_utils
 import weights
+import locations
 
 import random
 """
@@ -113,7 +114,12 @@ class Mapper:
   
   
   
-
+def remove_schedule (date):
+  """
+  Permanently deletes a schedule.
+    @param date: a datetime.date object. Day parameter is unimportant.
+  """
+  locations.delete_schedule (date)
 
 def goes_into_overtime (person, date, turnuses):
   """

@@ -3,7 +3,7 @@
 """
 This file contains a class, that handles a month's schedule. 
 """
-import scheduler_gui
+import workers_gui
 import result_gui_new
 
 import wx.lib.scrolledpanel
@@ -25,7 +25,7 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     self.results        = []
     self.number_results = 0
 
-    self.workers = scheduler_gui.SchedulerPanel (self.proxy, self, wx.ID_NEW)
+    self.workers = workers_gui.WorkersPanel (self.proxy, self, wx.ID_NEW)
     
     workers_sizer = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, ''), wx.VERTICAL)
     workers_sizer.Add (self.workers, 1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
@@ -38,6 +38,7 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     self.SetSizerAndFit (sizer)
     
     self.add_schedule ( )
+    self.synchronize_workers ( )
     
     self.SetupScrolling ( )
     
@@ -81,6 +82,46 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     self.workers.Show (show)
     self.Layout ( )
     
+  def toggle_view (self, compact):
+    """
+    Sets the type of the view, that will be displayed.
+      @param compact: a boolean that defines the view. Compact view if True, full view if False.
+    """
+    self.__get_displayed ( ).toggle_view (compact)
+    
+  def is_compact (self):
+    """
+    Checks, if this container is set to the compact view mode.
+      @return: True, if it compact, False otherwise.
+    """
+    return self.__get_displayed ( ).is_compact ( )
+  
+  def set_span (self, full):
+    """
+    Sets the date range of the view. Span can be set to full (the neighbouring months) or normal (only the
+    main scheduling month).
+      @param full: a boolean that sets the span. True if full span, False otherwise. 
+    """
+    self.__get_displayed ( ).set_span (full)
+    
+  def is_full_span (self):
+    """
+    Checks, if this container is set to the full span view mode.
+      @return: True, if it is full, False otherwise.
+    """
+    return self.__get_displayed ( ).is_full_span ( )
+    
+  def synchronize_workers (self):
+    """
+    Returns the displayed result's proxy object.
+      @return: a proxy object
+    """
+    result = self.__get_displayed ( )
+    if result:
+      self.workers.rebuild (result.get_proxy ( ))
+      self.toggle_workers (True)
+    
+    
   def get_results (self):
     """
     Returns a list of result names.
@@ -96,9 +137,9 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     Returns the name of the displayed result.
       @return: a string
     """
-    for result in self.results:
-      if result.IsShown ( ):
-        return result.GetLabel ( )
+    result = self.__get_displayed ( )
+    if result:
+      return result.GetLabel ( )
     return ''
   
   def set_displayed (self, name):
@@ -113,6 +154,23 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
         self.result_sizer.GetStaticBox ( ).SetLabel (result.GetLabel ( ))
       else:
         result.Hide ( )
+        
     self.Layout ( )
+    self.synchronize_workers ( )
     self.Thaw ( )
+    
+  def save (self):
+    """
+    Saves the displayed result.
+    """
+    self.__get_displayed ( ).save ( )
+        
+  def __get_displayed (self):
+    """
+    Returns the displayed result, None if no result is displayed.
+    """
+    for result in self.results:
+      if result.IsShown ( ):
+        return result
+    return None
     

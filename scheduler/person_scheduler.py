@@ -4,7 +4,7 @@
 This files contains logic for coordinating the scheduling process.
 """
 from utils import time_conversion
-from scheduler import schedule_utils, modules
+from scheduler import schedule_utils, modules, schedule_container
 
 import log
 
@@ -106,9 +106,17 @@ class PersonScheduler:
     self.__log = log
   
   
+  def get_result (self):
+    """
+    Returns the schedule's result.
+      @return: a schedule container object
+    """
+    return schedule_container.ScheduleContainer (self.get_date ( ), self.__mapper.get_all_people ( ))
+  
   def get_schedule_matrix (self):
     """
     Returns a matrix, that is close to what the final output might be.
+    """
     """
     dates = self.__workers.get_dates ( )
     scheduled = {}
@@ -131,6 +139,11 @@ class PersonScheduler:
       lines[-1].append(str(person.get_monthly_hours_difference(self.__date)))
       
     return lines
+    """
+    
+    import schedule_container
+    sc = schedule_container.ScheduleContainer (self.__mapper.get_all_people ( ))
+    return sc.as_table ( )
   
   def get_workplace_matrix(self):
     """

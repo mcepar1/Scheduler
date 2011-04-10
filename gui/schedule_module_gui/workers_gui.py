@@ -1,9 +1,9 @@
 # -*- coding: Cp1250 -*-
 
+import copy
+
 import wx
 import wx.calendar
-import wx.lib.buttons
-#import wx.lib.scrolledpanel
 
 from gui import custom_events, custom_widgets, wx_extensions
 
@@ -12,7 +12,7 @@ from scheduler.workers import Workers
 """
 The main panel for editing the scheduling data.
 """
-class SchedulerPanel(wx.Panel):
+class WorkersPanel (wx.Panel):
   def __init__(self, proxy, *args, **kwargs):
     """
     The default constructor.
@@ -20,26 +20,39 @@ class SchedulerPanel(wx.Panel):
     """
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.proxy               = proxy
-    bitmap = wx.ArtProvider ( ).GetBitmap(wx.ART_TICK_MARK, wx.ART_BUTTON)
+    self.proxy               = None
     
+    self.workplace_role_pair = None
+    self.shift_control       = None
+    
+    self.rebuild (proxy)
+    
+  def rebuild (self, proxy):
+    """
+    Reconstructs the entire panel.
+    """
+    self.Freeze ( )
+    self.proxy = proxy
+    
+    self.DestroyChildren ( )
     
     title                    = wx.StaticText (self, wx.ID_ANY, 'Število zaposlenih v turnusu')
     self.workplace_role_pair = custom_widgets.ScheduleUnitSelector (self.proxy.get_scheduling_units_container ( ), self, wx.ID_ANY)
-    self.start_button        = wx.lib.buttons.ThemedGenBitmapTextButton (self, wx.ID_ANY, bitmap, 'Zaženi')
     self.shift_control       = ShiftControl (self.proxy.get_turnus_types ( ), self.proxy.get_workers ( ), self, wx.ID_ANY)
     
     self.Bind(custom_events.EVT_UPDATED, self.__pair_selected, self.workplace_role_pair)
-    self.Bind(wx.EVT_BUTTON, self.__add, self.start_button)
     
     sizer = wx.GridBagSizer ( )
-    sizer.Add (title,                    (0,0), (1,2), wx.ALIGN_CENTER)
+    sizer.Add (title,                    (0,0), (1,3), wx.ALIGN_CENTER)
     sizer.Add (self.workplace_role_pair, (1,0), (1,1), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    sizer.Add (self.start_button,        (1,1), (1,1), wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.SHAPED)
-    sizer.Add (self.shift_control,       (2,0), (1,2), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.shift_control,       (1,1), (1,2), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     
     self.SetSizerAndFit (sizer)
+    
+    self.Thaw ( )
+    
+    
     
   def __pair_selected (self, event):
     """
@@ -47,11 +60,12 @@ class SchedulerPanel(wx.Panel):
     """
     self.shift_control.set_unit (self.workplace_role_pair.get_selection ( ))
     
-  def __add (self, event):
+  def get_workers (self):
     """
-    Add a new schedule.
-    """
-    wx.PostEvent(self, custom_events.AddEvent (self.GetId ( ), proxy=self.proxy))
+    Returns a copy of the proxy object.
+      @return: a proxy object
+    """    
+    return copy.deepcopy (self.proxy)
  
 """
 This class selects the handles the selection of number of nurses for the specific shift.
@@ -94,10 +108,11 @@ class ShiftControl (wx.Panel):
     
     sizer = wx.GridBagSizer ( )
     sizer.Add (self.work_days_selector, (0,0), (1,1), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    sizer.Add (self.holidays_selector,  (1,0), (1,1), wx.ALIGN_BOTTOM)
-    sizer.Add (self.date_specific,      (0,1), (2,1), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.holidays_selector,  (0,1), (1,1), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.date_specific,      (0,2), (1,1), wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
+    
     
   def set_unit(self, schedule_unit):
     """
@@ -153,10 +168,14 @@ class DateShiftControl(wx.Panel):
     self.Bind (custom_events.EVT_UPDATED, self.__edit_date, self.shift_selector)
     
     
-    sizer = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, self.GetLabel ( )), wx.VERTICAL)
-    sizer.Add (self.calendar,       0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    sizer.Add (self.enable_shifts,  0, wx.CENTER | wx.ALL, 5)
-    sizer.Add (self.shift_selector, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer     = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, self.GetLabel ( )), wx.HORIZONTAL)
+    sub_sizer = wx.BoxSizer       (wx.VERTICAL)
+    
+    sub_sizer.Add (self.shift_selector, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sub_sizer.Add (self.enable_shifts,  0, wx.CENTER | wx.ALL, 5)
+    
+    sizer.Add (sub_sizer,     0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.calendar, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
     

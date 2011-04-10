@@ -43,7 +43,14 @@ class Nurse (nurse.Nurse):
     for date in dates:
       if date not in self.scheduled_turnus and date not in self.scheduled_scheduling_unit:
         self.scheduled_turnus[date] = ''
-        self.scheduled_scheduling_unit[date] = '' 
+        self.scheduled_scheduling_unit[date] = ''
+        
+  def get_dates (self):
+    """
+    Returns all the dates of this nurse.
+      @return: an list sorted list of dates.
+    """
+    return sorted (set (self.scheduled_scheduling_unit.keys ( )) | set (self.scheduled_turnus.keys ( )))
         
     
   def schedule_turnus (self, date, turnus, scheduling_unit):
@@ -328,6 +335,36 @@ class Nurse (nurse.Nurse):
           return (str(self.scheduled_turnus[date]), str(self.scheduled_scheduling_unit[date]), '')
       else:
         return (str(self.scheduled_turnus[date]), str(self.scheduled_scheduling_unit[date]), '')
+      
+  def get_schedule (self, dates):
+    """
+    Returns this nurses schedule, for the specified dates.
+      @param dates: a list of datetime.date object
+      @return: a list of @see: get_scheduled results, ordered in the same way as the dates parameter. 
+    """
+    schedule = []
+    for date in dates:
+      try:
+        sch = self.get_scheduled (date)
+        schedule.append (str (sch[0]) + '\n' + str (sch[1]))
+      except:
+        schedule.append (('\n'))
+    return schedule
+  
+  def get_schedule_compact (self, dates):
+    """
+    Returns this nurses compact schedule (only turnus and vacation code), for the specified dates.
+      @param dates: a list of datetime.date object
+      @return: a list of @see: get_scheduled results, ordered in the same way as the dates parameter.
+    """
+    schedule = []
+    for date in dates:
+      try:
+        schedule.append (self.get_turnus (date).code)
+      except:
+        schedule.append ('')
+    return schedule
+      
     
   def clear_date(self, date):
     """

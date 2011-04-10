@@ -4,9 +4,11 @@ import wx
 import wx.grid
 import wx.lib.newevent
 
+import schedule_grid
 from utils import time_conversion, exporter
 
 import os
+import copy
 from threading import Thread
 
 
@@ -17,7 +19,7 @@ from threading import Thread
 """
 This class represents the final view of the scheduled nurses.
 """
-class Result(wx.Panel):
+class Result (wx.Panel):
   def __init__(self, proxy, *args, **kwargs):
     """
     The default constructor.
@@ -26,15 +28,15 @@ class Result(wx.Panel):
     wx.Panel.__init__(self, *args, **kwargs)
     
     self.scheduler      = Scheduler(self, proxy)
-    self.proxy          = proxy
+    self.proxy          = copy.deepcopy (proxy)
+    self.compact        = None
+    self.full_span      = None
     
-    self.progress_panel = ProgressPanel (self, wx.ID_ANY, name='Status razvršèanja ...')
-    self.grid           = wx.grid.Grid  (self, wx.ID_ANY)
-    self.warnings       = WarningsPanel (self, wx.ID_ANY)
-    self.save_button    = wx.Button     (self, wx.ID_ANY, label='Shrani')
+    self.progress_panel = ProgressPanel               (self, wx.ID_ANY, name='Status razvršèanja ...')
+    self.grid           = schedule_grid.ScheduleGrid  (self, wx.ID_ANY)
+    self.warnings       = WarningsPanel               (self, wx.ID_ANY)
     
     self.Bind (EVT_SCHEDULE_MESSAGE, self.__message_recieved)
-    self.Bind (wx.EVT_BUTTON,        self.__save,           self.save_button)
     
     
     result_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -44,12 +46,14 @@ class Result(wx.Panel):
     main_sizer = wx.BoxSizer (wx.VERTICAL)
     main_sizer.Add (self.progress_panel, 0, wx.ALIGN_LEFT | wx.EXPAND)
     main_sizer.Add (result_sizer,        1, wx.ALIGN_LEFT | wx.EXPAND)
-    main_sizer.Add (self.save_button,    0, wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit(main_sizer)
     
     self.progress_panel.Hide ( )
-    self.fill_grid ( )
+    self.grid.set_unit (self.scheduler.get_result ( ))
+    
+    self.compact   = self.grid.is_compact ( )
+    self.full_span = self.grid.is_full_span ( )
     
   def start (self):
     self.Freeze ( )
@@ -66,25 +70,47 @@ class Result(wx.Panel):
     self.Layout ( )
     self.scheduler.start ( )
     
+  def get_proxy (self):
+    """
+    Returns this result's proxy object.
+      @return: a proxy object
+    """
+    return self.proxy
     
     
-  def fill_grid(self):
-    table = self.scheduler.get_result ( )
-    headers = table[0]
-    rows = table[1:]
+  def toggle_view (self, compact):
+    """
+    Sets the type of the view, that will be displayed.
+      @param compact: a boolean that defines the view. Compact view if True, full view if False.
+    """
+    self.grid.toggle_view (compact)
+    self.compact = self.grid.is_compact ( )
+    self.Layout ( )
     
-    self.grid.ClearGrid ( )
-    self.grid.SetTable (None)
-    self.grid.CreateGrid(len(rows), len(headers))
-      
-    for i in range(len(headers)):
-      self.grid.SetColLabelValue(i, headers[i])
-      
-    for i in range(len(rows)):
-      for j in range(len(rows[i])):
-        self.grid.SetCellValue(i, j, rows[i][j])
-        
-    self.grid.AutoSize()
+  def is_compact (self):
+    """
+    Checks, if this container is set to the compact view mode.
+      @return: True, if it compact, False otherwise.
+    """
+    return self.grid.is_compact ( )
+  
+  def set_span (self, full):
+    """
+    Sets the date range of the view. Span can be set to full (the neighbouring months) or normal (only the
+    main scheduling month).
+      @param full: a boolean that sets the span. True if full span, False otherwise. 
+    """
+    self.grid.set_span (full)
+    self.full_span = self.grid.is_full_span ( )
+    self.Layout ( )
+    
+  def is_full_span (self):
+    """
+    Checks, if this container is set to the full span view mode.
+      @return: True, if it is full, False otherwise.
+    """
+    return self.grid.is_full_span ( )
+  
     
   def __message_recieved(self, event):
     """
@@ -103,10 +129,13 @@ class Result(wx.Panel):
         self.__reconstruct()
         
   def __reconstruct(self):
-    self.fill_grid ( )
+    self.grid.set_unit (self.scheduler.get_result ( ))
     self.warnings.display_warnings (self.scheduler.get_warnings ( ))
     
     self.grid.Show ( )
+    self.grid.toggle_view (self.compact)
+    self.grid.set_span (self.full_span)
+    
     self.warnings.Show ( )
     self.progress_panel.Hide ( )
     
@@ -114,7 +143,7 @@ class Result(wx.Panel):
     self.Refresh ( )
     
         
-  def __save(self, event):
+  def save(self):
     """Saves the schedule"""
     dlg = wx.FileDialog(self, message="Shrani datoteko ...", defaultDir=os.path.expanduser("~"), defaultFile="razpored.csv", wildcard="CSV datoteka (*.csv)|*.csv", style=wx.SAVE | wx.FD_OVERWRITE_PROMPT)
     if dlg.ShowModal() == wx.ID_OK:
@@ -307,11 +336,11 @@ class Scheduler(Thread):
     wx.PostEvent(self.wx_parent, evt)
     
   def get_result(self):
-    """A wrapper around the Personget_schedule_matrix method."""
+    """A wrapper around the Person_scheduler.get_result method."""
     if self.scheduler:
-      return self.scheduler.get_schedule_matrix()
+      return self.scheduler.get_result ( )
     else:
-      return [[], []]
+      return None
   
   def get_workplace_result(self):
     """A wrapper around the Personget_workplace_matrix method."""

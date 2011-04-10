@@ -27,6 +27,15 @@ def get_month_name (month):
   """
   return __months[month - 1]
 
+def get_month_index (month):
+  """
+  Returns a 1 based index of the month.
+    @param month: the month's name (index)
+    @return: an integer
+  """
+  month = month[0].upper ( ) + month[1:].lower ( )
+  return __months.index (month)
+
 def get_py_month_name (date):
   """
   Returns the name of the month.

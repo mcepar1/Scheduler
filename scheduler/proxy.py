@@ -12,20 +12,22 @@ from utils import calendar_utils
 import os
 import cPickle as pickle
 
-def save (person_scheduler, overwrite=False):
+def save (proxy, schedule, overwrite=False):
   """
   Saves the person scheduler. It does not overwrite an existing scheduler, unless told to do so.
+    @param proxy: a proxy object
     @param person_scheduler: a person_scheduler object
     @param overwrite: a boolean. Default value is set to False.
     @return: True, if the save was successful, False otherwise. 
   """
+  save_object = Peristant(proxy, schedule)
   if overwrite:
-    pickle.dump (person_scheduler, file (locations.get_file_path (person_scheduler.get_date ( )), 'wb'))
+    pickle.dump (save_object, file (locations.get_file_path (proxy.get_date ( )), 'wb'))
     return True
-  elif not overwrite and os.path.exists (locations.get_file_path (person_scheduler.get_date ( ))):
+  elif not overwrite and os.path.exists (locations.get_file_path (proxy.get_date ( ))):
     return False
   else:
-    pickle.dump (person_scheduler, file (locations.get_file_path (person_scheduler.get_date ( )), 'wb'))
+    pickle.dump (save_object, file (locations.get_file_path (proxy.get_date ( )), 'wb'))
     return True
   
 def load (date):
@@ -45,7 +47,7 @@ def get_saved_schedules ( ):
     @return: a list 2-tuples. The first value is the month's name, the second value is the year.
   """
   schedules = []
-  for file in locations.FILES:
+  for file in locations.get_files ( ):
     month, year = file.split('.')[0].split ('_')
     schedules.append ((calendar_utils.get_month_name (int (month)), year))
   return schedules
@@ -71,6 +73,34 @@ def get_schedule_dates (date):
     this_month_dates.append (next_month_dates[0])
   
   return this_month_dates
+
+"""
+This is a class is used to save and load the scheduled data.
+"""
+class Peristant:
+  
+  def __init__ (self, proxy, schedule):
+    """
+    The default constructor.
+      @param proxy: a proxy object
+      @param schedule: the person scheduler
+    """
+    self.__proxy    = proxy
+    self.__schedule = schedule
+    
+  def get_proxy (self):
+    """
+    Returns the proxy object.
+      @return: a proxy object
+    """
+    return self.__proxy
+  
+  def get_schedule (self):
+    """
+    Returns the schedule object.
+      @return the schedule object
+    """
+    return self.__schedule
 
 """
 This class is a bridge between the data model, the GUI and the scheduling logic.
@@ -117,6 +147,7 @@ class DataToSchedule:
   
   def save (self, person_scheduler, overwrite):
     """
+    @deprecated: use the module's function
     Saves the target person scheduler.
       @param person_scheduler: a person scheduler object
       @param overwrite: a boolean, that defines if we are allowed to overwrite an existing file. If it set 
