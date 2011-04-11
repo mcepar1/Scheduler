@@ -47,8 +47,9 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.list.DeleteAllItems ( )
     self.list.DeleteAllColumns ( )
     
-    self.list.InsertColumn (0, "Mesec", wx.LIST_FORMAT_CENTER)
-    self.list.InsertColumn (1, "Leto",  wx.LIST_FORMAT_LEFT)
+    self.list.InsertColumn (0, "Mesec",         wx.LIST_FORMAT_CENTER)
+    self.list.InsertColumn (1, "Leto",          wx.LIST_FORMAT_LEFT)
+    self.list.InsertColumn (2, "Spremenejeno",  wx.LIST_FORMAT_LEFT)
     
     for vals in proxy.get_saved_schedules ( ):
       self.list.Append (vals)
@@ -73,8 +74,12 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
                    if set to False
     """
 
-    import global_vars
-    p = proxy.DataToSchedule (open, self.toolbar.get_date ( ), global_vars.get_nurses ( ), global_vars.get_scheduling_units ( ), global_vars.get_turnus_types ( ))
+    if open:
+      p = proxy.load (self.toolbar.get_date ( ))
+    else:
+      import global_vars
+      p = proxy.DataToSchedule (self.toolbar.get_date ( ), global_vars.get_nurses ( ), global_vars.get_scheduling_units ( ), global_vars.get_turnus_types ( ))
+    
     f = main_window.MainWindow  (p, self)
     f.Show ( )
     

@@ -17,13 +17,13 @@ def __date_to_filename (date):
 
 def get_files (dir=DATA_DIR):
   """
-  Returns a list of files.
-    @return: a list of files
+  Returns a list of file paths.
+    @return: a list of files paths
   """
   files = []
-  for file in os.listdir(os.path.join('persistence', 'scheduler', 'nurses')):
+  for file in os.listdir(dir):
     if str(file).endswith('dat'):
-      files.append(file)
+      files.append(os.path.join (dir, file))
   return files
 
 def delete_schedule (date):

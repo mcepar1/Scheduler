@@ -5,6 +5,7 @@ import wx.grid
 import wx.lib.newevent
 
 import schedule_grid
+from scheduler import proxy
 from utils import time_conversion, exporter
 
 import os
@@ -131,6 +132,7 @@ class Result (wx.Panel):
   def __reconstruct(self):
     self.grid.set_unit (self.scheduler.get_result ( ))
     self.warnings.display_warnings (self.scheduler.get_warnings ( ))
+    self.proxy.set_people (self.scheduler.get_result ( ))
     
     self.grid.Show ( )
     self.grid.toggle_view (self.compact)
@@ -359,7 +361,7 @@ class Scheduler(Thread):
   def save(self, overwrite=False):
     """A wrapper around the Person's save method"""
     if self.scheduler:
-      return self.proxy.save(self.scheduler, overwrite=overwrite)
+      return proxy.save(self.proxy, overwrite=overwrite)
     else:
       raise Exception ('Razpored ne obstaja')
     

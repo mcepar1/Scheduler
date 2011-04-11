@@ -317,6 +317,21 @@ class Nurse (nurse.Nurse):
         return None
     else:
       return None
+    
+  def overwrite (self, person, dates):
+    """
+    Overwrites this person schedule, with the given one's for the specified dates.
+      @param person: a schedule nurse object
+      @param dates: a list of datetime.date objects
+    """
+    self.add_dates (dates)
+    for date in dates:
+      try:
+        self.scheduled_turnus[date]          = person.scheduled_turnus[date]
+        self.scheduled_scheduling_unit[date] = person.scheduled_scheduling_unit[date]
+      except:
+        pass
+      
   
   def get_scheduled (self, date):
     """
