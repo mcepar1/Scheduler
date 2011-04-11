@@ -13,9 +13,10 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     wx.lib.scrolledpanel.ScrolledPanel.__init__(self, *args, **kwargs)
     
     
-    self.workplaces   = workplaces
-    self.roles        = roles
-    self.turnus_types = turnus_types
+    self.workplaces    = workplaces
+    self.roles         = roles
+    self.turnus_types  = turnus_types
+    self.search_values = []
     
     self.toolbar = SchedulersPageToolbar          (self, wx.NewId ( ), style = wx.TB_HORIZONTAL | wx.TB_FLAT | wx.TB_NODIVIDER)
     self.list    = wx_extensions.EnhancedListCtrl (self, wx.ID_ANY, style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_HRULES | wx.LC_SINGLE_SEL)
@@ -28,6 +29,7 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.Bind (custom_events.EVT_TB_OPEN,   self.__open,              self.toolbar)
     self.Bind (custom_events.EVT_TB_REMOVE, self.__remove,            self.toolbar)
     self.Bind (custom_events.EVT_UPDATED,   self.__select_schedule,   self.toolbar)
+    self.Bind (custom_events.EVT_TB_SEARCH, self.__search,            self.toolbar)
     
     
     list_sizer = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, 'Razporedi'), wx.VERTICAL)
@@ -51,20 +53,38 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.list.InsertColumn (1, "Leto",          wx.LIST_FORMAT_LEFT)
     self.list.InsertColumn (2, "Spremenejeno",  wx.LIST_FORMAT_LEFT)
     
+    # also filter
     for vals in proxy.get_saved_schedules ( ):
-      self.list.Append (vals)
+      if self.search_values:
+        for search in self.search_values:
+          for val in vals:
+            if val.lower ( ).startswith (search.lower ( )):
+              self.list.Append (vals)
+              break
+          else:
+            if vals[1].lower ( ).endswith (search.lower ( )):
+              self.list.Append (vals)
+      else:
+        self.list.Append (vals)
 
     self.list.SetColumnWidth (0, 80)
-    self.list.SetColumnWidth (1, wx.LIST_AUTOSIZE)
+    self.list.SetColumnWidth (1, 40)
+    self.list.SetColumnWidth (2, wx.LIST_AUTOSIZE)
     self.list.SetMinSize ((133,50))
     
     self.__select_schedule (None)
     self.toolbar.toggle_schedule_specific (self.list.GetFirstSelected ( ) != -1)
     
+    #if there is only one item, select it
+    if self.list.GetItemCount ( ) == 1:
+      self.list.Select (0)
+    
     # workaround a bug that does not expand the last column
+    self.Freeze ( )
     temp_size = self.GetSizeTuple ( )
     self.SetSize ((temp_size[0] + 1 , temp_size[1]))
     self.SetSize (temp_size)
+    self.Thaw ( )
   
   
   def __show (self, open):
@@ -105,6 +125,13 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
       schedule_utils.remove_schedule (self.toolbar.get_date ( ))
     dlg.Destroy ( )
     
+    self.__build_list ( )
+    
+  def __search (self, event):
+    """
+    Event listener for the toolbar search field.
+    """
+    self.search_values = self.toolbar.get_search_values ( )
     self.__build_list ( )
     
   def __schedule_selected (self, event):
@@ -173,21 +200,19 @@ class SchedulersPageToolbar (wx.ToolBar):
     self.Bind (wx.EVT_TOOL,                 self.__create,        id = SchedulersPageToolbar.CREATE)
     self.Bind (wx.EVT_TOOL,                 self.__open,          id = SchedulersPageToolbar.OPEN)
     self.Bind (wx.EVT_TOOL,                 self.__remove,        id = SchedulersPageToolbar.REMOVE)
-    #self.Bind(wx.EVT_TOOL, self.__save,   id = NotebookPageToolbar.SAVE)
-    #self.Bind(wx.EVT_TOOL, self.__reload, id = NotebookPageToolbar.RELOAD)
     
-    #self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.__clear_search, self.search)
-    #self.Bind(wx.EVT_TEXT, self.__search)
+    self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.__clear_search, self.search)
+    self.Bind(wx.EVT_TEXT, self.__search)
     
     # this hack enables clearing the search field with the escape key
-    #if wx.Platform in ['__WXGTK__', '__WXMSW__']:
-    #  for child in self.search.GetChildren():
-    #    if isinstance(child, wx.TextCtrl):
-    #      child.Bind(wx.EVT_KEY_UP, self.__key_pressed)
-    #      break
+    if wx.Platform in ['__WXGTK__', '__WXMSW__']:
+      for child in self.search.GetChildren():
+        if isinstance(child, wx.TextCtrl):
+          child.Bind(wx.EVT_KEY_UP, self.__key_pressed)
+          break
+    
     self.EnableTool (SchedulersPageToolbar.OPEN, False)
     self.EnableTool (SchedulersPageToolbar.REMOVE, False)
-    self.search.Disable ( )
     self.Realize ( )
     
   def toggle_schedule_specific (self, enable):
@@ -215,6 +240,13 @@ class SchedulersPageToolbar (wx.ToolBar):
       @return: a datetime.date object 
     """
     return self.year_month_choice.get_selected_date ( )
+  
+  def get_search_values (self):
+    """
+    Return a list of search strings.
+      return: a list of strings
+    """
+    return self.search.GetValue ( ).split( )
     
   def __create (self, event):
     """
@@ -240,6 +272,25 @@ class SchedulersPageToolbar (wx.ToolBar):
     """
     self.toggle_schedule_specific (False)
     wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
+    
+  def __search(self, event):
+    """
+    Fires the search event.
+    """
+    wx.PostEvent (self.GetEventHandler(), custom_events.SearchEvent(self.GetId()))
+    
+  def __clear_search (self, event):
+    """
+    Clears the search field and fires the search event.
+    """
+    self.search.Clear ( )
+    
+  def __key_pressed (self, event):
+    """
+    Listens for the escape key and clears the search key, if pressed.
+    """
+    if event.GetKeyCode ( ) == wx.WXK_ESCAPE:
+      self.__clear_search (None)
 
 """
 This class is a wrapper around the month and year drop-down widgets. Works similar as the  MonthYearSelector
