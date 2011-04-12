@@ -165,7 +165,7 @@ class PersonScheduler:
         people.append(person)
       
       for person in people:
-        person_schedule = [str(person)]
+        person_schedule = [person.get_academic_name ( )]
         for date in self.__workers.get_dates ( ):
             turnus = person.get_turnus(date, scheduling_unit)
             if turnus:

@@ -312,15 +312,15 @@ class EnhancedGrid (wx.grid.Grid):
     
     self.SetCellHighlightPenWidth(-1) # disables the selected cell's bold border
     self.EnableEditing(False)
-    self.__fill_grid()
+    self.__fill_grid ( )
     
-    self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.__grid_clicked)
-    self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.__grid_clicked)
+    self.Bind (wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.__grid_clicked)
+    self.Bind (wx.grid.EVT_GRID_CELL_LEFT_CLICK,  self.__grid_clicked)
     
   def Refresh (self):
     """Overrides the default function."""
     self.__fill_grid ( )
-    super(EnhancedGrid, self).Refresh ( )
+    super (EnhancedGrid, self).Refresh ( )
     
   def delete (self):
     """
@@ -425,7 +425,7 @@ class EnhancedGrid (wx.grid.Grid):
     self.ClearGrid( )
     self.SetTable(None)
       
-    table, self.index_map = self.container.as_table_filtered()
+    table, self.index_map = self.container.as_table_filtered ( )
     headers = table['header']
     rows = table['items']
     
@@ -450,13 +450,13 @@ class EnhancedGrid (wx.grid.Grid):
         self.SetColLabelValue(sort_state[0], lab + ' «')
         
     self.AutoSize ( )
-    self.GetParent( ).GetSizer().Layout()
+    self.GetParent( ).GetSizer ( ).Layout ( )
     
     
   def __select (self, col, row):
     if col >=-1:
       if row < 0:
-        self.ClearSelection()
+        self.ClearSelection ( )
       else:
         self.MakeCellVisible (row, 0)
         self.SelectRow(row)

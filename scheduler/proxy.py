@@ -287,6 +287,19 @@ class DataToSchedule:
       @return: a list of data objects
     """
     return self.turnus_types.get_all ( )
+  
+  def get_turnuses (self):
+    """
+    Returns a list of all turnuses in this proxy object.
+      @return: a list of data objects
+    """
+    turnuses = set ( )
+    for schedule_unit in self.schedule_units.get_all ( ):
+      turnuses |= set (schedule_unit.get_allowed_turnuses ( ))
+      for person in self.persons.get_all ( ):
+        turnuses |= set (person.get_allowed_turnuses (schedule_unit))
+    return sorted (turnuses)
+        
     
   def get_scheduler (self):
     """

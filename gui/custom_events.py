@@ -12,6 +12,11 @@ This event should be fired only, when an internal value has changed.
 UpdateEvent, EVT_UPDATED = wx.lib.newevent.NewCommandEvent ( )
 
 """
+This event is used for handling grid selection with multiple columns and rows.
+"""
+ComplexSelectEvent, EVT_COMPLEX_SELECTED = wx.lib.newevent.NewCommandEvent ( )
+
+"""
 New events, for easier communication between the tool bar and it's parents.
 """
 AddEvent,    EVT_TB_ADD    = wx.lib.newevent.NewCommandEvent ( )

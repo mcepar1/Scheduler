@@ -58,7 +58,7 @@ class Nurse (nurse.Nurse):
     Schedules a new turnus.
       @param date: is the date of the turnus
       @param turnus: is the turnus
-      @param scheduling_unit: is the scheduling unit
+      @param scheduling_unit: is the scheduling unit. An empty string if none.
     """
     
     
@@ -331,7 +331,23 @@ class Nurse (nurse.Nurse):
         self.scheduled_scheduling_unit[date] = person.scheduled_scheduling_unit[date]
       except:
         pass
-      
+
+  def get_scheduled_raw (self, date):
+    """
+    Returns the scheduled object at the specified date.
+      @return: a 2-tuple:
+                the first index has the vacation/turnus
+                the second index has the schedule_unit
+                both may contain None, if no valid entry exsists
+    """
+    turnus        = self.scheduled_turnus[date]
+    schedule_unit = self.scheduled_scheduling_unit[date]
+    
+    if not (turnus and turnus != Nurse.FREE_DAY_SIGN):
+      turnus = None
+    if not schedule_unit:
+      schedule_unit = None
+    return (turnus, schedule_unit)
   
   def get_scheduled (self, date):
     """
@@ -370,13 +386,15 @@ class Nurse (nurse.Nurse):
     """
     Returns this nurses compact schedule (only turnus and vacation code), for the specified dates.
       @param dates: a list of datetime.date object
-      @return: a list of @see: get_scheduled results, ordered in the same way as the dates parameter.
+      @return: a list of @see: get_scheduled_results, ordered in the same way as the dates parameter.
     """
     schedule = []
     for date in dates:
-      try:
+      if self.get_turnus (date):
         schedule.append (self.get_turnus (date).code)
-      except:
+      elif self.__get_vacation (date):
+        schedule.append (self.__get_vacation (date).code)
+      else:
         schedule.append ('')
     return schedule
       
@@ -427,6 +445,18 @@ class Nurse (nurse.Nurse):
         self.forbidden_turnuses[date].remove (turnus)
         if not self.forbidden_turnuses[date]:
           del self.forbidden_turnuses[date]
+
+  def __get_vacation (self, date):
+    """
+    Returns the vacation at the selected date.
+      @param date: a datetime.date object
+      @return: a data object, None if there is no vacation at the specified date.
+    """
+    if isinstance(self.scheduled_turnus[date], vacation.Vacation):
+      return self.scheduled_turnus[date]
+    else:
+      return None
+    
 
   def __can_be_scheduled (self, date):
     """

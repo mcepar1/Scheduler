@@ -1,12 +1,14 @@
 # -*- coding: Cp1250 -*-
 
 import wx
-import wx.grid
 import wx.lib.newevent
+import wx.lib.agw.foldpanelbar as fpb
 
 import schedule_grid
+from data      import turnus, vacation
 from scheduler import proxy
-from utils import time_conversion, exporter
+from utils     import time_conversion, exporter
+from gui       import wx_extensions, custom_events, custom_widgets
 
 import os
 import copy
@@ -33,16 +35,19 @@ class Result (wx.Panel):
     self.compact        = None
     self.full_span      = None
     
-    self.progress_panel = ProgressPanel               (self, wx.ID_ANY, name='Status razvrščanja ...')
-    self.grid           = schedule_grid.ScheduleGrid  (self, wx.ID_ANY)
-    self.warnings       = WarningsPanel               (self, wx.ID_ANY)
+    self.progress_panel = ProgressPanel               (       self, wx.ID_ANY, name='Status razvrščanja ...')
+    self.grid           = schedule_grid.ScheduleGrid  (       self, wx.ID_ANY)
+    self.manual_edit    = ManualEditPanel             (proxy, self, wx.ID_ANY)
+    self.warnings       = WarningsPanel               (       self, wx.ID_ANY)
     
-    self.Bind (EVT_SCHEDULE_MESSAGE, self.__message_recieved)
-    
+    self.Bind (EVT_SCHEDULE_MESSAGE,               self.__message_recieved)
+    self.Bind (custom_events.EVT_COMPLEX_SELECTED, self.__selected, self.grid)
+    self.Bind (custom_events.EVT_UPDATED,          self.__edited,   self.manual_edit)
     
     result_sizer = wx.BoxSizer(wx.HORIZONTAL)
-    result_sizer.Add (self.grid,     4, wx.ALIGN_LEFT | wx.EXPAND | wx.LEFT, 4)
-    result_sizer.Add (self.warnings, 1, wx.ALIGN_LEFT | wx.EXPAND)
+    result_sizer.Add (self.manual_edit, 1, wx.ALIGN_LEFT | wx.EXPAND)
+    result_sizer.Add (self.grid,        4, wx.ALIGN_LEFT | wx.EXPAND | wx.LEFT, 4)
+    result_sizer.Add (self.warnings,    1, wx.ALIGN_LEFT | wx.EXPAND)
     
     main_sizer = wx.BoxSizer (wx.VERTICAL)
     main_sizer.Add (self.progress_panel, 0, wx.ALIGN_LEFT | wx.EXPAND)
@@ -87,6 +92,7 @@ class Result (wx.Panel):
     self.grid.toggle_view (compact)
     self.compact = self.grid.is_compact ( )
     self.Layout ( )
+    self.grid.select (self.manual_edit.get_people ( ), self.manual_edit.get_dates ( ))
     
   def is_compact (self):
     """
@@ -104,6 +110,7 @@ class Result (wx.Panel):
     self.grid.set_span (full)
     self.full_span = self.grid.is_full_span ( )
     self.Layout ( )
+    self.grid.select (self.manual_edit.get_people ( ), self.manual_edit.get_dates ( ))
     
   def is_full_span (self):
     """
@@ -118,16 +125,30 @@ class Result (wx.Panel):
     The event listener for thread synchronization.
     """
     if event.running:
-      self.progress_panel.update(event.message)
+      self.progress_panel.update (event.message)
     else:
       if event.error:
-        dlg = wx.MessageDialog(self, event.message, 'Napaka', wx.OK | wx.ICON_INFORMATION)
-        dlg.CenterOnScreen()
-        dlg.ShowModal()
-        dlg.Close()
-        self.Destroy()
+        dlg = wx.MessageDialog (self, event.message, 'Napaka', wx.OK | wx.ICON_INFORMATION)
+        dlg.CenterOnScreen ( )
+        dlg.ShowModal ( )
+        dlg.Close ( )
+        self.Destroy ( )
       else:
-        self.__reconstruct()
+        self.__reconstruct ( )
+        
+  def __selected (self, event):
+    """
+    The event listener for the grid selection.
+    """
+    self.manual_edit.set_unit ((event.people, event.dates))
+    
+  def __edited (self, event):
+    """
+    The event listener for manual editing.
+    """
+    self.grid.refresh ( )
+    self.Layout ( )
+    self.grid.select (self.manual_edit.get_people ( ), self.manual_edit.get_dates ( ))
         
   def __reconstruct(self):
     self.grid.set_unit (self.scheduler.get_result ( ))
@@ -163,9 +184,225 @@ class Result (wx.Panel):
           return
         
       # save the final *.csv file
-      exporter.exportCSV(self.scheduler.get_workplace_result(), path)
-    dlg.Destroy()
+      exporter.exportCSV (self.scheduler.get_workplace_result ( ), path)
+    dlg.Destroy ( )
+
+"""
+This class is the panel, that allows manula editing of an existing schedule.
+"""
+class ManualEditPanel (fpb.FoldPanelBar):
+  
+  def __init__ (self, proxy, *args, **kwargs):
+    """
+    The default constructor.
+      @param proxy: a proxy object
+    """
+    fpb.FoldPanelBar.__init__ (self, *args, **kwargs)
+    
+    self.proxy        = proxy
+    self.people       = None
+    self.dates        = None
+    self.selected_schedule_unit = None
+    
+    turnuses_item     = self.AddFoldPanel("Turnusi",  collapsed=True)
+    vacations_item    = self.AddFoldPanel("Dopusti",  collapsed=True)
+    restrictions_item = self.AddFoldPanel("Omejitve", collapsed=True)
+    
+    self.fold_panels  = [turnuses_item, vacations_item, restrictions_item]
+    
+    self.schedule_unit_selector = custom_widgets.ScheduleUnitSelector (self.proxy.get_scheduling_units_container ( ), turnuses_item, wx.ID_ANY)
+    self.AddFoldPanelWindow (turnuses_item, self.schedule_unit_selector, fpb.FPB_ALIGN_WIDTH)
+    
+    
+    
+    self.turnus_checkers    = []
+    self.vacations_checkers = []
+    
+    self.turnus_checkers.append (wx_extensions.LinkedCheckBox (None, turnuses_item, wx.ID_ANY, 'Brez', style=wx.CHK_3STATE))
+    self.AddFoldPanelWindow (turnuses_item, self.turnus_checkers[-1], fpb.FPB_ALIGN_LEFT)
+    for turnus in proxy.get_turnuses ( ):
+      self.turnus_checkers.append (wx_extensions.LinkedCheckBox (turnus, turnuses_item, wx.ID_ANY, str (turnus), style=wx.CHK_3STATE))
+      self.AddFoldPanelWindow (turnuses_item, self.turnus_checkers[-1], fpb.FPB_ALIGN_LEFT)
+    
+     
+    import global_vars
+    self.vacations_checkers.append (wx_extensions.LinkedCheckBox (None, vacations_item, wx.ID_ANY, 'Brez', style=wx.CHK_3STATE))
+    self.AddFoldPanelWindow (vacations_item, self.vacations_checkers[-1], fpb.FPB_ALIGN_LEFT)
+    for vacation in global_vars.get_vacations ( ).get_all ( ):
+      self.vacations_checkers.append (wx_extensions.LinkedCheckBox (vacation, vacations_item, wx.ID_ANY, str (vacation), style=wx.CHK_3STATE))
+      self.AddFoldPanelWindow(vacations_item, self.vacations_checkers[-1], fpb.FPB_ALIGN_LEFT)
+      
+    for i in range (50):
+      self.AddFoldPanelWindow (restrictions_item, wx.StaticText (restrictions_item, wx.ID_ANY, 'Test'+str(i)), fpb.FPB_ALIGN_LEFT)
+    
+    self.Bind (custom_events.EVT_UPDATED, self.__schedule_unit_selected, self.schedule_unit_selector)
+    
+    for turnus_checker in self.turnus_checkers:
+      self.Bind (wx.EVT_CHECKBOX, self.__turnus_checker_clicked, turnus_checker)
+    for vacation_checker in self.vacations_checkers:
+      self.Bind(wx.EVT_CHECKBOX, self.__vacation_checker_clicked, vacation_checker)
+    
+    self.__set_permissions ( )
+    self.Expand (turnuses_item)
+    
+  def set_unit (self, data):
+    """
+    Set's the panels data.
+      @param data: a 2-tuple:
+                    at the first index is a list of all people (data objects)
+                    at the second index is a list of all dates (datetime.date objects)
+    """
+    self.people = data[0]
+    self.dates  = data[1]
+    
+    self.__set_permissions ( )
+    
+  def get_people (self):
+    """
+    Returns the stored people.
+      @return: a list of data objects
+    """
+    return self.people
+    
+  def get_dates (self):
+    """
+    Returns the stored dates.
+      @return: a list of datetime.date objects
+    """
+    return self.dates
+    
+  def __schedule_unit_selected (self, event):
+    """
+    Event listener for the schedule unit selector.
+    """
+    self.selected_schedule_unit = self.schedule_unit_selector.get_selection ( )
+    self.__set_permissions ( )
+    
+  def __turnus_checker_clicked (self, event):
+    """
+    Event listener for the turnus checkboxes.
+    """
+    for person in self.people:
+      for date in self.dates:
+        if event.IsChecked ( ) and event.GetEventObject ( ).element:
+          person.clear_date (date)
+          person.schedule_turnus (date, event.GetEventObject ( ).element, self.selected_schedule_unit)
+        elif event.IsChecked ( ) and not event.GetEventObject ( ).element:
+          person.clear_date (date)
+        elif person.get_scheduled_raw (date)[0] == event.GetEventObject ( ).element:
+          person.clear_date (date)
+    
+    self.__set_permissions ( )
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
+  
+  def __vacation_checker_clicked (self, event):
+    """
+    Event listener for the vacation checkboxes.
+    """
+    for person in self.people:
+      for date in self.dates:
+        if event.IsChecked ( ) and event.GetEventObject ( ).element:
+          person.clear_date (date)
+          person.schedule_turnus (date, event.GetEventObject ( ).element, '')
+        elif event.IsChecked ( ) and not event.GetEventObject ( ).element:
+          person.clear_date (date)
+        elif person.get_scheduled_raw (date)[0] == event.GetEventObject ( ).element:
+          person.clear_date (date)
+    
+    self.__set_permissions ( )
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
+    
+  def __set_permissions (self):
+    """
+    Keeps the GUI in sync with the data.
+    """
+    if self.people and self.dates:
+      #schedule_units = self.__get_schedule_units ( )
+      turnuses       = self.__get_turnuses ( )
+      vacations      = self.__get_vacations ( )
+      mix            = self.__get_turnuses_or_vacations ( )
+      
+      self.schedule_unit_selector.Enable ( )
+      #if len (schedule_units) == 1:
+      #  self.schedule_unit_selector.set_selection (schedule_units.pop ( ))
+      #else:
+      #  self.schedule_unit_selector.set_selection (None)
+      self.selected_schedule_unit = self.schedule_unit_selector.get_selection ( )
+      
+      
+      for turnus_checker in self.turnus_checkers:
+        if self.selected_schedule_unit:
+          turnus_checker.Enable ( )
+        else:
+          turnus_checker.Disable ( )
+        if turnus_checker.element in turnuses and len (mix) == 1:
+          turnus_checker.SetValue (True)
+        elif turnus_checker.element in turnuses:
+          turnus_checker.Set3StateValue (wx.CHK_UNDETERMINED)
+        else:
+          turnus_checker.SetValue (False)
         
+      for vacation_checker in self.vacations_checkers:
+        vacation_checker.Enable ( )
+        if vacation_checker.element in vacations and len (mix) == 1:
+          vacation_checker.SetValue (True)
+        elif vacation_checker.element in vacations:
+          vacation_checker.Set3StateValue (wx.CHK_UNDETERMINED)
+        else:
+          vacation_checker.SetValue (False)
+    else:
+      self.schedule_unit_selector.Disable ( )
+      for turnus_checker in self.turnus_checkers:
+        turnus_checker.SetValue (False)
+        turnus_checker.Disable ( )
+      for vacation_checker in self.vacations_checkers:
+        vacation_checker.SetValue (False)
+        vacation_checker.Disable ( )
+
+  def __get_schedule_units (self):
+    """
+    Returns all schedule units.
+      @return: a set of data objects
+    """
+    elements = set ( )
+    for person in self.people:
+      for date in self.dates:
+        elements.add (person.get_scheduled_raw (date)[1])
+    return elements
+
+  def __get_turnuses (self):
+    """
+    Returns all turnuses.
+      @return: a set of data objects
+    """
+    turnuses = set ( )
+    for object in self.__get_turnuses_or_vacations ( ):
+      if isinstance (object, turnus.Turnus) or object == None:
+        turnuses.add (object)
+    return turnuses
+  
+  def __get_vacations (self):
+    """
+    Returns all vacations.
+      @return: a set of data objects
+    """
+    vacations = set ( )
+    for object in self.__get_turnuses_or_vacations ( ):
+      if isinstance (object, vacation.Vacation) or object == None:
+        vacations.add (object)
+    return vacations
+        
+  def __get_turnuses_or_vacations (self):
+    """
+    Returns all the turnuses and vacations.
+      @return: a set of data objects
+    """
+    elements = set ( )
+    for person in self.people:
+      for date in self.dates:
+        elements.add (person.get_scheduled_raw (date)[0])
+    return elements
+
 class WarningsPanel(wx.Panel):
   def __init__(self, *args, **kwargs):
     wx.Panel.__init__(self, *args, **kwargs)

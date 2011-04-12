@@ -6,6 +6,8 @@ This file contains a wxGrid, specialized for displaying the schedule.
 
 import wx.grid
 
+from gui import custom_events
+
 """
 This class is the grid.
 """
@@ -18,6 +20,12 @@ class ScheduleGrid (wx.grid.Grid):
     wx.grid.Grid.__init__ (self, *args, **kwargs)
     
     self.container = None
+    
+    self.SetCellHighlightPenWidth(-1) # disables the selected cell's bold border
+    self.EnableEditing (False)
+    
+    self.Bind (wx.grid.EVT_GRID_RANGE_SELECT, self.__range_selected)
+    self.Bind (wx.grid.EVT_GRID_SELECT_CELL,  self.__cell_selected)
     
   def AutoSize (self):
     """
@@ -34,6 +42,46 @@ class ScheduleGrid (wx.grid.Grid):
     """
     self.container = container
     self.__set_permissions ( )
+    
+  def select (self, people, dates):
+    """
+    Selects the matching area of the grid.
+      @param people: a list of data objects
+      @param dates: a list of datetime.date object
+    """
+    if people and dates:
+      top    = self.GetNumberRows ( ) + 1
+      bottom = -1
+      
+      left   = self.GetNumberCols ( ) + 1
+      right  = -1
+      
+      #get top and bottom index
+      for i, person in enumerate (self.container.get_filtered ( )):
+        if person in people:
+          if i < top:
+            top = i
+          if i > bottom:
+            bottom = i 
+            
+      #get the left and right index
+      for i, date in enumerate (self.container.get_dates (range (self.GetNumberCols ( ) - 1))):
+        if date in dates:
+          if i < left:
+            left = i
+          if i > right:
+            right = i
+      
+      if top < self.GetNumberRows ( ) and bottom > -1 and left < self.GetNumberCols ( ) and right > -1:    
+        self.SelectBlock (top, left, bottom, right)
+        self.MakeCellVisible (top, right)
+    
+  def refresh (self):
+    """
+    Redraws the grid.
+    """    
+    self.__set_permissions ( )
+    
     
   def toggle_view (self, compact):
     """
@@ -99,9 +147,31 @@ class ScheduleGrid (wx.grid.Grid):
     for i in range(len(rows)):
       for j in range(0, len(rows[i])):
         self.SetCellValue(i, j, rows[i][j])
-        self.SetReadOnly (i, j)
         
     self.AutoSize ( )
+    
+  def __cell_selected (self, event):
+    """
+    Event listener for a single cell selection.
+    """
+    if event.Selecting ( ):
+      self.SelectBlock (event.GetRow ( ), event.GetCol ( ), event.GetRow ( ), event.GetCol ( ))
+      
+      dates  = self.container.get_dates  ([event.GetCol ( )])
+      people = self.container.get_people ([event.GetRow ( )])
+      wx.PostEvent (self.GetEventHandler ( ), custom_events.ComplexSelectEvent (self.GetId ( ), dates=dates, people=people))
+    
+    event.Skip ( )
+    
+  def __range_selected (self, event):
+    """
+    Event listener for the multiple selection.
+    """
+    if event.Selecting ( ):
+      dates  = self.container.get_dates  (range (event.GetTopLeftCoords ( )[1], event.GetBottomRightCoords ( )[1] + 1))
+      people = self.container.get_people (range (event.GetTopLeftCoords ( )[0], event.GetBottomRightCoords ( )[0] + 1))
+      wx.PostEvent (self.GetEventHandler ( ), custom_events.ComplexSelectEvent (self.GetId ( ), dates=dates, people=people))
+    event.Skip ( )
     
   def __autosize_labels(self):
     """
@@ -131,4 +201,5 @@ class ScheduleGrid (wx.grid.Grid):
                     maxHeight = curHeight
             curCol = curCol - 1
     self.SetColLabelSize (maxHeight)
+    
     

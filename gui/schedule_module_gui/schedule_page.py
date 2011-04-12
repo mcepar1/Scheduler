@@ -3,8 +3,9 @@
 """
 This file contains a class, that handles a month's schedule. 
 """
+import result_gui
 import workers_gui
-import result_gui_new
+
 
 import wx.lib.scrolledpanel
 
@@ -50,7 +51,7 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     self.number_results += 1
     
     
-    self.results.append (result_gui_new.Result (self.proxy, self, wx.ID_ANY, name='Rezultat ' + str (self.number_results)))
+    self.results.append (result_gui.Result (self.proxy, self, wx.ID_ANY, name='Rezultat ' + str (self.number_results)))
     self.result_sizer.Add (self.results[-1], 1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.set_displayed (self.results[-1].GetLabel ( ))

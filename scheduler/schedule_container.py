@@ -100,6 +100,30 @@ class ScheduleContainer (general.DataContainer):
    
     return table
   
+  def get_people (self, indexes):
+    """
+    Returns a list of people at the specified indexes.
+      @param indexes: a list of integers
+      @return: a list schedule persons
+    """
+    people = []
+    for i, person in enumerate (self.get_filtered ( )):
+      if i in indexes:
+        people.append (person)
+    return people
+  
+  def get_dates (self, indexes):
+    """
+    Returns a list of date at the specified indexes.
+      @param indexes: a list of integers
+      @return: a list of dates
+    """
+    dates = []
+    for i, date in enumerate (self.__get_dates ( )):
+      if i in indexes:
+        dates.append (date)
+    return dates
+  
   def __get_overtime (self):
     """
     Returns the overtime value for each person.

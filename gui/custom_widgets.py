@@ -35,22 +35,6 @@ class ScheduleUnitSelector(wx.Panel):
     sizer.Add (self.role_selector,      0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     self.SetSizerAndFit (sizer)
     
-    
-  def __synchronize_workplace (self, event):
-    """
-    Keeps the role elements in sync with the selected workplace and continues the event propagation.
-    """
-    workplace = self.workplace_selector.get_selected ( )
-    self.role_selector.set_selectable (self.scheduling_units.get_roles (workplace))
-      
-    wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
-    
-  def __synchronize_role (self, event):
-    """
-    Propagates the event.
-    """
-    wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
-    
   def get_selection (self):
     """
     Returns the selected scheduling unit.
@@ -60,6 +44,39 @@ class ScheduleUnitSelector(wx.Panel):
     role      = self.role_selector.get_selected ( )
     
     return self.scheduling_units.get_scheduling_unit (workplace, role)
+  
+  def set_selection (self, schedule_unit):
+    """
+    Selects the schedule unit.
+      @param schedule_unit: a data object
+    """    
+    if schedule_unit:
+      self.workplace_selector.select (schedule_unit.get_workplace ( ))
+      self.role_selector.select      (schedule_unit.get_role ( ))
+      #self.__synchronize_workplace   (None)
+    else:
+      self.workplace_selector.select    (None)
+      self.role_selector.select         (None)
+      #self.__synchronize_workplace      (None)
+    
+    
+  def __synchronize_workplace (self, event):
+    """
+    Keeps the role elements in sync with the selected workplace and continues the event propagation.
+    """
+    workplace = self.workplace_selector.get_selected ( )
+    if workplace:
+      self.role_selector.set_selectable (self.scheduling_units.get_roles (workplace))
+    else:
+      self.role_selector.set_selectable ([])
+      
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
+    
+  def __synchronize_role (self, event):
+    """
+    Propagates the event.
+    """
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
 
 """
 This class behaves the same way as normal wxRadioBox.
@@ -125,6 +142,18 @@ class CustomRadioBox (wx.Panel):
           radio_button.SetValue (True)
           self.__selected (None)
           break
+        
+  def select (self, element):
+    """
+    Selects the element.
+      @param element: an object
+    """
+    for i, radio_box in enumerate (self.radio_buttons):
+      if self.elements[i] == element:
+        radio_box.SetValue (True)
+      else:
+        radio_box.SetValue (False)
+      
     
     
   def get_selected (self):
