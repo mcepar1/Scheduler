@@ -18,6 +18,9 @@ class SchedulingUnit (general.DataClass):
     self.workplace = workplace
     self.role      = role
     
+    #A RGB color. Needed for coloring the background in the schedule output.
+    self.__color     = (255, 255, 255)
+    
     # if the turnus is located in the set, the workplace allows that turnus
     self.allowed_turnuses = set ()
     
@@ -129,6 +132,20 @@ class SchedulingUnit (general.DataClass):
       @return: True if it has, False otherwise
     """
     return self.get_workplace ( ).has_holiday_rule ( )
+  
+  def get_color (self):
+    """
+    Returns the scheduling unit's color.
+      @return: a RGB tuple (3-tuple)
+    """
+    return self.__color
+  
+  def set_color (self, color):
+    """
+    Sets the scheduling unit's color.
+      @param color: a RGB tuple (3-tuple)
+    """
+    self.__color = color
   
   def __str__ (self):
     return str (self.workplace) + ' - ' + str (self.role)
