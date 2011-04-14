@@ -64,10 +64,14 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     """
     Starts to schedule the displayed schedule.
     """
+    self.Freeze ( )
+    
     for result in self.results:
       if result.IsShown ( ):
         result.start ( )
         break
+      
+    self.Thaw ( )
     
   def is_workers_shown (self):
     """
@@ -121,7 +125,6 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     if result:
       self.workers.rebuild (result.get_proxy ( ))
       self.toggle_workers (True)
-    
     
   def get_results (self):
     """

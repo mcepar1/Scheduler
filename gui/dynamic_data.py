@@ -4,9 +4,9 @@ This file contains classes for editing the object's dynamic data.
 """
 import wx
 import wx_extensions
-import wx.lib.intctrl
-import wx.lib.expando
 import wx.lib.ticker
+import wx.lib.intctrl
+import wx.lib.colourselect
 
 import custom_events, custom_widgets
 
@@ -113,12 +113,21 @@ class EditSchedilungUnitPanel (wx.Panel):
     
     self.scheduling_unit = None
     
-    self.turnus_checkers = CheckerPanel     (global_vars.get_turnuses ( ), SchedulingUnit.is_allowed_turnus, SchedulingUnit.add_allowed_turnus, SchedulingUnit.remove_allowed_turnus, self, wx.ID_ANY, name='Dovoljeni turnusi')
-    self.comment_text    = EditCommentPanel (self, wx.ID_ANY)
+    self.turnus_checkers = CheckerPanel (global_vars.get_turnuses ( ), SchedulingUnit.is_allowed_turnus, SchedulingUnit.add_allowed_turnus, SchedulingUnit.remove_allowed_turnus, self, wx.ID_ANY, name='Dovoljeni turnusi')
+    self.color_chooser   = wx.lib.colourselect.ColourSelect (self, wx.ID_ANY)
+    self.comment_text    = EditCommentPanel                 (self, wx.ID_ANY)
+    
+    self.Bind (wx.lib.colourselect.EVT_COLOURSELECT, self.__color_selected, self.color_chooser)
+    
+    color_sizer = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, 'Barva ozadja'), wx.VERTICAL)
+    color_sizer.Add (self.color_chooser, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     sizer = wx.BoxSizer (wx.VERTICAL)
     sizer.Add (self.turnus_checkers, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (color_sizer,          0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     sizer.Add (self.comment_text,    0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    
+    self.__set_permissions ( )
     
     self.SetSizerAndFit (sizer)
     
@@ -131,6 +140,29 @@ class EditSchedilungUnitPanel (wx.Panel):
     
     self.turnus_checkers.set_unit (self.scheduling_unit)
     self.comment_text.set_unit (self.scheduling_unit)
+    
+    self.__set_permissions ( )
+    
+  def __set_permissions (self):
+    """
+    Keeps the GUI in sync with the data model.
+    """
+    if self.scheduling_unit:
+      self.color_chooser.Enable ( )
+      self.color_chooser.SetLabel ('Klikni za spremembo')
+      self.color_chooser.SetColour (self.scheduling_unit.get_color ( ))
+    else:
+      self.color_chooser.Disable ( )
+      self.color_chooser.SetLabel ('')
+      self.color_chooser.SetColour((255, 255, 255))
+      
+  def __color_selected (self, event):
+    """
+    Event listener for the color selector.
+    """
+    self.scheduling_unit.set_color (self.color_chooser.GetColour ( ))
+    self.__set_permissions ( )
+    
     
 """
 This class is responsible for editing employment type data.

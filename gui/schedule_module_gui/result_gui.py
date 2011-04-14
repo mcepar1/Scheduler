@@ -66,14 +66,14 @@ class Result (wx.Panel):
     
     self.grid.Hide ( )
     self.warnings.Hide ( )
-    self.Layout ( )
+    self.manual_edit.Hide ( )
     self.progress_panel.Show ( )
-    self.Layout ( )
     
     self.scheduler = Scheduler(self, self.proxy)
     
-    self.Thaw ( )
     self.Layout ( )
+    self.Thaw ( )
+    
     self.scheduler.start ( )
     
   def get_proxy (self):
@@ -151,6 +151,8 @@ class Result (wx.Panel):
     self.grid.select (self.manual_edit.get_people ( ), self.manual_edit.get_dates ( ))
         
   def __reconstruct(self):
+    self.Freeze ( )
+    
     self.grid.set_unit (self.scheduler.get_result ( ))
     self.warnings.display_warnings (self.scheduler.get_warnings ( ))
     self.proxy.set_people (self.scheduler.get_result ( ))
@@ -160,10 +162,14 @@ class Result (wx.Panel):
     self.grid.set_span (self.full_span)
     
     self.warnings.Show ( )
+    self.manual_edit.Show ( )
+    self.__edited (None)
+    
     self.progress_panel.Hide ( )
     
     self.Layout ( )
     self.Refresh ( )
+    self.Thaw ( )
     
         
   def save(self):

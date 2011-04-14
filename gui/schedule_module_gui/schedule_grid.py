@@ -136,7 +136,9 @@ class ScheduleGrid (wx.grid.Grid):
     self.ClearGrid ( )
     self.SetTable (None)
     self.CreateGrid (len (rows), len (headers))
-      
+    
+    self.__format ( )
+    
     for i in range (len (headers)):
       self.SetColLabelValue (i, headers[i])
       
@@ -149,6 +151,17 @@ class ScheduleGrid (wx.grid.Grid):
         self.SetCellValue(i, j, rows[i][j])
         
     self.AutoSize ( )
+    
+  def __format (self):
+    """
+    Formats the grid.
+    """
+    # sets the background colors
+    colors = self.container.get_colors ( )
+    for i in range (len (colors)):
+      for j in range (len (colors[i])):
+        self.SetCellBackgroundColour (i, j, colors[i][j])
+    
     
   def __cell_selected (self, event):
     """
@@ -173,7 +186,7 @@ class ScheduleGrid (wx.grid.Grid):
       wx.PostEvent (self.GetEventHandler ( ), custom_events.ComplexSelectEvent (self.GetId ( ), dates=dates, people=people))
     event.Skip ( )
     
-  def __autosize_labels(self):
+  def __autosize_labels (self):
     """
     This method sizes all the labels.
     """
@@ -201,5 +214,13 @@ class ScheduleGrid (wx.grid.Grid):
                     maxHeight = curHeight
             curCol = curCol - 1
     self.SetColLabelSize (maxHeight)
+    
+    # even the column width
+    width = 0
+    for i in range (self.GetNumberCols ( ) - 1):
+      if self.GetColSize (i) > width:
+        width = self.GetColSize (i)
+    for i in range (self.GetNumberCols ( ) - 1):
+      self.SetColSize (i, width)
     
     

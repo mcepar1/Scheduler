@@ -397,6 +397,20 @@ class Nurse (nurse.Nurse):
       else:
         schedule.append ('')
     return schedule
+  
+  def get_colors (self, dates):
+    """
+    Returns a list of scheduling units' background colors. The list of colors matches the dates parameter.
+    The default color is white (if there is no scheduling unit.
+      @return: a list of RGB tuples.
+    """
+    colors = []
+    for date in dates:
+      if self.scheduled_scheduling_unit[date]:
+        colors.append (self.scheduled_scheduling_unit[date].get_color ( ))
+      else:
+        colors.append ((255,255,255))
+    return colors
       
     
   def clear_date(self, date):

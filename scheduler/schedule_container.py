@@ -100,6 +100,20 @@ class ScheduleContainer (general.DataContainer):
    
     return table
   
+  def get_colors (self):
+    """
+    Returns a list of lists of colors.
+      @return: a double list. The inner list represent columns, the outer rows. Each item in the inner
+               list is a RGB tuple.
+    """
+    dates = self.__get_dates ( )
+    rows  = []
+    
+    for element in self.get_filtered ( ):
+      rows.append (element.get_colors (dates))
+      
+    return rows
+  
   def get_people (self, indexes):
     """
     Returns a list of people at the specified indexes.
