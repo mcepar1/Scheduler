@@ -22,6 +22,7 @@ class Turnus (general.DataClass):
       holiday: if true, the turnus can be scheduled on a holiday
       types: a list of turnus types, that this turnus belongs to
     """
+    general.DataClass.__init__ (self)
   
   
     self.code     = code

@@ -14,6 +14,7 @@ class Role (general.DataClass):
     This is the constructor.
       label: is the role's label
     """
+    general.DataClass.__init__ (self)
     
     self.label = label;
     

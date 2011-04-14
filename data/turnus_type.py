@@ -10,6 +10,11 @@ class TurnusType (general.DataClass):
   HEADERS = ["VRSTE TURNUSOV"]
   
   def __init__(self, label):
+    """
+    The default constructor.
+      @param label: a string
+    """
+    general.DataClass.__init__ (self)
     
     self.label = label
     

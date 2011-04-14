@@ -18,6 +18,7 @@ class Vacation (general.DataClass):
       label: is the label of the vacation (državni praznik, ...)
       duration: is the number of hours, as if the person was working
     """
+    general.DataClass.__init__ (self)
       
     self.code = code
     self.label = label

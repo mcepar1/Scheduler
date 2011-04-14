@@ -19,7 +19,8 @@ def get_simple_panel (container, parent):
   """
   Returns a panel without dynamic data and with text only static data.
   """
-  return __make_panel(container, parent)
+  from dynamic_data import EditCommentPanel
+  return __make_panel(container, parent, edit_panel=EditCommentPanel)
 
 def get_nurse_panel (container, parent):
   """
@@ -54,4 +55,5 @@ def get_vacation_panel (container, parent):
   """
   Return the vacation panel.
   """
-  return __make_panel(container, parent, static_panel=static_data.StaticVacationPanel)
+  from dynamic_data import EditCommentPanel
+  return __make_panel(container, parent, static_panel=static_data.StaticVacationPanel, edit_panel=EditCommentPanel)

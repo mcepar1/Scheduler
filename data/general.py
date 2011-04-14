@@ -9,6 +9,13 @@ from data import locations
 class DataClass:
   """ A generic class that defines some common methods, for all the subclasses. """
   
+  def __init__ (self, comment = ''):
+    """
+    The default constructor.
+      @param comment: a string description of this object
+    """
+    self.__comment = comment
+  
   def as_data_list(self):
     """
     Returns this object's attribute values in a list. 
@@ -22,6 +29,20 @@ class DataClass:
       return: same as as_data_list, only the attributes are now transformed into strings
     """
     raise Exception ('Not implemented')
+  
+  def get_comment (self):
+    """
+    Returns the comment.
+      @return: a string 
+    """
+    return self.__comment
+  
+  def set_comment (self, comment):
+    """
+    Sets the comment.
+      @param comment: a string
+    """
+    self.__comment = comment
   
   def synchronize_data(self, *args):
     """

@@ -30,14 +30,16 @@ class EditNursePanel(wx.Panel):
     
     self.header             = HeaderNursePanel       (self, wx.ID_ANY)
     self.title_selector     = TitlePanel             (global_vars.get_titles ( ), self, wx.ID_ANY)
-    self.turnus_permissions = TurnusPermissions (self, wx.ID_ANY)
+    self.turnus_permissions = TurnusPermissions      (self, wx.ID_ANY)
     self.special_properties = SpecialNurseProperties (self, wx.ID_ANY)
+    self.comment_text       = EditCommentPanel       (self, wx.ID_ANY)
     
     
     grid_sizer = wx.FlexGridSizer (cols=2)
     grid_sizer.Add (self.title_selector,     0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     grid_sizer.Add (self.turnus_permissions, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
-    grid_sizer.Add (self.special_properties, 0, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    grid_sizer.Add (self.special_properties, 1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
+    grid_sizer.Add (self.comment_text,       1, wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.EXPAND)
     
     
     sizer = wx.BoxSizer (wx.VERTICAL)
@@ -59,7 +61,8 @@ class EditNursePanel(wx.Panel):
     self.header.set_unit             (self.person)
     self.turnus_permissions.set_unit (self.person)
     self.title_selector.set_unit     (self.person)
-    self.special_properties.set_unit (self.person) 
+    self.special_properties.set_unit (self.person)
+    self.comment_text.set_unit       (self.person)
     
 
 """
@@ -77,10 +80,12 @@ class EditTurnusPanel (wx.Panel):
     
     self.turnus = None
     
-    self.turnus_type_checkers = CheckerPanel (global_vars.get_turnus_types ( ), Turnus.has_type, Turnus.add_type, Turnus.remove_type, self, wx.ID_ANY, name='Vrste turnusov')
+    self.turnus_type_checkers = CheckerPanel     (global_vars.get_turnus_types ( ), Turnus.has_type, Turnus.add_type, Turnus.remove_type, self, wx.ID_ANY, name='Vrste turnusov')
+    self.comment_text         = EditCommentPanel (self, wx.ID_ANY)
     
     sizer = wx.BoxSizer (wx.VERTICAL)
-    sizer.Add(self.turnus_type_checkers, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.turnus_type_checkers, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.comment_text,         0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
     
@@ -92,6 +97,7 @@ class EditTurnusPanel (wx.Panel):
     self.turnus = turnus
     
     self.turnus_type_checkers.set_unit (self.turnus)
+    self.comment_text.set_unit (self.turnus)
 
 """
 This class is responsible for editing the workplace data.
@@ -107,10 +113,12 @@ class EditSchedilungUnitPanel (wx.Panel):
     
     self.scheduling_unit = None
     
-    self.turnus_checkers = CheckerPanel (global_vars.get_turnuses ( ), SchedulingUnit.is_allowed_turnus, SchedulingUnit.add_allowed_turnus, SchedulingUnit.remove_allowed_turnus, self, wx.ID_ANY, name='Dovoljeni turnusi')
+    self.turnus_checkers = CheckerPanel     (global_vars.get_turnuses ( ), SchedulingUnit.is_allowed_turnus, SchedulingUnit.add_allowed_turnus, SchedulingUnit.remove_allowed_turnus, self, wx.ID_ANY, name='Dovoljeni turnusi')
+    self.comment_text    = EditCommentPanel (self, wx.ID_ANY)
     
     sizer = wx.BoxSizer (wx.VERTICAL)
     sizer.Add (self.turnus_checkers, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.comment_text,    0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (sizer)
     
@@ -120,7 +128,9 @@ class EditSchedilungUnitPanel (wx.Panel):
       @param scheduling_unit: a data object
     """
     self.scheduling_unit = scheduling_unit   
+    
     self.turnus_checkers.set_unit (self.scheduling_unit)
+    self.comment_text.set_unit (self.scheduling_unit)
     
 """
 This class is responsible for editing employment type data.
@@ -136,25 +146,21 @@ class EditEmploymentTypePanel (wx.Panel):
     self.employment_type = None
     
     self.monthly_hours = wx.lib.intctrl.IntCtrl (self, wx.ID_ANY)
-    self.comment_text  = wx.lib.expando.ExpandoTextCtrl (self, wx.ID_ANY)
+    self.comment_text  = EditCommentPanel (self, wx.ID_ANY)
     
     self.monthly_hours.SetMin (0)
     self.monthly_hours.SetLimited (True)
     
     self.Bind(wx.lib.intctrl.EVT_INT, self.__hours_changed, self.monthly_hours)
-    self.Bind(wx.EVT_TEXT, self.__commented, self.comment_text)
     
     
     sizer_hours   = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Število ur v mesecu'), wx.VERTICAL)
     sizer_hours.Add (self.monthly_hours, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
-    sizer_comment = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Komentar'), wx.VERTICAL)
-    sizer_comment.Add (self.comment_text, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    
     #wrap around another sizer, to keep the GUI consistent
     workaround_sizer = wx.BoxSizer (wx.VERTICAL)
-    workaround_sizer.Add (sizer_hours,   0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
-    workaround_sizer.Add (sizer_comment, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    workaround_sizer.Add (sizer_hours,       0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    workaround_sizer.Add (self.comment_text, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
     
     self.SetSizerAndFit (workaround_sizer)
     
@@ -164,6 +170,7 @@ class EditEmploymentTypePanel (wx.Panel):
       emplyoment_type: an employment type data object
     """
     self.employment_type = employment_type
+    self.comment_text.set_unit (employment_type)
     self.__set_permissions ( )
     
   def __hours_changed(self, event):
@@ -173,13 +180,6 @@ class EditEmploymentTypePanel (wx.Panel):
     if self.employment_type:
       self.employment_type.monthly_hours = self.monthly_hours.GetValue ( )
       self.__set_permissions ( )
-    
-  def __commented(self, event):
-    """
-    Event listener for the comment field.
-    """
-    if self.employment_type:
-      self.employment_type.comment = self.comment_text.GetValue ( )
     
   def __set_permissions(self):
     """Keeps the GUI in sync with the data"""
@@ -193,14 +193,61 @@ class EditEmploymentTypePanel (wx.Panel):
       self.monthly_hours.SetValue (self.employment_type.monthly_hours)
       self.Bind(wx.lib.intctrl.EVT_INT, self.__hours_changed, self.monthly_hours)
       
-      self.comment_text.SetValue (self.employment_type.comment)
-      
     else:
       self.monthly_hours.SetValue (0)
-      self.comment_text.SetValue ('')
       
       self.monthly_hours.Disable  ( )
       self.comment_text.Disable ( )
+
+"""
+A class that can only edit comments.
+"""    
+class EditCommentPanel (wx.Panel):
+  
+  def __init__ (self, *args, **kwargs):
+    """
+    The default constructor.
+    """
+    wx.Panel.__init__ (self, *args, **kwargs)
+    
+    self.data_object   = None
+    
+    self.comment_text  = wx.TextCtrl (self, wx.ID_ANY, style=wx.TE_MULTILINE)
+    
+    self.Bind(wx.EVT_TEXT, self.__commented, self.comment_text)
+    
+    sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Komentar'), wx.VERTICAL)
+    sizer.Add (self.comment_text, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    
+    self.comment_text.SetMinSize ((150, 100))
+    
+    self.SetSizerAndFit (sizer)
+    
+  def set_unit (self, data_object):
+    """
+    Sets the data_object, that will be edited.
+      @param data_object: a data object
+    """
+    self.data_object = data_object
+    self.__set_permissions ( )
+    
+  def __commented(self, event):
+    """
+    Event listener for the comment field.
+    """
+    if self.data_object:
+      self.data_object.set_comment (self.comment_text.GetValue ( ))
+    
+  def __set_permissions (self):
+    """
+    Keeps the GUI in sync with the data.
+    """
+    if self.data_object:
+      self.comment_text.Enable ( )
+      self.comment_text.SetValue (self.data_object.get_comment ( ))
+    else:
+      self.comment_text.Disable ( )
+      self.comment_text.SetValue ('Za urejanje izberite objekt iz tabele.')
    
 """
 This class contains two list boxes and is used to assert the nurse's titles.

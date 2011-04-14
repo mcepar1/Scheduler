@@ -23,6 +23,7 @@ class Nurse (general.DataClass):
       employment_type: is the employment type of the nurse
       workplaces: a sequence of workplaces, in which the nurse works
     """
+    general.DataClass.__init__ (self)
     
     self.work_id = work_id 
     self.name = name
@@ -36,7 +37,7 @@ class Nurse (general.DataClass):
       
     
     # tells if the night turnuses are scheduled in packages
-    self.packet_night_turnuses = False
+    self.packet_night_turnuses = True
     
     # tells if the nurse only works in weekedays and morning shifts
     self.week_morning = False

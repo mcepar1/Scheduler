@@ -13,6 +13,7 @@ class SchedulingUnit (general.DataClass):
       @param workplace: a data object
       @param role: a data object
     """
+    general.DataClass.__init__ (self)
     
     self.workplace = workplace
     self.role      = role

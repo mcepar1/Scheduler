@@ -18,15 +18,15 @@ class EmploymentType (general.DataClass):
       label: is the label of the employment type
       weekly_hours: is the minimum required work time per week
       has_overtime: true, if it allows overtime, false otherwise
-      comment: a string description of this employment type
+      comment: @see: general.DataClass
       allowed_turnuses: a list of turnuses, that a parson can have
       monthly_hours: is the minimum required work time per month
     """
+    general.DataClass.__init__ (self, comment)
     
     self.label = label
     self.weekly_hours    = weekly_hours
     self.__has_overtime  = has_overtime
-    self.comment         = comment
     self.monthly_hours   = monthly_hours
     
     self.allowed_turnuses = set(allowed_turnuses)

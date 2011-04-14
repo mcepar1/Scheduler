@@ -18,6 +18,7 @@ class Workplace (general.DataClass):
                     free day, then it must work the afternoon before (can violate
                     any other restriction)
     """
+    general.DataClass.__init__ (self)
     
     self.label = label
     self.holiday_rule = holiday_rule

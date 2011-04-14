@@ -10,6 +10,11 @@ class Title (general.DataClass):
   HEADERS = ["NAZIV"]
   
   def __init__(self, label):
+    """
+    The default constructor.
+      @param label: a string
+    """
+    general.DataClass.__init__ (self)
     
     self.label = label
     
