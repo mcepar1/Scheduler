@@ -30,15 +30,15 @@ class Result (wx.Panel):
     """
     wx.Panel.__init__(self, *args, **kwargs)
     
-    self.scheduler      = Scheduler(self, proxy)
     self.proxy          = copy.deepcopy (proxy)
+    self.scheduler      = Scheduler(self, self.proxy)
     self.compact        = None
     self.full_span      = None
     
-    self.progress_panel = ProgressPanel               (       self, wx.ID_ANY, name='Status razvršèanja ...')
-    self.grid           = schedule_grid.ScheduleGrid  (       self, wx.ID_ANY)
-    self.manual_edit    = ManualEditPanel             (proxy, self, wx.ID_ANY)
-    self.warnings       = WarningsPanel               (       self, wx.ID_ANY)
+    self.progress_panel = ProgressPanel               (            self, wx.ID_ANY, name='Status razvršèanja ...')
+    self.grid           = schedule_grid.ScheduleGrid  (            self, wx.ID_ANY)
+    self.manual_edit    = ManualEditPanel             (self.proxy, self, wx.ID_ANY)
+    self.warnings       = WarningsPanel               (            self, wx.ID_ANY)
     
     self.Bind (EVT_SCHEDULE_MESSAGE,               self.__message_recieved)
     self.Bind (custom_events.EVT_COMPLEX_SELECTED, self.__selected, self.grid)
