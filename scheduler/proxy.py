@@ -307,7 +307,7 @@ class DataToSchedule:
     Returns the scheduler object.
       @return: a person scheduler
     """
-    ps = person_scheduler.PersonScheduler(self.__get_persons ( ), 
+    ps = person_scheduler.PersonScheduler(self.persons.get_all ( ), 
                                           self.__get_scheduling_units ( ), 
                                           self.get_date ( ),
                                           self.get_workers ( ))

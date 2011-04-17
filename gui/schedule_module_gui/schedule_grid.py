@@ -148,7 +148,11 @@ class ScheduleGrid (wx.grid.Grid):
     #for i in range  
     for i in range(len(rows)):
       for j in range(0, len(rows[i])):
-        self.SetCellValue(i, j, rows[i][j])
+        self.SetCellValue (i, j, rows[i][j])
+        if self.is_compact ( ):
+          self.SetCellAlignment (i, j, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
+        else:
+          self.SetCellAlignment (i, j, wx.ALIGN_LEFT,   wx.ALIGN_CENTER)
         
     self.AutoSize ( )
     

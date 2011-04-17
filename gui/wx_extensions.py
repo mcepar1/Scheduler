@@ -316,6 +316,14 @@ class EnhancedGrid (wx.grid.Grid):
     
     self.Bind (wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.__grid_clicked)
     self.Bind (wx.grid.EVT_GRID_CELL_LEFT_CLICK,  self.__grid_clicked)
+  
+  def AutoSize (self):
+    """
+    Overrides the main method.
+    Adds a label sizing ability.
+    """
+    super (EnhancedGrid, self).AutoSize ( )
+    self.__autosize_labels ( )
     
   def Refresh (self):
     """Overrides the default function."""
@@ -437,6 +445,7 @@ class EnhancedGrid (wx.grid.Grid):
     for i in range(len(rows)):
       for j in range(len(rows[i])):
         self.SetCellValue(i, j, rows[i][j])
+        self.SetCellAlignment (i, j, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
         
     sort_state = self.container.get_sorting_state ( )
     if (sort_state[0] != None) and (sort_state[1] != None):
@@ -471,5 +480,42 @@ class EnhancedGrid (wx.grid.Grid):
       self.__sort(event.GetCol ( ))
     else:
       self.__select(event.GetCol ( ), event.GetRow ( ))
+      
+  def __autosize_labels (self):
+    """
+    This method sizes all the labels.
+    """
+    # Common setup.
+    devContext = wx.ScreenDC ( )
+    devContext.SetFont (self.GetLabelFont ( ))
+    
+    # First do row labels.
+    maxWidth = 0
+    curRow   = self.GetNumberRows() - 1
+    while curRow >= 0:
+            curWidth = devContext.GetTextExtent ("M%s"% (self.GetRowLabelValue (curRow)))[0]
+            if curWidth > maxWidth:
+                    maxWidth = curWidth
+            curRow = curRow - 1
+    self.SetRowLabelSize (maxWidth)
+    
+    # Then column labels.
+    maxHeight = 0
+    curCol    = self.GetNumberCols ( ) - 1
+    while curCol >= 0:
+            (_,h,d,l) = devContext.GetFullTextExtent (self.GetColLabelValue (curCol))
+            curHeight = h + d + l + 4
+            if curHeight > maxHeight:
+                    maxHeight = curHeight
+            curCol = curCol - 1
+    self.SetColLabelSize (maxHeight)
+    
+    # even the column width
+    width = 0
+    for i in range (self.GetNumberCols ( ) - 1):
+      if self.GetColSize (i) > width:
+        width = self.GetColSize (i)
+    for i in range (self.GetNumberCols ( ) - 1):
+      self.SetColSize (i, width)
       
     

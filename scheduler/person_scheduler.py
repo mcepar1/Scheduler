@@ -16,7 +16,7 @@ class PersonScheduler:
   """
   Contains the modules, that are used after the scheduling phase.
   """
-  CLEAN_UP = [modules.FillHours]#modules.WeekMorning, 
+  CLEAN_UP = [modules.WeekMorning, modules.FillHours] 
   
   """
   Contains the modules, that will be used in this scheduler.
@@ -111,7 +111,8 @@ class PersonScheduler:
     Returns the schedule's result.
       @return: a schedule container object
     """
-    return schedule_container.ScheduleContainer (self.get_date ( ), self.__mapper.get_all_people ( ))
+    people = sorted (self.__mapper.get_all_people ( ))
+    return schedule_container.ScheduleContainer (self.get_date ( ), people)
   
   
   def get_workplace_matrix(self):
