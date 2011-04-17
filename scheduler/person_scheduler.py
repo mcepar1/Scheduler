@@ -113,37 +113,6 @@ class PersonScheduler:
     """
     return schedule_container.ScheduleContainer (self.get_date ( ), self.__mapper.get_all_people ( ))
   
-  def get_schedule_matrix (self):
-    """
-    Returns a matrix, that is close to what the final output might be.
-    """
-    """
-    dates = self.__workers.get_dates ( )
-    scheduled = {}
-    
-    for person in self.__mapper.get_all_people ( ):
-      scheduled[person] = []
-      for date in dates:
-        temp = person.get_scheduled(date)
-        scheduled[person].append(temp[0] + '\n' + temp[1] + '\n' + temp[2])
-        
-    headers = ['Oseba']
-    for date in dates:
-      headers.append(time_conversion.date_to_string(date))
-    headers.append('Nadure')
-    lines = [headers]
-    for person in self.__mapper.get_all_people ( ):
-      lines.append([])
-      lines[-1].append(str(person))
-      lines[-1] += scheduled[person]
-      lines[-1].append(str(person.get_monthly_hours_difference(self.__date)))
-      
-    return lines
-    """
-    
-    import schedule_container
-    sc = schedule_container.ScheduleContainer (self.__mapper.get_all_people ( ))
-    return sc.as_table ( )
   
   def get_workplace_matrix(self):
     """
@@ -204,17 +173,3 @@ class PersonScheduler:
     
     return temp
   
-  def __getstate__ (self):
-    """
-    Do not save the log.
-    """
-    return (self.__date, self.__workers, self.__mapper)
-  
-  def __setstate__ (self, state):
-    """
-    Add a dummy log.
-    """
-    self.__date    = state[0]
-    self.__workers = state[1]
-    self.__mapper  = state[2]
-    self.__log     = log.DummyLog ( )

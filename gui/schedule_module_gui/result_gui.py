@@ -5,8 +5,8 @@ import wx.lib.newevent
 import wx.lib.agw.foldpanelbar as fpb
 
 import schedule_grid
-from data      import turnus, vacation
 from scheduler import proxy
+from data      import turnus, vacation
 from utils     import time_conversion, exporter
 from gui       import wx_extensions, custom_events, custom_widgets
 
@@ -31,7 +31,7 @@ class Result (wx.Panel):
     wx.Panel.__init__(self, *args, **kwargs)
     
     self.proxy          = copy.deepcopy (proxy)
-    self.scheduler      = Scheduler(self, self.proxy)
+    self.scheduler      = None
     self.compact        = None
     self.full_span      = None
     
@@ -56,7 +56,7 @@ class Result (wx.Panel):
     self.SetSizerAndFit(main_sizer)
     
     self.progress_panel.Hide ( )
-    self.grid.set_unit (self.scheduler.get_result ( ))
+    self.grid.set_unit (self.proxy.get_people_container ( ))
     
     self.compact   = self.grid.is_compact ( )
     self.full_span = self.grid.is_full_span ( )
@@ -153,9 +153,11 @@ class Result (wx.Panel):
   def __reconstruct(self):
     self.Freeze ( )
     
-    self.grid.set_unit (self.scheduler.get_result ( ))
-    self.warnings.display_warnings (self.scheduler.get_warnings ( ))
     self.proxy.set_people (self.scheduler.get_result ( ))
+    
+    self.grid.set_unit (self.proxy.get_people_container ( ))
+    self.warnings.display_warnings (self.scheduler.get_warnings ( ))
+    self.manual_edit.set_unit(([], []))
     
     self.grid.Show ( )
     self.grid.toggle_view (self.compact)
@@ -182,15 +184,15 @@ class Result (wx.Panel):
         path += '.csv'
       
       # save the internal schedule
-      if not self.scheduler.save():
+      if not proxy.save (self.proxy, overwrite = False):
         action = wx.MessageBox(parent=self, message='Za ta mesec ze obstaja shranjen razpored, ki se bo uporabil pri razvrcanju naslednjega meseca. Ali ga zelite prepisati?', style=wx.YES_NO | wx.ICON_EXCLAMATION)
         if action == wx.YES:
-          self.scheduler.save(overwrite=True)
+          proxy.save (self.proxy, overwrite = True)
         else:
           return
         
       # save the final *.csv file
-      exporter.exportCSV (self.scheduler.get_workplace_result ( ), path)
+      exporter.exportCSV (self.proxy.get_exportable ( ), path)
     dlg.Destroy ( )
 
 """
@@ -559,7 +561,7 @@ class Scheduler(Thread):
     self.__running = False
     self.__status  = None
     self.proxy     = proxy
-    self.scheduler = self.__initialize_scheduler (self.proxy)
+    self.scheduler = None
     
   def send_message(self, message=None, running=True, error=False):
     """
@@ -585,28 +587,21 @@ class Scheduler(Thread):
     if self.scheduler:
       return self.scheduler.get_result ( )
     else:
-      return None
+      None
   
   def get_workplace_result(self):
     """A wrapper around the Personget_workplace_matrix method."""
     if self.scheduler:
-      return self.scheduler.get_workplace_matrix ()
+      return self.scheduler.get_workplace_matrix ( )
     else:
       return {}
     
   def get_warnings(self):
     """A wrapper around the Personget_workplace_warnings function."""
     if self.scheduler:
-      return self.scheduler.get_workplace_warnings()
+      return self.scheduler.get_workplace_warnings ( )
     else:
       raise Exception('Razpored ne obstaja')
-    
-  def save(self, overwrite=False):
-    """A wrapper around the Person's save method"""
-    if self.scheduler:
-      return proxy.save(self.proxy, overwrite=overwrite)
-    else:
-      raise Exception ('Razpored ne obstaja')
     
     
   def __schedule(self):
@@ -616,11 +611,11 @@ class Scheduler(Thread):
     """
     
     self.running = True
-    #try:
+    
     self.scheduler = self.__initialize_scheduler (self.proxy)
     self.scheduler.schedule ( )
-    #except Exception as e:
-    #  self.send_message(message=str(e), running=False, error=True)
+    
+    self.proxy.set_people (self.scheduler.get_result ( ))
           
     self.send_message ('Razvrscevanje koncano.', running=False, error=False)
     self.running = False

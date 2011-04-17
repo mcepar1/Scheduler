@@ -3,10 +3,10 @@
 import wx
 import wx.lib.scrolledpanel
 
-from utils import calendar_utils
+from utils               import calendar_utils
 from schedule_module_gui import main_window
-from gui import custom_events, wx_extensions
-from scheduler import proxy, schedule_utils
+from gui                 import custom_events, wx_extensions
+from scheduler           import proxy, schedule_utils
 
 class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
   def __init__(self, workplaces, roles, turnus_types, *args, **kwargs):
@@ -25,8 +25,10 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     
     
     self.Bind (wx.EVT_LIST_ITEM_SELECTED,   self.__schedule_selected, self.list)
+    self.Bind (custom_events.EVT_TB_BLANK,  self.__blank,             self.toolbar)
     self.Bind (custom_events.EVT_TB_CREATE, self.__create,            self.toolbar)
     self.Bind (custom_events.EVT_TB_OPEN,   self.__open,              self.toolbar)
+    self.Bind (custom_events.EVT_TB_MERGE,  self.__merge,             self.toolbar)
     self.Bind (custom_events.EVT_TB_REMOVE, self.__remove,            self.toolbar)
     self.Bind (custom_events.EVT_UPDATED,   self.__select_schedule,   self.toolbar)
     self.Bind (custom_events.EVT_TB_SEARCH, self.__search,            self.toolbar)
@@ -87,33 +89,38 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.Thaw ( )
   
   
-  def __show (self, open):
+  def __show (self, type):
     """
     Creates and displays a schedule.
-      @param open: a boolean, that opens a schedule, if set to True, creates a new blank schedule, 
-                   if set to False
+      @param type: the type of the schedule creation @see: scheduler.proxy.create_proxy
     """
-
-    if open:
-      p = proxy.load (self.toolbar.get_date ( ))
-    else:
-      import global_vars
-      p = proxy.DataToSchedule (self.toolbar.get_date ( ), global_vars.get_nurses ( ), global_vars.get_scheduling_units ( ), global_vars.get_turnus_types ( ))
     
-    f = main_window.MainWindow  (p, self)
+    f = main_window.MainWindow  (proxy.create_proxy (self.toolbar.get_date ( ), type) , self)
     f.Show ( )
     
-  def __create (self, event):
+  def __blank (self, event):
     """
     Creates and displays a new blank schedule.
     """
-    self.__show (False)
+    self.__show (proxy.CREATE_BLANK)
+    
+  def __create (self, event):
+    """
+    Creates and displays a new blank schedule, but loads the neighbouring months.
+    """
+    self.__show (proxy.CREATE_NEW)
     
   def __open (self, event):
     """
-    Opens and displays an existing schedule.
+    Opens and displays an existing schedule. Exact replika of the saved one.
     """
-    self.__show (True)
+    self.__show (proxy.LOAD_EXACT)
+    
+  def __merge (self, event):
+    """
+    Open and displays an existing schedule. The non-date data is taken from the current data state.
+    """
+    self.__show (proxy.LOAD_MERGE)
     
   def __remove (self, event):
     """
@@ -166,8 +173,10 @@ This is a toolbar, that is displayed on the top of every Page.
 """
 class SchedulersPageToolbar (wx.ToolBar):
   
+  BLANK  = wx.NewId ( )
   CREATE = wx.NewId ( )
   OPEN   = wx.NewId ( )
+  MERGE  = wx.NewId ( )
   REMOVE = wx.NewId ( )
   
   def __init__ (self, *args, **kwargs):
@@ -178,13 +187,15 @@ class SchedulersPageToolbar (wx.ToolBar):
     
     self.year_month_choice = MonthYearWrapper (self)
     
-    self.AddLabelTool(SchedulersPageToolbar.CREATE, 'Nov razpored', wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR),       shortHelp='Ustvari nov razpored')
+    self.AddLabelTool(SchedulersPageToolbar.CREATE, 'Nov razpored', wx.ArtProvider.GetBitmap(wx.ART_NEW,          wx.ART_TOOLBAR),       shortHelp='Ustvari prazen razpored, z obsojeèima mejnima mesecema')
+    self.AddLabelTool(SchedulersPageToolbar.BLANK,  'Nov razpored', wx.ArtProvider.GetBitmap(wx.ART_ADD_BOOKMARK, wx.ART_TOOLBAR),       shortHelp='Ustvari prazen razpored, tudi mejna meseca sta prazna')
     self.AddControl(self.year_month_choice.get_month_control ( ))
     self.AddControl(self.year_month_choice.get_year_control ( ))
     self.AddSeparator ( )
     
-    self.AddLabelTool(SchedulersPageToolbar.OPEN,   'Odpri',        wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR), shortHelp='Odpri izbran razpored')
-    self.AddLabelTool(SchedulersPageToolbar.REMOVE, 'Izbriši',      wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_TOOLBAR),    shortHelp='Izbriši izbrano')
+    self.AddLabelTool(SchedulersPageToolbar.OPEN,   'Odpri',        wx.ArtProvider.GetBitmap(wx.ART_FOLDER_OPEN,  wx.ART_TOOLBAR), shortHelp='Odpri izbran razpored, v natanèno taki obliki, kot je bil shranjen.')
+    self.AddLabelTool(SchedulersPageToolbar.MERGE,  'Združi',       wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN,    wx.ART_TOOLBAR), shortHelp='Odpri izbran razpored s takimi podatki, kot so trenutno v aplikaciji')
+    self.AddLabelTool(SchedulersPageToolbar.REMOVE, 'Izbriši',      wx.ArtProvider.GetBitmap(wx.ART_DELETE,       wx.ART_TOOLBAR), shortHelp='Izbriši izbrano')
     self.AddSeparator ( )
     
     self.search = wx.SearchCtrl (self, wx.ID_FIND, style=wx.TB_HORIZONTAL | wx.TB_NODIVIDER)
@@ -197,8 +208,10 @@ class SchedulersPageToolbar (wx.ToolBar):
     
     self.Bind (custom_events.EVT_UPDATED,   self.__date_selected, self.year_month_choice.get_month_control ( ))
     self.Bind (custom_events.EVT_UPDATED,   self.__date_selected, self.year_month_choice.get_year_control ( ))
+    self.Bind (wx.EVT_TOOL,                 self.__blank,         id = SchedulersPageToolbar.BLANK)
     self.Bind (wx.EVT_TOOL,                 self.__create,        id = SchedulersPageToolbar.CREATE)
     self.Bind (wx.EVT_TOOL,                 self.__open,          id = SchedulersPageToolbar.OPEN)
+    self.Bind (wx.EVT_TOOL,                 self.__merge,         id = SchedulersPageToolbar.MERGE)
     self.Bind (wx.EVT_TOOL,                 self.__remove,        id = SchedulersPageToolbar.REMOVE)
     
     self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.__clear_search, self.search)
@@ -221,6 +234,7 @@ class SchedulersPageToolbar (wx.ToolBar):
       @param enable: a boolean
     """
     self.EnableTool (SchedulersPageToolbar.OPEN,   enable)
+    self.EnableTool (SchedulersPageToolbar.MERGE,  enable)
     self.EnableTool (SchedulersPageToolbar.REMOVE, enable)
     
   def set_date (self, month=None, year=None):
@@ -247,6 +261,12 @@ class SchedulersPageToolbar (wx.ToolBar):
       return: a list of strings
     """
     return self.search.GetValue ( ).split( )
+  
+  def __blank (self, event):
+    """
+    Event listener for the create blank schedule button.
+    """
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.BlankEvent (self.GetId ( )))
     
   def __create (self, event):
     """
@@ -259,6 +279,12 @@ class SchedulersPageToolbar (wx.ToolBar):
     Event listener for the open schedule button.
     """
     wx.PostEvent (self.GetEventHandler ( ), custom_events.OpenEvent (self.GetId ( )))
+    
+  def __merge (self, event):
+    """
+    Event listener for the merge schedule button.
+    """
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.MergeEvent (self.GetId ( )))
     
   def __remove (self, event):
     """

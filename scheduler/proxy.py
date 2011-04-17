@@ -4,189 +4,175 @@ This file contains the classes and methods, that act as bridges between all appl
 """
 import workers
 import locations
+import global_vars
 import person_scheduler
 import schedule_container
 import person as person_module
 
-from data import general, scheduling_unit
-from utils import calendar_utils, time_conversion
+from utils  import calendar_utils, time_conversion
 
 import os
 import copy
 import datetime
 import cPickle as pickle
 
+CREATE_BLANK = 0
+CREATE_NEW   = 1
+LOAD_EXACT   = 2
+LOAD_MERGE   = 3
+
+def __merge_people (curr_people, prev_people, next_people):
+  """
+  Adds the date dependant fields into the curr_people.
+    @param curr_people: a list of data objects
+    @param prev_people: a list of data objects
+    @param next_people: a list of data objects
+    @return: a list of data objects
+  """
+  for curr_person in curr_people:
+    for prev_person in prev_people:
+      if curr_person == prev_person:
+        curr_person.merge (prev_person)
+        break
+
+    for next_person in next_people:
+      if curr_person == next_person:
+        curr_person.merge (next_person)
+        break
+      
+  return curr_people
+  
+
 def __exists (date):
   """
-  Checks, if the saved schedule for the date exists.
-    @param date: a datetime.date object
-    @return: True, if exists, False otherwise
+  Checks, if a schedule with the date already exists.
+    @param date: a datetime.date object with the correct month and year
+    @return: True, if exists, False othewise
   """
-  return __load_single (locations.get_file_path (date)) != None
+  return os.path.exists (locations.get_file_path (date))
 
-def __load_single (path):
+def __load_neighbours (curr_state):
   """
-  Loads and returns an existing scheduler, as specified by the path.
-    @param path: a string
-    @return: a proxy object, if the load was successful, None otherwise.
-  """
-  try:
-    return pickle.load (file (path, 'rb'))
-  except:
-    return None
+  Loads neigbours of the current state, but the schedule of the current state itself is not loaded.
+    @param curr_state: a proxy object
+    @return: a proxy object
+  """  
+  prev_date = calendar_utils.get_previous_month (curr_state.get_date ( ))
+  next_date = calendar_utils.get_next_month (curr_state.get_date ( ))
   
-def __is_before (date1, date2):
-  """
-  Checks if the date1 is before date2, by the time stamp values of the files, that they represent.
-    @param date1: a datetime.date object
-    @param date2: a datetime.date object
-    @return: True, if date1 is before date2, False, if the date2 is before date1
-  """
-  timestamp1 = datetime.datetime.fromtimestamp (os.path.getmtime (locations.get_file_path (date1)))
-  timestamp2 = datetime.datetime.fromtimestamp (os.path.getmtime (locations.get_file_path (date2)))
-  return timestamp1 < timestamp2
-
-def __merge (proxy1, proxy2, date, merging_dates, all_dates):
-  """
-  Merges the two proxies into a new one. The people from the proxy1 override the ones proxy2, if their 
-  schedules intersect.
-    @param proxy1: a proxy object
-    @param proxy2: a proxy object
-    @param merging_dates: a list of dates in which the peoples schedule intersect.
-    @param all_dates: a list of all valid dates
-    @param date: a datetime.date object, that defines the scheduling object
+  prev_proxy = None
+  curr_proxy = curr_state
+  next_proxy = None
+  
+  if __exists (prev_date):
+    prev_proxy = pickle.load (file (locations.get_file_path (prev_date), 'rb'))
+  else:
+    prev_proxy = DataToSchedule (prev_date, curr_proxy.get_people_container ( ), curr_proxy.get_scheduling_units_container ( ), curr_proxy.get_turnus_types_container ( ), False)
     
+  if __exists (next_date):
+    next_proxy = pickle.load (file (locations.get_file_path (next_date), 'rb'))
+  else:
+    next_proxy = DataToSchedule (next_date, curr_proxy.get_people_container ( ), curr_proxy.get_scheduling_units_container ( ), curr_proxy.get_turnus_types_container ( ), False)
+    
+  prev_people = prev_proxy.get_people ( )
+  curr_people = curr_proxy.get_people ( )
+  next_people = next_proxy.get_people ( )
+  
+  saved_people = __merge_people (curr_people, prev_people, next_people)
+  curr_proxy.set_people (schedule_container.ScheduleContainer (curr_proxy.get_date ( ), saved_people))
+    
+  return curr_proxy
+
+def __load (date, curr_state=None):
+  """
+  Loads the proxy for the specified date.
+    @param date: a datetime.date object with the correct day and month
+    @param curr_state: the current state of the application proxy object. If this one is set, all the loaded
+                       data will merge into this proxy. Default is set to None.
     @return: a proxy object
   """
-  people           = None
-  schedule_units   = None
-  turnus_types     = None
-  workers          = None
-  proxy            = None
+  prev_date = calendar_utils.get_previous_month (date)
+  curr_date = date
+  next_date = calendar_utils.get_next_month (date)
   
-  schedule_units, turnus_types, workers = __merge_common (proxy1, proxy2, date)
-  people                                = __merge_people (proxy1.get_people ( ), proxy2.get_people ( ), date, merging_dates, all_dates)
+  prev_proxy = None
+  curr_proxy = pickle.load (file (locations.get_file_path (curr_date), 'rb'))
+  next_proxy = None
   
-  proxy = DataToSchedule (date, general.DataContainer ('', general.DataClass), schedule_units, turnus_types)
-  proxy.set_people  (people)
-  proxy.set_workers (workers)
   
-  return proxy
-
-def __merge_common (proxy1, proxy2, date):
-  """
-  Merges the base elements of the two proxies.
-    @param proxy1: the first proxy object
-    @param proxy2: the second proxy object
-    @param date: the datetime.date object, that defines the new proxy' s scheduling date
-    @return: 2 data containers and a workers object (scheduling units, turnus types and workers in the 
-             specified order)
-  """
-  workers          = None
-  scheduling_units = sorted (set (proxy1.get_scheduling_units ( )) | set (proxy2.get_scheduling_units ( )))
-  turnus_types     = sorted (set (proxy1.get_turnus_types ( ))     | set (proxy2.get_turnus_types ( )))
+  if curr_state:
+    temp_people = curr_state.get_people ( )
+    load_people = curr_proxy.get_people ( )
+    merg_people = __merge_people(temp_people, load_people, [])
+    curr_state.set_people (schedule_container.ScheduleContainer (curr_proxy.get_date ( ), merg_people))
+    curr_proxy = curr_state
   
-  if proxy1.get_date ( ) == date:
-    workers = proxy1.get_workers ( )  
+  if __exists (prev_date):
+    prev_proxy = pickle.load (file (locations.get_file_path (prev_date), 'rb'))
   else:
-    workers = proxy2.get_workers ( )
+    prev_proxy = DataToSchedule (prev_date, curr_proxy.get_people_container ( ), curr_proxy.get_scheduling_units_container ( ), curr_proxy.get_turnus_types_container ( ), False)
     
-  scheduling_units = scheduling_unit.SchedulingUnitContainer ('', scheduling_units[0].__class__, scheduling_units)
-  turnus_types     = general.DataContainer ('', turnus_types[0].__class__,     turnus_types)
+  if __exists (next_date):
+    next_proxy = pickle.load (file (locations.get_file_path (next_date), 'rb'))
+  else:
+    next_proxy = DataToSchedule (next_date, curr_proxy.get_people_container ( ), curr_proxy.get_scheduling_units_container ( ), curr_proxy.get_turnus_types_container ( ), False)
+    
+  prev_people = prev_proxy.get_people ( )
+  curr_people = curr_proxy.get_people ( )
+  next_people = next_proxy.get_people ( )
   
-  return scheduling_units, turnus_types, workers  
+  saved_people = __merge_people (curr_people, prev_people, next_people)
+  curr_proxy.set_people (schedule_container.ScheduleContainer (curr_proxy.get_date ( ), saved_people))
+    
+  return curr_proxy
   
-def __merge_people (people1, people2, date, merging_dates, all_dates):
+def create_proxy (date, type):
   """
-  Merges the two people lists according to the merging dates. When considering the merging dates, the first
-  list of people takes priority, the rest in the rest of dates the second one takes priority.
-    @param people1: a list of people
-    @param people2: a list of people
-    @param date: a datetime.date object, that defines the scheduling date
-    @param merging_dates: a list of dates in which the peoples schedule intersect.
-    @param all_dates: a list of all valid dates
-    @return: a schedule container object
+  Returns creates and returns a proxy object.
+    @param date: a datetime.date object, for which the proxy will be created
+    @param type: one of the following constants:
+                   CREATE_BLANK: creates a completely new schedule from the current data state
+                   CREATE_NEW:   creates a completely new schedule from the current data state, but loads the neighbouring months
+                   LOAD_EXACT:   loads a schedule, in the exact state when it was last saved
+                   LOAD_MERGE:   loads a schedule, merges it into the current application state and copies the dates 
+    @return: a proxy object
   """
-  
-  people = set ( )
-  for person in set (people1) | set (people2):
-    new_person = person_module.Nurse (person)
-    if new_person in people2:
-      new_person.overwrite (people2[people2.index (new_person)], all_dates)
-    elif new_person in people1:
-      new_person.overwrite (people1[people1.index (new_person)], all_dates)
-      
-    if new_person in people1 and new_person in people2:
-      new_person.overwrite (people1[people1.index (new_person)], merging_dates)
-      
-    people.add (new_person)
-      
-  return schedule_container.ScheduleContainer (date, sorted (people))
-      
+  if   type == CREATE_BLANK: 
+    return DataToSchedule (date, global_vars.get_nurses ( ), global_vars.get_scheduling_units ( ), global_vars.get_turnus_types ( ))
+  elif type == CREATE_NEW:
+    return __load_neighbours (DataToSchedule (date, global_vars.get_nurses ( ), global_vars.get_scheduling_units ( ), global_vars.get_turnus_types ( )))
+  elif type == LOAD_EXACT:
+    return __load (date)
+  elif type == LOAD_MERGE:
+    return __load (date, DataToSchedule (date, global_vars.get_nurses ( ), global_vars.get_scheduling_units ( ), global_vars.get_turnus_types ( )))
+  else:
+    raise Exception ('Unsupported creation type')
   
 
 def save (proxy, overwrite=False):
   """
-  Saves the person scheduler. It does not overwrite an existing scheduler, unless told to do so.
+  Saves the proxy. It does not overwrite any file, unless told to do so. 
     @param proxy: a proxy object
-    @param overwrite: a boolean. Default value is set to False.
-    @return: True, if the save was successful, False otherwise. 
+    @param overwrite: overwrites any file, if set to True, does not overwrite anything, if set to False
+    @return: True if the proxy was saved, False otherwise
   """
-  save_object = proxy
-  if overwrite:
-    pickle.dump (save_object, file (locations.get_file_path (proxy.get_date ( )), 'wb'))
-    return True
-  elif not overwrite and os.path.exists (locations.get_file_path (proxy.get_date ( ))):
+  prev_date = calendar_utils.get_previous_month (proxy.get_date ( ))
+  curr_date = proxy.get_date ( )
+  next_date = calendar_utils.get_next_month (proxy.get_date ( ))
+  
+  if not overwrite and (__exists (prev_date) or __exists (curr_date) or __exists (next_date)):
     return False
   else:
-    pickle.dump (save_object, file (locations.get_file_path (proxy.get_date ( )), 'wb'))
+    prev_proxy = proxy.get_month_clone (prev_date)
+    curr_proxy = proxy.get_month_clone (curr_date)
+    next_proxy = proxy.get_month_clone (next_date)
+    
+    pickle.dump (prev_proxy, file (locations.get_file_path (prev_date), 'wb'))
+    pickle.dump (curr_proxy, file (locations.get_file_path (curr_date), 'wb'))
+    pickle.dump (next_proxy, file (locations.get_file_path (next_date), 'wb'))
+    
     return True
   
-def load (date):
-  """
-  Loads and returns an existing scheduler, as specified by the date. The scheduler is correctly merged with
-  the previous and the next month. The merging priority is defined by the file's time stamp.
-    @date:   a datetime.date object
-    @return: a proxy object, if the load was successful, None otherwise.
-  """
-  
-  prev_date = calendar_utils.get_previous_month (date)
-  next_date = calendar_utils.get_next_month     (date)
-  
-  all_dates = sorted (set (calendar_utils.get_same_month_dates (prev_date)) | \
-                      set (calendar_utils.get_same_month_dates (date))      | \
-                      set (calendar_utils.get_same_month_dates (next_date))
-                     )
-  
-  if __exists (date):
-    curr_proxy = __load_single (locations.get_file_path (date))
-    temp_proxy = None
-  
-    if __exists (prev_date):
-      
-      merging_dates = calendar_utils.get_same_month_dates (prev_date)
-      prev_proxy = __load_single (locations.get_file_path (prev_date))
-      
-      if __is_before (prev_date, date):
-        temp_proxy = __merge (prev_proxy, curr_proxy, curr_proxy.get_date ( ), merging_dates, all_dates)
-      else:
-        temp_proxy = __merge (curr_proxy, prev_proxy, curr_proxy.get_date ( ), merging_dates, all_dates)
-    else:
-      temp_proxy = curr_proxy
-        
-        
-    if __exists (next_date):
-      merging_dates = calendar_utils.get_same_month_dates (next_date)
-      next_proxy = __load_single (locations.get_file_path (next_date))
-      
-      if __is_before (date, next_date):
-        temp_proxy = __merge (next_proxy, temp_proxy, date, merging_dates, all_dates)
-      else:
-        temp_proxy = __merge (temp_proxy, next_proxy, date, merging_dates, all_dates)
-
-    return temp_proxy
-  else:
-    return None
 
 def get_saved_schedules ( ):
   """
@@ -231,17 +217,18 @@ This class is a bridge between the data model, the GUI and the scheduling logic.
 """
 class DataToSchedule:
   
-  def __init__ (self, date, persons, schedule_units, turnus_types):
+  def __init__ (self, date, persons, schedule_units, turnus_types, full_scope=True):
     """
     The default constructor.
       @param date:           the datetime.date object, that represents the scheduling date (day is not important)
       @param persons:        the data container object, that contains persons
       @param schedule_units: the data container object, that contains workplaces
       @param turnus_types:   the data container object, that contains turnus types
+      @param full_scope:     a boolean. If set to True, the neighbouring months will also be created (default).
     """
     
     self.date           = date
-    self.persons        = self.__create_data_people (persons)
+    self.persons        = self.__create_data_people (persons, full_scope)
     self.schedule_units = schedule_units
     self.turnus_types   = turnus_types
     self.workers        = workers.Workers(get_schedule_dates (self.date), self.schedule_units.get_all ( ), self.turnus_types.get_all ( ))
@@ -251,7 +238,14 @@ class DataToSchedule:
     Returns the scheduling date. Day is not important.
       @return: a datetime.dat object
     """ 
-    return self.date 
+    return self.date
+  
+  def set_date (self, date):
+    """
+    Sets the scheduling date.
+      @param date: a datetime.date object
+    """
+    self.date = date
     
   def get_workers (self):
     """
@@ -280,6 +274,13 @@ class DataToSchedule:
       @return: a list of data objects
     """
     return self.schedule_units.get_all ( )
+  
+  def get_turnus_types_container (self):
+    """
+    Returns a list of turnus types.
+      @return: a data container
+    """
+    return self.turnus_types
 
   def get_turnus_types (self):
     """
@@ -312,6 +313,13 @@ class DataToSchedule:
                                           self.get_workers ( ))
     return ps
   
+  def get_people_container (self):
+    """
+    Return a result container.
+      @return: a schedule container object
+    """
+    return self.persons
+  
   def get_people (self):
     """
     Returns a list of people.
@@ -322,9 +330,65 @@ class DataToSchedule:
   def set_people (self, people):
     """
     Sets the people, that are represented by this proxy object.
-      @param people: a data container object
+      @param people: a schedule container object
     """
     self.persons = people
+    
+  def get_exportable (self):
+    """
+    Returns the persons, formated for the exporter.
+      @return: a map
+    """
+    return self.persons.get_exportable ( )
+    
+  def get_month_clone (self, date):
+    """
+    Creates a copy of this proxy, but only with the dates associated with the given month.
+      @param date: a datetime.date object, with the correct month and year
+      @return: a proxy object
+    """
+    person_container = schedule_container.ScheduleContainer (date)
+    proxy            = DataToSchedule (date, person_container, self.get_scheduling_units_container ( ), self.turnus_types)
+    
+    #create the persons
+    for person in self.persons.get_all ( ):
+      person_container.add_all ([person.get_month_clone (date)])  
+      
+    proxy.set_people  (person_container)
+    
+    if date == self.get_date ( ):
+      proxy.set_workers (self.get_workers ( ))
+      
+    
+    return proxy
+  
+  def merge (self, proxy):
+    """
+    Merges the proxy into this one. All the date dependant fields that may appear in both proxies are 
+    overwritten by the given proxy.
+      @param proxy: an object of this class 
+    """
+    self.date = proxy.date
+    
+    for schedule_unit in proxy.get_scheduling_units ( ):
+      if schedule_unit not in self.get_scheduling_units ( ):
+        self.schedule_units.add_all ([schedule_unit])
+        
+    for turnus_type in proxy.get_turnus_types  ( ):
+      if turnus_type not in self.turnus_types.get_all ( ):
+        self.turnus_types.add_all ([turnus_type])
+    
+    self.workers = proxy.get_workers ( )
+    
+    for person in proxy.get_people ( ):
+      if person not in self.get_people ( ):
+        self.persons.add_all ([person])
+      else:
+        for originial_person in self.get_people ( ):
+          if originial_person == person:
+            originial_person.merge (person)
+    
+    
     
   def __get_persons (self):
     """
@@ -347,22 +411,29 @@ class DataToSchedule:
     """
     return calendar_utils.get_py_month_name (self.date) + ' ' + str (self.date.year)
   
-  def __create_data_people (self, people):
+  def __create_data_people (self, people, full_scope):
     """
     Returns a data container, with the scheduler's data model people.
       @param people: a data container object
+      @param full_scope: a boolean. If set to True, the scheduler people will also have the neighbouring months
+                         appended to the list of possible dates.
       @return: a data container object
     """
     scheduler_people = []
-    dates = calendar_utils.get_same_month_dates (calendar_utils.get_previous_month (self.date)) + \
-            calendar_utils.get_same_month_dates (self.date) + \
-            calendar_utils.get_same_month_dates (calendar_utils.get_next_month (self.date))
+    dates            = []
+    
+    if full_scope:
+      dates = calendar_utils.get_same_month_dates (calendar_utils.get_previous_month (self.date)) + \
+              calendar_utils.get_same_month_dates (self.date) + \
+              calendar_utils.get_same_month_dates (calendar_utils.get_next_month (self.date))
+    else:
+      dates = calendar_utils.get_same_month_dates (self.date)
+      
     for person in people.get_all ( ):
       scheduler_people.append (person_module.Nurse (person))
       scheduler_people[-1].add_dates (dates)
     
-    from data import general, nurse
-    return general.DataContainer ('', nurse.Nurse, elements_list=scheduler_people)
+    return schedule_container.ScheduleContainer (self.get_date ( ), elements_list=scheduler_people)
   
   def __str__ (self):
     return self.__get_date_string ( )

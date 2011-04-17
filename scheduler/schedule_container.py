@@ -138,6 +138,41 @@ class ScheduleContainer (general.DataContainer):
         dates.append (date)
     return dates
   
+  def get_exportable (self):
+    """
+    Returns a dictionary, that maps scheduling units to a schedule matrix, 
+    that contains only persons and turnuses, that were scheduled into scheduling unit.
+    """
+    map = {}
+    
+    headers = ['Oseba']
+    for date in calendar_utils.get_same_month_dates (self.date):
+      headers.append(time_conversion.date_to_string(date))
+    
+    scheduling_units = set ( )
+    for person in self.get_all ( ):
+      for scheduling_unit in person.get_scheduling_units ( ):
+        scheduling_units.add (scheduling_unit)
+    
+    for scheduling_unit in sorted (scheduling_units):
+      map[scheduling_unit] = [headers] 
+      people = []
+      for person in self.get_all ( ):
+        if person.has_scheduling_unit (scheduling_unit):
+          people.append(person)
+      
+      for person in people:
+        person_schedule = [person.get_academic_name ( )]
+        for date in calendar_utils.get_same_month_dates (self.date):
+            turnus = person.get_turnus(date, scheduling_unit)
+            if turnus:
+              person_schedule.append(turnus.code[0])
+            else:
+              person_schedule.append('')
+        map[scheduling_unit].append(person_schedule)
+    
+    return map
+  
   def __get_overtime (self):
     """
     Returns the overtime value for each person.

@@ -317,20 +317,6 @@ class Nurse (nurse.Nurse):
         return None
     else:
       return None
-    
-  def overwrite (self, person, dates):
-    """
-    Overwrites this person schedule, with the given one's for the specified dates.
-      @param person: a schedule nurse object
-      @param dates: a list of datetime.date objects
-    """
-    self.add_dates (dates)
-    for date in dates:
-      try:
-        self.scheduled_turnus[date]          = person.scheduled_turnus[date]
-        self.scheduled_scheduling_unit[date] = person.scheduled_scheduling_unit[date]
-      except:
-        pass
 
   def get_scheduled_raw (self, date):
     """
@@ -459,6 +445,41 @@ class Nurse (nurse.Nurse):
         self.forbidden_turnuses[date].remove (turnus)
         if not self.forbidden_turnuses[date]:
           del self.forbidden_turnuses[date]
+          
+  def get_month_clone (self, date):
+    """
+    Returns a copy of this person, but the date fields contain only dates from the given month.
+      @param date: a datetime.date object, with the correct month and year
+      @return: a schedule nurse object
+    """
+    dates = calendar_utils.get_same_month_dates (date)
+    clone = Nurse (self)
+    
+    for date in dates:
+      if date in self.forbidden_turnuses:
+        clone.forbidden_turnuses[date] = self.forbidden_turnuses[date]
+      
+      clone.scheduled_turnus[date]          = self.scheduled_turnus[date]
+      clone.scheduled_scheduling_unit[date] = self.scheduled_scheduling_unit[date]
+      
+    return clone
+  
+  def merge (self, person):
+    """
+    Merges the person into this one. All the date fields that may appear in both persons are 
+    overwritten by the given person.
+      @param person: an object of this class
+    """
+    
+    for date in person.forbidden_turnuses:
+      self.forbidden_turnuses[date] = person.forbidden_turnuses[date]
+      
+    for date in person.scheduled_turnus:
+      self.scheduled_turnus[date]          = person.scheduled_turnus[date]
+      self.scheduled_scheduling_unit[date] = person.scheduled_scheduling_unit[date]
+      
+      
+    
 
   def __get_vacation (self, date):
     """

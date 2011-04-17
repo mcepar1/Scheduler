@@ -116,7 +116,7 @@ class SchedulePage (wx.lib.scrolledpanel.ScrolledPanel):
     """
     return self.__get_displayed ( ).is_full_span ( )
     
-  def synchronize_workers (self):
+  def synchronize_workers (self, show_workers=True):
     """
     Returns the displayed result's proxy object.
       @return: a proxy object
