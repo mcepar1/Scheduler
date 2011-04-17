@@ -88,16 +88,17 @@ class Nurse (nurse.Nurse):
         if not self.is_free_day(prev_date):
           prev_turnus = self.scheduled_turnus[prev_date]
           #calculate blocking next free date
-          instance = datetime.datetime(year=prev_date.year, month=prev_date.month, day=prev_date.day)
-          prev_turnus_start = instance.combine(prev_date, prev_turnus.start)
-          prev_turnus_end = instance.combine(prev_date, prev_turnus.end)
+          instance = datetime.datetime (year=prev_date.year, month=prev_date.month, day=prev_date.day)
+          prev_turnus_start = instance.combine (prev_date, prev_turnus.start)
+          prev_turnus_start += prev_turnus.duration
+          prev_turnus_end   = instance.combine (instance, prev_turnus.end)
           
           #if it went over midnight
-          if prev_turnus_end < prev_turnus_start:
-            prev_turnus_end += datetime.timedelta(days=1)
+          if prev_turnus_start < prev_turnus_end:
+            prev_turnus_end =   prev_turnus_start.combine (prev_turnus_start, prev_turnus.end)
             
           current_start = instance.combine(date, turnus.start)
-          if (prev_turnus_end + prev_turnus.blockade) < current_start:
+          if (prev_turnus_end + prev_turnus.blockade) > current_start:
             return False
         if self.__can_be_scheduled (next_date):
           #check if there is a hard-coded date in the next-date
@@ -108,15 +109,17 @@ class Nurse (nurse.Nurse):
             next_start = datetime.datetime(day=1, month=1, year=3000)
             
           instance = datetime.datetime(year=date.year, month=date.month, day=date.day)
-          this_turnus_start = instance.combine(date, turnus.start)
+          this_turnus_start =  instance.combine(date, turnus.start)
+          this_turnus_start += turnus.duration
           this_turnus_end = instance.combine(date, turnus.end)
           
+ 
           #if it went over midnight
           if this_turnus_end < this_turnus_start:
             this_turnus_end += datetime.timedelta(days=1)
             
           
-          if (this_turnus_end + turnus.blockade) < next_start:
+          if (this_turnus_end + turnus.blockade) > next_start:
             return False
     
     return True
