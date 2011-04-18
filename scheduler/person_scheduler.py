@@ -16,7 +16,7 @@ class PersonScheduler:
   """
   Contains the modules, that are used after the scheduling phase.
   """
-  CLEAN_UP = [modules.WeekMorning, modules.FillHours] 
+  CLEAN_UP = [modules.FillHours] #modules.WeekMorning 
   
   """
   Contains the modules, that will be used in this scheduler.

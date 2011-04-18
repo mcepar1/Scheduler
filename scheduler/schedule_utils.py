@@ -162,7 +162,7 @@ def is_valid_move (scheduling_unit, turnus, date, person, overtime):
     return False
   
   if holiday.is_workfree(date):
-    # check if this a turnus, that can be scheduled in a workfree day
+    # check if this a turnus, that can be scheduled in a work free day
     if not turnus.holiday:
       return False
     

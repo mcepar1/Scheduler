@@ -90,15 +90,11 @@ class Nurse (nurse.Nurse):
           #calculate blocking next free date
           instance = datetime.datetime (year=prev_date.year, month=prev_date.month, day=prev_date.day)
           prev_turnus_start = instance.combine (prev_date, prev_turnus.start)
-          prev_turnus_start += prev_turnus.duration
-          prev_turnus_end   = instance.combine (instance, prev_turnus.end)
-          
-          #if it went over midnight
-          if prev_turnus_start < prev_turnus_end:
-            prev_turnus_end =   prev_turnus_start.combine (prev_turnus_start, prev_turnus.end)
+          prev_turnus_end   = prev_turnus_start + prev_turnus.duration
+          next_allowed      = prev_turnus_end   + prev_turnus.blockade
             
           current_start = instance.combine(date, turnus.start)
-          if (prev_turnus_end + prev_turnus.blockade) > current_start:
+          if next_allowed < current_start:
             return False
         if self.__can_be_scheduled (next_date):
           #check if there is a hard-coded date in the next-date
@@ -110,16 +106,11 @@ class Nurse (nurse.Nurse):
             
           instance = datetime.datetime(year=date.year, month=date.month, day=date.day)
           this_turnus_start =  instance.combine(date, turnus.start)
-          this_turnus_start += turnus.duration
-          this_turnus_end = instance.combine(date, turnus.end)
+          this_turnus_end   =  this_turnus_start + turnus.duration
+          next_allowed      =  this_turnus_end   + turnus.blockade
+                     
           
- 
-          #if it went over midnight
-          if this_turnus_end < this_turnus_start:
-            this_turnus_end += datetime.timedelta(days=1)
-            
-          
-          if (this_turnus_end + turnus.blockade) > next_start:
+          if next_allowed > next_start:
             return False
     
     return True
