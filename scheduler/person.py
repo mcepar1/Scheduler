@@ -22,15 +22,17 @@ class Nurse (nurse.Nurse):
       
     nurse.Nurse.__init__(self, data_nurse.work_id, data_nurse.name, data_nurse.surname, data_nurse.birthday, data_nurse.titles, data_nurse.employment_type)
     
-    self.scheduling_units_map = data_nurse.scheduling_units_map
-    self.week_morning = data_nurse.week_morning
-    self.packet_night_turnuses = data_nurse.packet_night_turnuses
+    self.scheduling_units_map      = data_nurse.scheduling_units_map
+    self.week_morning              = data_nurse.week_morning
+    self.packet_night_turnuses     = data_nurse.packet_night_turnuses
+    
+    self.unpaid_hours              = 0
     
     # if a turnus is not allowed to be scheduled (maps dates to a set of turnuses)
-    self.forbidden_turnuses = {}
+    self.forbidden_turnuses        = {}
     
     #this field maps a date to the turnus
-    self.scheduled_turnus = {}
+    self.scheduled_turnus          = {}
     #this field maps a date to the scheduling_unit
     self.scheduled_scheduling_unit = {}
     
@@ -44,6 +46,20 @@ class Nurse (nurse.Nurse):
       if date not in self.scheduled_turnus and date not in self.scheduled_scheduling_unit:
         self.scheduled_turnus[date] = ''
         self.scheduled_scheduling_unit[date] = ''
+        
+  def get_unpaid_hours (self):
+    """
+    Returns the number of unpaid hours.
+      @return: an integer
+    """
+    return self.unpaid_hours
+  
+  def set_unpaid_hours (self, hours):
+    """
+    Sets the number of unpaid hours.
+      @param hours: an integer
+    """
+    self.unpaid_hours = hours
         
   def get_dates (self):
     """
@@ -448,6 +464,8 @@ class Nurse (nurse.Nurse):
     """
     dates = calendar_utils.get_same_month_dates (date)
     clone = Nurse (self)
+    
+    clone.unpaid_hours = self.unpaid_hours
     
     for date in dates:
       if date in self.forbidden_turnuses:

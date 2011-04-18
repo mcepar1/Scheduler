@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
 import wx
+import wx.lib.intctrl
 import wx.lib.newevent
 import wx.lib.agw.foldpanelbar as fpb
 
@@ -212,11 +213,10 @@ class ManualEditPanel (fpb.FoldPanelBar):
     self.dates        = None
     self.selected_schedule_unit = None
     
-    turnuses_item     = self.AddFoldPanel("Turnusi",  collapsed=True)
-    vacations_item    = self.AddFoldPanel("Dopusti",  collapsed=True)
-    restrictions_item = self.AddFoldPanel("Omejitve", collapsed=True)
-    
-    self.fold_panels  = [turnuses_item, vacations_item, restrictions_item]
+    turnuses_item     = self.AddFoldPanel("Turnusi",        collapsed=True)
+    vacations_item    = self.AddFoldPanel("Dopusti",        collapsed=True)
+    unpaid_item       = self.AddFoldPanel("Neplačane ure",  collapsed=True)
+    restrictions_item = self.AddFoldPanel("Omejitve",       collapsed=True)
     
     self.schedule_unit_selector = custom_widgets.ScheduleUnitSelector (self.proxy.get_scheduling_units_container ( ), turnuses_item, wx.ID_ANY)
     self.AddFoldPanelWindow (turnuses_item, self.schedule_unit_selector, fpb.FPB_ALIGN_WIDTH)
@@ -240,16 +240,21 @@ class ManualEditPanel (fpb.FoldPanelBar):
       self.vacations_checkers.append (wx_extensions.LinkedCheckBox (vacation, vacations_item, wx.ID_ANY, str (vacation), style=wx.CHK_3STATE))
       self.AddFoldPanelWindow(vacations_item, self.vacations_checkers[-1], fpb.FPB_ALIGN_LEFT)
       
+    self.unpaid_hours = wx.lib.intctrl.IntCtrl (unpaid_item, wx.ID_ANY)
+    self.AddFoldPanelWindow (unpaid_item, self.unpaid_hours, fpb.FPB_ALIGN_LEFT)
+      
     for i in range (50):
       self.AddFoldPanelWindow (restrictions_item, wx.StaticText (restrictions_item, wx.ID_ANY, 'Test'+str(i)), fpb.FPB_ALIGN_LEFT)
     
     self.Bind (custom_events.EVT_UPDATED, self.__schedule_unit_selected, self.schedule_unit_selector)
+    self.Bind (wx.lib.intctrl.EVT_INT,    self.__unpaid_hours_changed,   self.unpaid_hours)
     
     for turnus_checker in self.turnus_checkers:
       self.Bind (wx.EVT_CHECKBOX, self.__turnus_checker_clicked, turnus_checker)
     for vacation_checker in self.vacations_checkers:
       self.Bind(wx.EVT_CHECKBOX, self.__vacation_checker_clicked, vacation_checker)
     
+    self.unpaid_hours.SetNoneAllowed (True)
     self.__set_permissions ( )
     self.Expand (turnuses_item)
     
@@ -320,10 +325,39 @@ class ManualEditPanel (fpb.FoldPanelBar):
     self.__set_permissions ( )
     wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
     
+  def __unpaid_hours_changed (self, event):
+    """
+    Event listener for the unpaid hours field.
+    """
+    if self.people:      
+      for person in self.people:
+        if self.unpaid_hours.GetValue ( ) != None:
+          person.set_unpaid_hours (self.unpaid_hours.GetValue ( ))
+        else:
+          person.set_unpaid_hours (self.unpaid_hours.GetValue (0))
+      self.__set_permissions ( )
+      wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
+    
   def __set_permissions (self):
     """
     Keeps the GUI in sync with the data.
     """
+    
+    self.Unbind (wx.lib.intctrl.EVT_INT, self.unpaid_hours)
+    
+    if self.people:
+      self.unpaid_hours.Enable ( )
+      values = set ( )
+      for person in self.people:
+        values.add (person.get_unpaid_hours ( ))
+      if len (values) == 1:
+        self.unpaid_hours.SetValue (values.pop ( ))
+      else:
+        self.unpaid_hours.SetValue (None)
+    else:
+      self.unpaid_hours.SetValue (None)
+      self.unpaid_hours.Disable ( )
+    
     if self.people and self.dates:
       #schedule_units = self.__get_schedule_units ( )
       turnuses       = self.__get_turnuses ( )
@@ -331,12 +365,7 @@ class ManualEditPanel (fpb.FoldPanelBar):
       mix            = self.__get_turnuses_or_vacations ( )
       
       self.schedule_unit_selector.Enable ( )
-      #if len (schedule_units) == 1:
-      #  self.schedule_unit_selector.set_selection (schedule_units.pop ( ))
-      #else:
-      #  self.schedule_unit_selector.set_selection (None)
       self.selected_schedule_unit = self.schedule_unit_selector.get_selection ( )
-      
       
       for turnus_checker in self.turnus_checkers:
         if self.selected_schedule_unit:
@@ -366,6 +395,8 @@ class ManualEditPanel (fpb.FoldPanelBar):
       for vacation_checker in self.vacations_checkers:
         vacation_checker.SetValue (False)
         vacation_checker.Disable ( )
+        
+    self.Bind (wx.lib.intctrl.EVT_INT, self.__unpaid_hours_changed, self.unpaid_hours)
 
   def __get_schedule_units (self):
     """

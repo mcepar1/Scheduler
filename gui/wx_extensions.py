@@ -89,28 +89,6 @@ class LinkedChoice(wx.Choice):
     else:
       #raise Exception ('Ni elmentov!')
       return None
-    
-"""
-This class behaves the same way as as a normal wxIntCtrl.
-The only difference is that it handles employment
-types internally.
-"""
-class LinkedIntCtrl(wx.lib.intctrl.IntCtrl):
-  
-  def __init__(self, employment_type, *args, **kwargs):
-    """
-    The default constructor.
-      employment_type: is an instance of the EmploymentType, that this control will manage.
-    """
-    wx.lib.intctrl.IntCtrl.__init__(self, *args, **kwargs)
-    
-    self.employment_type = employment_type
-    
-    self.Bind(wx.lib.intctrl.EVT_INT, self.__set_monthly_hours, self)
-    
-  def __set_monthly_hours(self, event):
-    """Event listener for the value."""
-    self.employment_type.monthly_hours = self.GetValue()
 
 class LinkedSpinCtr(wx.SpinCtrl):
   def __init__(self, element, *args, **kwargs):
@@ -512,10 +490,10 @@ class EnhancedGrid (wx.grid.Grid):
     
     # even the column width
     width = 0
-    for i in range (self.GetNumberCols ( ) - 1):
+    for i in range (self.GetNumberCols ( )):
       if self.GetColSize (i) > width:
         width = self.GetColSize (i)
-    for i in range (self.GetNumberCols ( ) - 1):
+    for i in range (self.GetNumberCols ( )):
       self.SetColSize (i, width)
       
     

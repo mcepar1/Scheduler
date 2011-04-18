@@ -85,10 +85,12 @@ class ScheduleContainer (general.DataContainer):
     
     headers = [str (date.day) for date in dates] if self.compact else [time_conversion.date_to_string (date) for date in dates]
     headers.append ('NADURE')
+    headers.append ('NEPLAÈANE URE')
     
     for element in self.get_filtered( ):
       row = element.get_schedule_compact (dates) if self.compact else element.get_schedule (dates)
       row.append (overtimes[element])
+      row.append (str (element.get_unpaid_hours ( )))
       
       rows_list.append (row)
     

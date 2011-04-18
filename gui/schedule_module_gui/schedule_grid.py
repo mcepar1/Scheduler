@@ -170,7 +170,6 @@ class ScheduleGrid (wx.grid.Grid):
     for i, date in enumerate (self.container.get_dates (range (self.GetNumberCols ( )))):
       if holiday.is_workfree (date):
         for j in range (self.GetNumberRows ( )):
-          print self.GetCellValue(j, i), len (self.GetCellValue(j, i))
           if len (self.GetCellValue(j, i)) != 0:
             font = self.GetCellFont (j, i)
             font.SetWeight (wx.FONTWEIGHT_BOLD)
@@ -233,10 +232,10 @@ class ScheduleGrid (wx.grid.Grid):
     
     # even the column width
     width = 0
-    for i in range (self.GetNumberCols ( ) - 1):
+    for i in range (self.GetNumberCols ( ) - 2):
       if self.GetColSize (i) > width:
         width = self.GetColSize (i)
-    for i in range (self.GetNumberCols ( ) - 1):
+    for i in range (self.GetNumberCols ( ) - 2):
       self.SetColSize (i, width)
     
     
