@@ -200,7 +200,6 @@ class HolidayRuleModule:
       overtime: if the overtime is allowed for the person
     """
     
-    #the special property of the holiday rule is, that it can ignore the if turnuses overlap
     if not schedule_utils.is_valid_move (scheduling_unit, turnus, date, person, overtime):
       return False
       

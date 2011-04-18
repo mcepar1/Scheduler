@@ -7,6 +7,7 @@ This file contains a wxGrid, specialized for displaying the schedule.
 import wx.grid
 
 from gui import custom_events
+from utils import holiday
 
 """
 This class is the grid.
@@ -137,8 +138,6 @@ class ScheduleGrid (wx.grid.Grid):
     self.SetTable (None)
     self.CreateGrid (len (rows), len (headers))
     
-    self.__format ( )
-    
     for i in range (len (headers)):
       self.SetColLabelValue (i, headers[i])
       
@@ -153,7 +152,8 @@ class ScheduleGrid (wx.grid.Grid):
           self.SetCellAlignment (i, j, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
         else:
           self.SetCellAlignment (i, j, wx.ALIGN_LEFT,   wx.ALIGN_CENTER)
-        
+          
+    self.__format ( )       
     self.AutoSize ( )
     
   def __format (self):
@@ -165,6 +165,18 @@ class ScheduleGrid (wx.grid.Grid):
     for i in range (len (colors)):
       for j in range (len (colors[i])):
         self.SetCellBackgroundColour (i, j, colors[i][j])
+        
+    # sets the holiday label color.
+    for i, date in enumerate (self.container.get_dates (range (self.GetNumberCols ( )))):
+      if holiday.is_workfree (date):
+        for j in range (self.GetNumberRows ( )):
+          print self.GetCellValue(j, i), len (self.GetCellValue(j, i))
+          if len (self.GetCellValue(j, i)) != 0:
+            font = self.GetCellFont (j, i)
+            font.SetWeight (wx.FONTWEIGHT_BOLD)
+            self.SetCellFont (j, i, font)
+          else:
+            self.SetCellBackgroundColour (j, i, (250, 235, 215))
     
     
   def __cell_selected (self, event):
