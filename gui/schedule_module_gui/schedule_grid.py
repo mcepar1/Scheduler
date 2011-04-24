@@ -44,6 +44,15 @@ class ScheduleGrid (wx.grid.Grid):
     self.container = container
     self.__set_permissions ( )
     
+  def search (self, string_list, schedule_unit_list):
+    """
+    Displays only those entries, that match the search list.
+      @param search_list: a list of strings. If it is an empty list, all items will be displayed.
+      @param schedule_unit_list: a list of schedule units. If it is an empty list, all items will be displayed.
+    """
+    self.container.set_filter(string_list, schedule_unit_list)
+    self.__fill_grid ( )
+    
   def select (self, people, dates):
     """
     Selects the matching area of the grid.

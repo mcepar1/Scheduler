@@ -135,7 +135,7 @@ class NotebookPageToolbar (wx.ToolBar):
     
     self.AddSeparator ( )
     
-    self.search = wx.SearchCtrl (self, wx.NewId ( ), style=wx.TB_HORIZONTAL | wx.TB_NODIVIDER)
+    self.search = wx.SearchCtrl (self, wx.ID_ANY, style=wx.TB_HORIZONTAL | wx.TB_NODIVIDER)
     self.search.SetDescriptiveText ('Iskanje')
     self.search.ShowSearchButton (True)
     self.search.ShowCancelButton (True)

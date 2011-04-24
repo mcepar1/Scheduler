@@ -407,6 +407,16 @@ class Nurse (nurse.Nurse):
       else:
         colors.append ((255,255,255))
     return colors
+  
+  def get_scheduled_scheduling_units (self):
+    """
+    Returns a set of all scheduling units, that this person actually works in.
+      @return: a set of data objects
+    """
+    scheduled_schediling_units = set ( )
+    for date in self.scheduled_scheduling_unit:
+      scheduled_schediling_units.add (self.scheduled_scheduling_unit[date])
+    return scheduled_schediling_units
       
     
   def clear_date(self, date):

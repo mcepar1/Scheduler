@@ -38,12 +38,13 @@ class Result (wx.Panel):
     
     self.progress_panel = ProgressPanel               (            self, wx.ID_ANY, name='Status razvršèanja ...')
     self.grid           = schedule_grid.ScheduleGrid  (            self, wx.ID_ANY)
-    self.manual_edit    = ManualEditPanel             (self.proxy, self, wx.ID_ANY)
+    self.manual_edit    = ManualEditPanel             (self.proxy, self, wx.ID_ANY, agwStyle = fpb.FPB_EXCLUSIVE_FOLD | fpb.FPB_SINGLE_FOLD)
     self.warnings       = WarningsPanel               (            self, wx.ID_ANY)
     
     self.Bind (EVT_SCHEDULE_MESSAGE,               self.__message_recieved)
     self.Bind (custom_events.EVT_COMPLEX_SELECTED, self.__selected, self.grid)
     self.Bind (custom_events.EVT_UPDATED,          self.__edited,   self.manual_edit)
+    self.Bind (custom_events.EVT_TB_SEARCH,        self.__search,   self.manual_edit)
     
     result_sizer = wx.BoxSizer(wx.HORIZONTAL)
     result_sizer.Add (self.manual_edit, 1, wx.ALIGN_LEFT | wx.EXPAND)
@@ -174,6 +175,13 @@ class Result (wx.Panel):
     self.Refresh ( )
     self.Thaw ( )
     
+  def __search(self, event):
+    """
+    Searches the global container for the matching entries.
+    """
+    self.grid.search (self.manual_edit.get_text_search_values ( ), 
+                      self.manual_edit.get_scheduling_unit_search_values ( ))
+    self.Layout ( )
         
   def save(self):
     """Saves the schedule"""
@@ -213,38 +221,46 @@ class ManualEditPanel (fpb.FoldPanelBar):
     self.dates        = None
     self.selected_schedule_unit = None
     
-    turnuses_item     = self.AddFoldPanel("Turnusi",        collapsed=True)
-    vacations_item    = self.AddFoldPanel("Dopusti",        collapsed=True)
-    unpaid_item       = self.AddFoldPanel("Neplaèane ure",  collapsed=True)
-    restrictions_item = self.AddFoldPanel("Omejitve",       collapsed=True)
+    scheduleable_item = self.AddFoldPanel("Turnusi in dopusti", collapsed=True)
+    unpaid_item       = self.AddFoldPanel("Neplaèane ure",      collapsed=True)
+    restrictions_item = self.AddFoldPanel("Filtri",             collapsed=True)
     
-    self.schedule_unit_selector = custom_widgets.ScheduleUnitSelector (self.proxy.get_scheduling_units_container ( ), turnuses_item, wx.ID_ANY)
-    self.AddFoldPanelWindow (turnuses_item, self.schedule_unit_selector, fpb.FPB_ALIGN_WIDTH)
+    self.schedule_unit_selector = custom_widgets.ScheduleUnitSelector (self.proxy.get_scheduling_units_container ( ), scheduleable_item, wx.ID_ANY)
+    self.AddFoldPanelWindow (scheduleable_item, self.schedule_unit_selector, fpb.FPB_ALIGN_WIDTH)
     
     
     
     self.turnus_checkers    = []
     self.vacations_checkers = []
     
-    self.turnus_checkers.append (wx_extensions.LinkedCheckBox (None, turnuses_item, wx.ID_ANY, 'Brez', style=wx.CHK_3STATE))
-    self.AddFoldPanelWindow (turnuses_item, self.turnus_checkers[-1], fpb.FPB_ALIGN_LEFT)
+    self.turnus_checkers.append (wx_extensions.LinkedCheckBox (None, scheduleable_item, wx.ID_ANY, 'Brez', style=wx.CHK_3STATE))
+    self.AddFoldPanelWindow (scheduleable_item, self.turnus_checkers[-1], fpb.FPB_ALIGN_LEFT)
     for turnus in proxy.get_turnuses ( ):
-      self.turnus_checkers.append (wx_extensions.LinkedCheckBox (turnus, turnuses_item, wx.ID_ANY, str (turnus), style=wx.CHK_3STATE))
-      self.AddFoldPanelWindow (turnuses_item, self.turnus_checkers[-1], fpb.FPB_ALIGN_LEFT)
+      self.turnus_checkers.append (wx_extensions.LinkedCheckBox (turnus, scheduleable_item, wx.ID_ANY, str (turnus), style=wx.CHK_3STATE))
+      self.AddFoldPanelWindow (scheduleable_item, self.turnus_checkers[-1], fpb.FPB_ALIGN_LEFT)
     
+    self.AddFoldPanelSeparator (scheduleable_item)
      
     import global_vars
-    self.vacations_checkers.append (wx_extensions.LinkedCheckBox (None, vacations_item, wx.ID_ANY, 'Brez', style=wx.CHK_3STATE))
-    self.AddFoldPanelWindow (vacations_item, self.vacations_checkers[-1], fpb.FPB_ALIGN_LEFT)
+    self.vacations_checkers.append (wx_extensions.LinkedCheckBox (None, scheduleable_item, wx.ID_ANY, 'Brez', style=wx.CHK_3STATE))
+    self.AddFoldPanelWindow (scheduleable_item, self.vacations_checkers[-1], fpb.FPB_ALIGN_LEFT)
     for vacation in global_vars.get_vacations ( ).get_all ( ):
-      self.vacations_checkers.append (wx_extensions.LinkedCheckBox (vacation, vacations_item, wx.ID_ANY, str (vacation), style=wx.CHK_3STATE))
-      self.AddFoldPanelWindow(vacations_item, self.vacations_checkers[-1], fpb.FPB_ALIGN_LEFT)
+      self.vacations_checkers.append (wx_extensions.LinkedCheckBox (vacation, scheduleable_item, wx.ID_ANY, str (vacation), style=wx.CHK_3STATE))
+      self.AddFoldPanelWindow (scheduleable_item, self.vacations_checkers[-1], fpb.FPB_ALIGN_LEFT)
       
     self.unpaid_hours = wx.lib.intctrl.IntCtrl (unpaid_item, wx.ID_ANY)
     self.AddFoldPanelWindow (unpaid_item, self.unpaid_hours, fpb.FPB_ALIGN_LEFT)
-      
-    for i in range (50):
-      self.AddFoldPanelWindow (restrictions_item, wx.StaticText (restrictions_item, wx.ID_ANY, 'Test'+str(i)), fpb.FPB_ALIGN_LEFT)
+    
+    
+    self.name_search = wx.SearchCtrl (restrictions_item, wx.ID_ANY, size=(200,-1))
+    self.AddFoldPanelWindow (restrictions_item, self.name_search, fpb.FPB_ALIGN_LEFT)
+    
+    self.schedule_unit_search = custom_widgets.ScheduleUnitSelector (self.proxy.get_scheduling_units_container ( ), restrictions_item, wx.ID_ANY)
+    self.AddFoldPanelWindow (restrictions_item, self.schedule_unit_search, fpb.FPB_ALIGN_LEFT)
+    
+    self.clear_search = wx.Button (restrictions_item, wx.ID_ANY, 'Prikaži vse')
+    self.AddFoldPanelWindow (restrictions_item, self.clear_search, fpb.FPB_ALIGN_WIDTH)
+    
     
     self.Bind (custom_events.EVT_UPDATED, self.__schedule_unit_selected, self.schedule_unit_selector)
     self.Bind (wx.lib.intctrl.EVT_INT,    self.__unpaid_hours_changed,   self.unpaid_hours)
@@ -253,10 +269,28 @@ class ManualEditPanel (fpb.FoldPanelBar):
       self.Bind (wx.EVT_CHECKBOX, self.__turnus_checker_clicked, turnus_checker)
     for vacation_checker in self.vacations_checkers:
       self.Bind(wx.EVT_CHECKBOX, self.__vacation_checker_clicked, vacation_checker)
+      
+    self.Bind (wx.EVT_SEARCHCTRL_CANCEL_BTN, self.__clear_search,      self.name_search)
+    self.Bind (wx.EVT_TEXT,                  self.__search)
+    self.Bind (custom_events.EVT_UPDATED,    self.__search,            self.schedule_unit_search)
+    self.Bind (wx.EVT_BUTTON,                self.__clear_all_filters, self.clear_search)
+    
+    # this hack enables clearing the search field with the escape key
+    if wx.Platform in ['__WXGTK__', '__WXMSW__']:
+      for child in self.name_search.GetChildren():
+        if isinstance(child, wx.TextCtrl):
+          child.Bind(wx.EVT_KEY_UP, self.__key_pressed)
+          break
+    
     
     self.unpaid_hours.SetNoneAllowed (True)
+    
+    self.name_search.SetDescriptiveText ('Iskanje po imenu in priimku')
+    self.name_search.ShowSearchButton (True)
+    self.name_search.ShowCancelButton (True)
+    
     self.__set_permissions ( )
-    self.Expand (turnuses_item)
+    self.Expand (scheduleable_item)
     
   def set_unit (self, data):
     """
@@ -283,6 +317,23 @@ class ManualEditPanel (fpb.FoldPanelBar):
       @return: a list of datetime.date objects
     """
     return self.dates
+  
+  def get_text_search_values (self):
+    """
+    Return a list of search strings.
+      return: a list of strings
+    """
+    return self.name_search.GetValue ( ).split( )
+  
+  def get_scheduling_unit_search_values (self):
+    """
+    Return a list of searched scheduling units.
+      @return: a list of data objects
+    """
+    if self.schedule_unit_search.get_selection ( ):
+      return [self.schedule_unit_search.get_selection ( )]
+    else:
+      return []
     
   def __schedule_unit_selected (self, event):
     """
@@ -337,6 +388,32 @@ class ManualEditPanel (fpb.FoldPanelBar):
           person.set_unpaid_hours (self.unpaid_hours.GetValue (0))
       self.__set_permissions ( )
       wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
+      
+  def __search (self, event):
+    """
+    Fires the search event.
+    """
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.SearchEvent (self.GetId ( )))
+    
+  def __key_pressed (self, event):
+    """
+    Listens for the escape key and clears the search key, if pressed.
+    """
+    if event.GetKeyCode ( ) == wx.WXK_ESCAPE:
+      self.__clear_search (None)
+    
+  def __clear_search (self, event):
+    """
+    Clears the search field and fires the search event.
+    """
+    self.name_search.Clear ( )
+    
+  def __clear_all_filters (self, event):
+    """
+    Wipes the search criteria clean.
+    """
+    self.schedule_unit_search.set_selection(None)
+    self.__clear_search (event)
     
   def __set_permissions (self):
     """

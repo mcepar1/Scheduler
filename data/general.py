@@ -6,7 +6,7 @@ import os
 
 from data import locations
 
-class DataClass:
+class DataClass (object):
   """ A generic class that defines some common methods, for all the subclasses. """
   
   def __init__ (self, comment = ''):
@@ -52,7 +52,7 @@ class DataClass:
     """
     pass
 
-class DataContainer:
+class DataContainer (object):
   """ A generic class that handles multiple instances of the data classes. """
   
   def __init__(self, filename, data_class, elements_list=None):

@@ -23,9 +23,10 @@ class ScheduleContainer (general.DataContainer):
     """
     general.DataContainer.__init__ (self, '', person.Nurse, elements_list)
     
-    self.date      = date
-    self.compact   = True
-    self.full_span = False
+    self.date                     = date
+    self.compact                  = True
+    self.full_span                = False
+    self.filter_scheduling_units = []
     
   def save (self):
     """
@@ -38,6 +39,33 @@ class ScheduleContainer (general.DataContainer):
     @deprecated: not needed.
     """
     pass
+  
+  def set_filter(self, filter, scheduling_units):
+    """
+    Sets the container's filter. A filter is a list of strings. For element to pass a filter, each of the
+    filter's strings must match with at least one column of the element. The filter is case insensitive.
+      @param filter: a list of strings
+      @param scheduling_units: a list of scheduling_units
+    """
+    
+    super(ScheduleContainer, self).set_filter (filter)
+    self.filter_scheduling_units = scheduling_units
+    
+  def get_filtered(self):
+    """
+    Returns a list of elements, that passed the filter.
+      @return: a list of elements
+    """
+    f_filter_persons = super(ScheduleContainer, self).get_filtered ( )
+    if self.filter_scheduling_units:
+      s_filter_persons = []
+      for person in f_filter_persons:
+        if person.get_scheduled_scheduling_units ( ) & set (self.filter_scheduling_units):
+          s_filter_persons.append (person)
+      return s_filter_persons
+    else:
+      return f_filter_persons
+
   
   def set_compact (self, compact):
     """
