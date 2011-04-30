@@ -26,7 +26,6 @@ def input_emplyment_types():
   for row in reader:
     sys.stdout.write('\tUstvarjanje vrste zaposlitve: ' + str(row) + '...')
     row[1] = int(row[1])
-    row[2] = bool(int(row[2]))
     employment_types.append(EmploymentType(*row))
     sys.stdout.write('OK\n')
   

@@ -7,7 +7,7 @@ This file contains a wxGrid, specialized for displaying the schedule.
 import wx.grid
 
 from gui import custom_events
-from utils import holiday
+from utils import holiday, calendar_utils
 
 """
 This class is the grid.
@@ -59,6 +59,8 @@ class ScheduleGrid (wx.grid.Grid):
       @param people: a list of data objects
       @param dates: a list of datetime.date object
     """
+    self.Freeze ( )
+    
     if people and dates:
       top    = self.GetNumberRows ( ) + 1
       bottom = -1
@@ -86,10 +88,12 @@ class ScheduleGrid (wx.grid.Grid):
         self.SelectBlock (top, left, bottom, right)
         self.MakeCellVisible (top, right)
     
+    self.Thaw ( )
+    
   def refresh (self):
     """
     Redraws the grid.
-    """    
+    """
     self.__set_permissions ( )
     
     
@@ -137,6 +141,7 @@ class ScheduleGrid (wx.grid.Grid):
     """
     (Re)populates the grid.
     """
+    self.Freeze ( )
     
     table   = self.container.as_table ( )
     headers = table['header']
@@ -164,6 +169,8 @@ class ScheduleGrid (wx.grid.Grid):
           
     self.__format ( )       
     self.AutoSize ( )
+    
+    self.Thaw ( )
     
   def __format (self):
     """
@@ -197,7 +204,6 @@ class ScheduleGrid (wx.grid.Grid):
       dates  = self.container.get_dates  ([event.GetCol ( )])
       people = self.container.get_people ([event.GetRow ( )])
       wx.PostEvent (self.GetEventHandler ( ), custom_events.ComplexSelectEvent (self.GetId ( ), dates=dates, people=people))
-    
     event.Skip ( )
     
   def __range_selected (self, event):
@@ -205,10 +211,38 @@ class ScheduleGrid (wx.grid.Grid):
     Event listener for the multiple selection.
     """
     if event.Selecting ( ):
-      dates  = self.container.get_dates  (range (event.GetTopLeftCoords ( )[1], event.GetBottomRightCoords ( )[1] + 1))
-      people = self.container.get_people (range (event.GetTopLeftCoords ( )[0], event.GetBottomRightCoords ( )[0] + 1))
-      wx.PostEvent (self.GetEventHandler ( ), custom_events.ComplexSelectEvent (self.GetId ( ), dates=dates, people=people))
-    event.Skip ( )
+      selected_dates  = self.container.get_dates  (range (event.GetTopLeftCoords ( )[1], event.GetBottomRightCoords ( )[1] + 1))
+      people          = self.container.get_people (range (event.GetTopLeftCoords ( )[0], event.GetBottomRightCoords ( )[0] + 1))
+      
+      editable_dates  = []
+      for date in calendar_utils.get_same_month_dates (self.container.date):
+        if date in selected_dates:
+          editable_dates.append (date)
+      wx.PostEvent (self.GetEventHandler ( ), custom_events.ComplexSelectEvent (self.GetId ( ), dates=editable_dates, people=people))
+    event.Skip ( )  
+    
+    
+  def __selected (self, rows, columns):
+    """
+    Processes and highlights the selection.
+    """
+    
+    selected_dates  = self.container.get_dates  (columns)
+    people          = self.container.get_people (rows)
+    
+    editable_dates  = []
+    for date in calendar_utils.get_same_month_dates (self.container.date):
+      if date in selected_dates:
+        editable_dates.append (date)
+        
+    self.Unbind (wx.grid.EVT_GRID_RANGE_SELECT)
+    self.Unbind (wx.grid.EVT_GRID_SELECT_CELL)
+    self.select (people, editable_dates)
+    self.Bind   (wx.grid.EVT_GRID_RANGE_SELECT, self.__range_selected)
+    self.Bind   (wx.grid.EVT_GRID_SELECT_CELL,  self.__cell_selected)
+    
+    
+    wx.PostEvent (self.GetEventHandler ( ), custom_events.ComplexSelectEvent (self.GetId ( ), dates=editable_dates, people=people))
     
   def __autosize_labels (self):
     """

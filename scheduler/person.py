@@ -23,7 +23,7 @@ class Nurse (nurse.Nurse):
     nurse.Nurse.__init__(self, data_nurse.work_id, data_nurse.name, data_nurse.surname, data_nurse.birthday, data_nurse.titles, data_nurse.employment_type)
     
     self.scheduling_units_map      = data_nurse.scheduling_units_map
-    self.week_morning              = data_nurse.week_morning
+    self.overtime                  = data_nurse.overtime
     self.packet_night_turnuses     = data_nurse.packet_night_turnuses
     
     self.unpaid_hours              = 0
@@ -206,7 +206,12 @@ class Nurse (nurse.Nurse):
     total_turnuses = 0.0
     entropy = 0.0
     
-    for turnus in self.allowed_turnuses:
+    
+    allowed_turnuses = set ( )
+    for scheduling_unit in self.get_scheduling_units ( ):
+      allowed_turnuses |= set (self.get_allowed_turnuses (scheduling_unit))
+    
+    for turnus in allowed_turnuses:
       raw_data[turnus] = 0.0
       
     for _, turnus in self.scheduled_turnus.items():

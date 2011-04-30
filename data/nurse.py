@@ -34,13 +34,13 @@ class Nurse (general.DataClass):
       self.titles = titles
     else:
       self.titles = [[],[]]
-      
+    
+    # tells if the nurse is allowed to work in overtime
+    self.overtime = True  
     
     # tells if the night turnuses are scheduled in packages
     self.packet_night_turnuses = True
     
-    # tells if the nurse only works in weekedays and morning shifts
-    self.week_morning = False
     
     # this field should never be changed directly
     # use set_employment_type instead
@@ -142,7 +142,20 @@ class Nurse (general.DataClass):
       employment_type: is the employment type of this nurse
     """
     self.employment_type = employment_type
-    self.allowed_turnuses = self.employment_type.allowed_turnuses
+    
+  def has_overtime (self):
+    """
+    Checks, if the nurse can work overtime.
+      @return: True, if she can False otherwise
+    """
+    return self.overtime
+  
+  def set_overtime (self, can_work_overtime):
+    """
+    Sets the nurses overtime attribute.
+      @param can_work_overtime: a boolean, sets if the nurse is allowed to work in overtime
+    """
+    self.overtime = can_work_overtime
     
   def get_academic_name(self):
     """

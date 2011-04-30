@@ -53,11 +53,10 @@ class ScheduleUnitSelector(wx.Panel):
     if schedule_unit:
       self.workplace_selector.select (schedule_unit.get_workplace ( ))
       self.role_selector.select      (schedule_unit.get_role ( ))
-      #self.__synchronize_workplace   (None)
     else:
       self.workplace_selector.select    (None)
       self.role_selector.select         (None)
-      #self.__synchronize_workplace      (None)
+      self.role_selector.set_selectable ([])
     
     
   def __synchronize_workplace (self, event):

@@ -60,9 +60,9 @@ class Mapper:
       @return: a set of data objects
     """
     people= set ( )
-    for employment_type in self.employment_type_people:
-      if employment_type.has_overtime ( ):
-        people |= self.employment_type_people[employment_type]
+    for person in self.get_all_people ( ):
+      if person.has_overtime ( ):
+        people.add (person)
     return people
 
   def get_no_overtime_people (self):
@@ -188,7 +188,7 @@ def is_valid_move (scheduling_unit, turnus, date, person, overtime):
   
   
   #also check the people's employment type
-  if not overtime or not person.employment_type.has_overtime:
+  if not overtime or not person.has_overtime ( ):
     return not goes_into_overtime (person, date, [turnus])
   
   return True

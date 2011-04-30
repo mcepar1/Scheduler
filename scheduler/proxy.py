@@ -167,9 +167,13 @@ def save (proxy, overwrite=False):
     curr_proxy = proxy.get_month_clone (curr_date)
     next_proxy = proxy.get_month_clone (next_date)
     
-    pickle.dump (prev_proxy, file (locations.get_file_path (prev_date), 'wb'))
+    if not __exists (prev_date):
+      pickle.dump (prev_proxy, file (locations.get_file_path (prev_date), 'wb'))
+    
     pickle.dump (curr_proxy, file (locations.get_file_path (curr_date), 'wb'))
-    pickle.dump (next_proxy, file (locations.get_file_path (next_date), 'wb'))
+    
+    if not __exists (next_date):
+      pickle.dump (next_proxy, file (locations.get_file_path (next_date), 'wb'))
     
     return True
   

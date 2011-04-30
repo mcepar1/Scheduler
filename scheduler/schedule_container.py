@@ -210,7 +210,7 @@ class ScheduleContainer (general.DataContainer):
     """
     overtime = {}
     for nurse in self.get_filtered ( ):
-      overtime[nurse] = str (-1 * nurse.get_monthly_hours_difference (self.date))
+      overtime[nurse] = str (round (-1 * nurse.get_monthly_hours_difference (self.date), 2))
     return overtime
   
   def __get_dates (self):

@@ -5,7 +5,7 @@ import wx.lib.scrolledpanel
 
 from utils               import calendar_utils
 from schedule_module_gui import main_window
-from gui                 import custom_events, wx_extensions
+from gui                 import custom_events, wx_extensions, observer_pattern
 from scheduler           import proxy, schedule_utils
 
 class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
@@ -18,8 +18,8 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.turnus_types  = turnus_types
     self.search_values = []
     
-    self.toolbar = SchedulersPageToolbar          (self, wx.NewId ( ), style = wx.TB_HORIZONTAL | wx.TB_FLAT | wx.TB_NODIVIDER)
-    self.list    = wx_extensions.EnhancedListCtrl (self, wx.ID_ANY, style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_HRULES | wx.LC_SINGLE_SEL)
+    self.toolbar = SchedulersPageToolbar          (self, wx.ID_ANY, style = wx.TB_HORIZONTAL | wx.TB_FLAT | wx.TB_NODIVIDER)
+    self.list    = wx_extensions.EnhancedListCtrl (self, wx.ID_ANY, style = wx.LC_REPORT | wx.BORDER_NONE | wx.LC_HRULES | wx.LC_SINGLE_SEL)
     
     self.__build_list ( )
     
@@ -33,6 +33,8 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.Bind (custom_events.EVT_UPDATED,   self.__select_schedule,   self.toolbar)
     self.Bind (custom_events.EVT_TB_SEARCH, self.__search,            self.toolbar)
     
+    observer_pattern.register (self.__build_list, observer_pattern.SCHEDULER_SAVED)
+    
     
     list_sizer = wx.StaticBoxSizer (wx.StaticBox (self, wx.ID_ANY, 'Razporedi'), wx.VERTICAL)
     list_sizer.Add (self.list, 1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
@@ -44,9 +46,10 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     self.SetSizerAndFit (sizer)
     self.SetupScrolling( )
     
-  def __build_list (self):
+  def __build_list (self, message=None):
     """
     Constructs the list, that displays the existing schedules.
+      @param message: used by the observer pattern
     """
     self.list.DeleteAllItems ( )
     self.list.DeleteAllColumns ( )
@@ -127,7 +130,7 @@ class SchedulesPanel(wx.lib.scrolledpanel.ScrolledPanel):
     Removes the selected schedule.
     """
     import wx.lib.agw.genericmessagedialog as GMD
-    dlg = GMD.GenericMessageDialog (self, 'Želite trajno izbrisati razpored?', 'Opozirlo', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
+    dlg = GMD.GenericMessageDialog (self, 'Želite trajno izbrisati razpored?', 'Opozorilo', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
     if dlg.ShowModal ( ) == wx.ID_YES:
       schedule_utils.remove_schedule (self.toolbar.get_date ( ))
     dlg.Destroy ( )

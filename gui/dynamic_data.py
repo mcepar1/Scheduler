@@ -780,16 +780,15 @@ class SpecialNurseProperties (wx.Panel):
     
     self.nurse = None
     
-    self.packet_night_turnuses = wx.CheckBox(self, wx.ID_ANY, label='Združuj noène turnuse')
-    self.week_morning          = wx.CheckBox (self, wx.ID_ANY, label='Dela samo med tednom dopoldne')
+    self.overtime              = wx.CheckBox (self, wx.ID_ANY, label='Ima nadure')
+    self.packet_night_turnuses = wx.CheckBox (self, wx.ID_ANY, label='Združuj noène turnuse')
     
+    self.Bind (wx.EVT_CHECKBOX, self.__overtime,              self.overtime)
     self.Bind (wx.EVT_CHECKBOX, self.__packet_night_turnuses, self.packet_night_turnuses)
-    self.Bind (wx.EVT_CHECKBOX, self.__week_morning, self.week_morning)
-    
     
     sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), "Ostalo"), wx.VERTICAL)
-    sizer.Add(self.packet_night_turnuses, 0, wx.ALIGN_LEFT)
-    sizer.Add(self.week_morning,          0, wx.ALIGN_LEFT)
+    sizer.Add (self.overtime,              0, wx.ALIGN_LEFT)
+    sizer.Add (self.packet_night_turnuses, 0, wx.ALIGN_LEFT)
     
     self.SetSizerAndFit (sizer)
     
@@ -808,11 +807,11 @@ class SpecialNurseProperties (wx.Panel):
     self.nurse.packet_night_turnuses = event.IsChecked ( )
     self.__set_permissions ( )
     
-  def __week_morning(self, event):
+  def __overtime(self, event):
     """
-    The event listener for the morning weekday check box.
+    The event listener for the overtime check box.
     """
-    self.nurse.week_morning = event.IsChecked ( ) 
+    self.nurse.set_overtime (event.IsChecked ( )) 
     self.__set_permissions ( )
     
   def __set_permissions(self):
@@ -820,15 +819,16 @@ class SpecialNurseProperties (wx.Panel):
     Keeps the GUI in sync with the data.
     """
     if self.nurse:
+      self.overtime.Enable ( )
       self.packet_night_turnuses.Enable ( )
-      self.week_morning.Enable ( )
       
+      self.overtime.SetValue              (self.nurse.has_overtime ( ))
       self.packet_night_turnuses.SetValue (self.nurse.packet_night_turnuses)
-      self.week_morning.SetValue          (self.nurse.week_morning)
     else:
+      self.overtime.SetValue              (False)
       self.packet_night_turnuses.SetValue (False)
-      self.week_morning.SetValue          (False)
       
+      self.overtime.Disable ( )
       self.packet_night_turnuses.Disable ( )
-      self.week_morning.Disable ( )
+      
       

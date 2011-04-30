@@ -9,7 +9,7 @@ import schedule_grid
 from scheduler import proxy
 from data      import turnus, vacation
 from utils     import time_conversion, exporter
-from gui       import wx_extensions, custom_events, custom_widgets
+from gui       import wx_extensions, custom_events, custom_widgets, observer_pattern
 
 import os
 import copy
@@ -48,7 +48,7 @@ class Result (wx.Panel):
     
     result_sizer = wx.BoxSizer(wx.HORIZONTAL)
     result_sizer.Add (self.manual_edit, 1, wx.ALIGN_LEFT | wx.EXPAND)
-    result_sizer.Add (self.grid,        4, wx.ALIGN_LEFT | wx.EXPAND | wx.LEFT, 4)
+    result_sizer.Add (self.grid,        5, wx.ALIGN_LEFT | wx.EXPAND | wx.LEFT, 4)
     result_sizer.Add (self.warnings,    1, wx.ALIGN_LEFT | wx.EXPAND)
     
     main_sizer = wx.BoxSizer (wx.VERTICAL)
@@ -59,6 +59,7 @@ class Result (wx.Panel):
     
     self.progress_panel.Hide ( )
     self.grid.set_unit (self.proxy.get_people_container ( ))
+    self.grid.select ([], [])
     
     self.compact   = self.grid.is_compact ( )
     self.full_span = self.grid.is_full_span ( )
@@ -121,6 +122,28 @@ class Result (wx.Panel):
     """
     return self.grid.is_full_span ( )
   
+  def save(self):
+    """Saves the schedule"""
+    dlg = wx.FileDialog(self, message="Shrani datoteko ...", defaultDir=os.path.expanduser("~"), defaultFile="razpored.csv", wildcard="CSV datoteka (*.csv)|*.csv", style=wx.SAVE | wx.FD_OVERWRITE_PROMPT)
+    if dlg.ShowModal() == wx.ID_OK:
+      path = dlg.GetPath()
+      #force the csv appendix
+      if path.split(r'.')[-1] != 'csv':
+        path += '.csv'
+      
+      # save the internal schedule
+      if not proxy.save (self.proxy, overwrite = False):
+        action = wx.MessageBox(parent=self, message='Za ta mesec ze obstaja shranjen razpored, ki se bo uporabil pri razvrcanju naslednjega meseca. Ali ga zelite prepisati?', style=wx.YES_NO | wx.ICON_EXCLAMATION)
+        if action == wx.YES:
+          proxy.save (self.proxy, overwrite = True)
+        else:
+          return
+        
+      # save the final *.csv file
+      exporter.exportCSV (self.proxy.get_exportable ( ), path)
+      observer_pattern.send_notification (observer_pattern.SCHEDULER_SAVED)
+    dlg.Destroy ( )
+  
     
   def __message_recieved(self, event):
     """
@@ -148,9 +171,13 @@ class Result (wx.Panel):
     """
     The event listener for manual editing.
     """
+    self.Freeze ( )
+    
     self.grid.refresh ( )
     self.Layout ( )
     self.grid.select (self.manual_edit.get_people ( ), self.manual_edit.get_dates ( ))
+    
+    self.Thaw ( )
         
   def __reconstruct(self):
     self.Freeze ( )
@@ -164,6 +191,7 @@ class Result (wx.Panel):
     self.grid.Show ( )
     self.grid.toggle_view (self.compact)
     self.grid.set_span (self.full_span)
+    self.grid.select ([], [])
     
     self.warnings.Show ( )
     self.manual_edit.Show ( )
@@ -182,27 +210,6 @@ class Result (wx.Panel):
     self.grid.search (self.manual_edit.get_text_search_values ( ), 
                       self.manual_edit.get_scheduling_unit_search_values ( ))
     self.Layout ( )
-        
-  def save(self):
-    """Saves the schedule"""
-    dlg = wx.FileDialog(self, message="Shrani datoteko ...", defaultDir=os.path.expanduser("~"), defaultFile="razpored.csv", wildcard="CSV datoteka (*.csv)|*.csv", style=wx.SAVE | wx.FD_OVERWRITE_PROMPT)
-    if dlg.ShowModal() == wx.ID_OK:
-      path = dlg.GetPath()
-      #force the csv appendix
-      if path.split(r'.')[-1] != 'csv':
-        path += '.csv'
-      
-      # save the internal schedule
-      if not proxy.save (self.proxy, overwrite = False):
-        action = wx.MessageBox(parent=self, message='Za ta mesec ze obstaja shranjen razpored, ki se bo uporabil pri razvrcanju naslednjega meseca. Ali ga zelite prepisati?', style=wx.YES_NO | wx.ICON_EXCLAMATION)
-        if action == wx.YES:
-          proxy.save (self.proxy, overwrite = True)
-        else:
-          return
-        
-      # save the final *.csv file
-      exporter.exportCSV (self.proxy.get_exportable ( ), path)
-    dlg.Destroy ( )
 
 """
 This class is the panel, that allows manula editing of an existing schedule.
@@ -385,7 +392,7 @@ class ManualEditPanel (fpb.FoldPanelBar):
         if self.unpaid_hours.GetValue ( ) != None:
           person.set_unpaid_hours (self.unpaid_hours.GetValue ( ))
         else:
-          person.set_unpaid_hours (self.unpaid_hours.GetValue (0))
+          person.set_unpaid_hours (0)
       self.__set_permissions ( )
       wx.PostEvent (self.GetEventHandler ( ), custom_events.UpdateEvent (self.GetId ( )))
       
