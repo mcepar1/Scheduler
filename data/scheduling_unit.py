@@ -44,16 +44,25 @@ class SchedulingUnit (general.DataClass):
     """
     This is used to keep the instances of the subclasses consistent. This method updates every internal
     attribute of the class, so that the matching objects are forced into the data structure. Look at the
-    data model for more details. 
+    data model for more details.
+      @return: True, if the object was affected, False otherwise
     """
+    
+    affected = False
+    
     for data in args:
       if data == self.workplace:
         self.workplace = data
+        affected       = True
       if data == self.role:
         self.role = data
+        affected  = True
       if data in self.allowed_turnuses:
         self.remove_allowed_turnus (data)
         self.add_allowed_turnus (data)
+        affected = True
+        
+    return affected
         
   def add_allowed_turnus (self, turnus):
     """

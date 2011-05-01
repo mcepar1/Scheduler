@@ -311,10 +311,25 @@ class EnhancedGrid (wx.grid.Grid):
   def delete (self):
     """
     Deletes the selected element from the global container.
+      @return: True, if the delete was successful, False otherwise
     """
     if self.IsSelection ( ):
-      self.container.delete (self.get_selected_element ( ))
-      self.__fill_grid ( )
+      import global_vars
+      occurences = global_vars.check_occurence (self.get_selected_element ( )) 
+      if not occurences:
+        self.container.delete (self.get_selected_element ( ))
+        self.__fill_grid ( )
+        return True
+      else:
+        dlg = wx.SingleChoiceDialog (
+                self, 'Izbris izbranega lementa ni mogoè, ker ga vsebujejo naslednji elementi:', 'Izbris ni mogoè',
+                occurences, 
+                wx.DEFAULT_DIALOG_STYLE | wx.OK
+                )
+
+        dlg.ShowModal ( )
+        dlg.Destroy ( )
+        return False
     
   def save (self):
     """

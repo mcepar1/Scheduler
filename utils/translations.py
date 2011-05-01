@@ -5,6 +5,9 @@ This class has some useful function for translating variable values.
 """
 from utils import time_conversion
 
+__class_names      = ['EmploymentType',   'Nurse',             'Role', 'SchedulingUnit',         'Title', 'TurnusType',    'Turnus', 'Vacation', 'Workplace']
+__translated_names = ['Vrsta zaposlitve', 'Medicinska sestra', 'Vloga', 'Par vloga - delovišèe', 'Naziv', 'Vrsta turnusa', 'Turnus', 'Dopust',   'Delovišèe']
+
 def translate_time (time):
   """
   Translates a time variable into sloveninan language
@@ -47,7 +50,10 @@ def translate_string(string):
   Translates string variable into slovenian language.
     return: an unicode object
   """
-  return str (string)
+  if string in __class_names:
+    return __translated_names[__class_names.index(string)]
+  else:
+    return str (string)
 
 def translate_boolean(boolean):
   """
@@ -57,5 +63,5 @@ def translate_boolean(boolean):
   if isinstance(boolean, bool):
     return u'Da' if boolean else  u'Ne'
   else:
-    raise Exception('Trying to translate a non-boolean varible')
+    raise Exception('Trying to translate a non-boolean variable')
     

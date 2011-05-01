@@ -72,11 +72,17 @@ class Turnus (general.DataClass):
     This is used to keep the instances of the subclasses consistent. This method updates every internal
     attribute of the class, so that the matching objects are forced into the data structure. Look at the
     data model for more details. 
+      @return: True, if the object was affected, False otherwise
     """
+    affected = False
+    
     for data in args:
       if data in self.types:
         self.remove_type(data)
         self.add_type(data)
+        affected = True
+        
+    return affected
   
   def __gues_types(self):
     """Tries to guess into which types does this turnus belong into"""

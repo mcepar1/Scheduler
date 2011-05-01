@@ -70,4 +70,43 @@ def get_employment_types ( ):
 def get_nurses ( ):
   return nurses
 
+def check_occurence (data_object):
+  """
+  Checks all the occurrences of the specified object.
+    @param data_object: a data object
+    @return: a set of all the elements, in which the object occured
+  """
+  import utils
+  
+  occuernces  = set ( )
+  occuernces |= __check_container (get_vacations ( ),        data_object)
+  occuernces |= __check_container (get_titles ( ),           data_object)
+  occuernces |= __check_container (get_turnus_types ( ),     data_object)
+  occuernces |= __check_container (get_roles ( ),            data_object)
+  occuernces |= __check_container (get_turnuses ( ),         data_object)
+  occuernces |= __check_container (get_workplaces ( ),       data_object)
+  occuernces |= __check_container (get_employment_types ( ), data_object)
+  occuernces |= __check_container (get_scheduling_units ( ), data_object)
+  occuernces |= __check_container (get_nurses ( ),           data_object)
+  
+  to_sort = []  
+  for o in occuernces:
+    to_sort.append ((utils.translate (type (o).__name__), o))
+  to_sort.sort ( )
+  
+  return [str(el[0]) + ': ' + str (el[1]) for el in to_sort]
+  
+  
+  
+def __check_container (container, data_object):
+  """
+  Checks in which objects does the data object occur.
+    @param container: a data container object
+    @param data_object: a data object
+    @return: set of objects, in which all the data_object's parents are listed
+  """
+  occurences =  set ( )
+  if container:
+    occurences |= container.synchronize_data (data_object)
+  return occurences
 

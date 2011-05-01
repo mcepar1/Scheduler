@@ -44,15 +44,6 @@ class Workplace (general.DataClass):
       @return: True if it has, False otherwise
     """
     return self.holiday_rule
- 
-    
-  def synchronize_data(self, *args):
-    """
-    This is used to keep the instances of the subclasses consistent. This method updates every internal
-    attribute of the class, so that the matching objects are forced into the data structure. Look at the
-    data model for more details. 
-    """
-    pass
     
   def __str__(self):
     return self.label

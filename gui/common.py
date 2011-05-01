@@ -87,8 +87,8 @@ class GenericTablePanel(wx.lib.scrolledpanel.ScrolledPanel):
     """
     Removes an element from the global container.
     """
-    self.grid.delete ( )
-    self.__element_selected (None)
+    if self.grid.delete ( ):
+      self.__element_selected (None)
     
   def __save(self, event):
     """

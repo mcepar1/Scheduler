@@ -190,34 +190,43 @@ class Nurse (general.DataClass):
     """
     This is used to keep the instances of the subclasses consistent. This method updates every internal
     attribute of the class, so that the matching objects are forced into the data structure. Look at the
-    data model for more details. 
+    data model for more details.
+      @return: True, if the object was affected, False otherwise
     """
+    affected = False
+    
     for data in args:
       #set the titles
       titles_l, titles_r = self.get_titles ( )
       if data in titles_l:
         titles_l[titles_l.index(data)] = data
+        affected                       = True
       if data in titles_r:
         titles_r[titles_r.index(data)] = data
+        affected                       = True
       self.set_titles(titles_l, titles_r)
       
               
       #set the employment type
       if self.employment_type == data:
         self.employment_type = data
+        affected             = True
         
       #set the scheduling units
       if data in self.scheduling_units_map:
         turnuses = self.scheduling_units_map[data]
         del self.scheduling_units_map[data]
         self.scheduling_units_map[data] = turnuses
+        affected                        = True
         
       #set the turnuses
       for scheduling_unit in self.scheduling_units_map:
         if data in self.scheduling_units_map[scheduling_unit]:
           self.scheduling_units_map[scheduling_unit].remove (data)
           self.scheduling_units_map[scheduling_unit].add    (data)
-        
+          affected = True
+      
+      return affected  
   
   def __str__(self):
     return self.name + " " + self.surname

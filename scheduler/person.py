@@ -98,7 +98,7 @@ class Nurse (nurse.Nurse):
     else:
       prev_date = date - datetime.timedelta(days=1)
       next_date = date + datetime.timedelta(days=1)
-      if self.is_free_day(prev_date) and self.is_free_day(next_date):
+      if self.is_free_day (prev_date) and self.is_free_day (next_date):
         return False
       else:
         if not self.is_free_day(prev_date):

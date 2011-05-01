@@ -48,9 +48,10 @@ class DataClass (object):
     """
     This is used to keep the instances of the subclasses consistent. This method updates every internal
     attribute of the class, so that the matching objects are forced into the data structure. Look at the
-    data model for more details. 
+    data model for more details.
+      @return: True, if the object was affected, False otherwise
     """
-    pass
+    return False
 
 class DataContainer (object):
   """ A generic class that handles multiple instances of the data classes. """
@@ -102,9 +103,19 @@ class DataContainer (object):
     self.sort(self.column, self.sort_ascending)
     
   def synchronize_data(self, *args):
-    """Keeps the data in sync."""
+    """
+    Keeps the data in sync.
+      @return: a set of affected elements
+    """
+    elements = set ( )
+    
     for element in self.elements:
-      element.synchronize_data(*args)
+      for data_object in args:
+        if element.synchronize_data (data_object):
+          elements.add (element)
+          
+    return elements
+        
     
   def as_table(self, filter=False):
     """
