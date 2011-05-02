@@ -93,7 +93,7 @@ class Nurse (nurse.Nurse):
       return: true, if it is blocked, false otherwise
     """
     
-    if self.is_scheduled(date):
+    if not self.__can_be_scheduled (date):
       return True
     else:
       prev_date = date - datetime.timedelta(days=1)
@@ -126,7 +126,7 @@ class Nurse (nurse.Nurse):
           next_allowed      =  this_turnus_end   + turnus.blockade
                      
           
-          if next_allowed > next_start:
+          if next_allowed > next_start or not self.__can_be_scheduled (datetime.date (day=this_turnus_end.day, month=this_turnus_end.month, year=this_turnus_end.year)):
             return False
     
     return True
@@ -526,7 +526,7 @@ class Nurse (nurse.Nurse):
       date: is the date checked
       return: true, if the day can support a turnus, false otherwise
     """
-    if date == self.birthday:
+    if date.day == self.birthday.day and date.month == self.birthday.month:
       return False
     else:
       return not self.is_scheduled(date)
