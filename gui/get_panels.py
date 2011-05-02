@@ -53,7 +53,14 @@ def get_scheduling_unit_panel (container, parent):
 
 def get_vacation_panel (container, parent):
   """
-  Return the vacation panel.
+  Returns the vacation panel.
   """
   from dynamic_data import EditCommentPanel
   return __make_panel(container, parent, static_panel=static_data.StaticVacationPanel, edit_panel=EditCommentPanel)
+
+def get_workplace_panel (container, parent):
+  """
+  Returns the workplace panel.
+  """
+  from dynamic_data import EditWorkplacePanel
+  return __make_panel(container, parent, edit_panel=EditWorkplacePanel)

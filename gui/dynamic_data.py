@@ -232,6 +232,58 @@ class EditEmploymentTypePanel (wx.Panel):
       self.comment_text.Disable ( )
 
 """
+A class that can edit workplaces.
+"""
+class EditWorkplacePanel (wx.Panel):
+
+  def __init__ (self, *args, **kwargs):
+    """
+    The default constructor.
+    """
+    wx.Panel.__init__ (self, *args, **kwargs)
+    
+    self.workplace = None
+    
+    self.holiday_rule_checker = wx.CheckBox      (self, wx.ID_ANY, 'Delaj popoldne pred prostim dnevom')
+    self.comment_text         = EditCommentPanel (self, wx.ID_ANY)
+    
+    self.Bind (wx.EVT_CHECKBOX, self.__holiday_rule_checked, self.holiday_rule_checker)
+    
+    holiday_rule_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Lastnosti'), wx.VERTICAL)
+    holiday_rule_sizer.Add (self.holiday_rule_checker, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    
+    sizer = wx.BoxSizer (wx.VERTICAL)
+    sizer.Add (holiday_rule_sizer, 0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    sizer.Add (self.comment_text,  0, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND)
+    
+    self.SetSizerAndFit (sizer)
+    
+  def set_unit (self, workplace):
+    """
+    Sets the workplace that will be edited.
+      @param workplace: an employment type data object
+    """
+    self.workplace = workplace
+    self.comment_text.set_unit (self.workplace)
+    self.__set_permissions ( )
+    
+  def __holiday_rule_checked (self, event):
+    """
+    Event listener for the holiday rule checker.
+    """
+    self.workplace.set_holiday_rule (event.IsChecked ( ))
+    self.__set_permissions ( )
+    
+  def __set_permissions(self):
+    """Keeps the GUI in sync with the data"""
+    if self.workplace:
+      self.holiday_rule_checker.Enable ( )
+      self.holiday_rule_checker.SetValue (self.workplace.has_holiday_rule ( ))
+    else:
+      self.holiday_rule_checker.Disable ( )
+      self.holiday_rule_checker.SetValue (False)
+
+"""
 A class that can only edit comments.
 """    
 class EditCommentPanel (wx.Panel):

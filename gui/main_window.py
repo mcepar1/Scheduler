@@ -35,7 +35,7 @@ class MainWindow(wx.Frame):
     notebook.AddPage(get_panels.get_turnus_panel (turnuses, notebook), "Turnusi")
     notebook.AddPage(get_panels.get_vacation_panel (vacations, notebook), "Dopusti")
     notebook.AddPage(get_panels.get_scheduling_unit_panel (scheduling_units, notebook), "Delovišèa - vloge")
-    notebook.AddPage(get_panels.get_simple_panel (workplaces, notebook), "Delovišèa")
+    notebook.AddPage(get_panels.get_workplace_panel (workplaces, notebook), "Delovišèa")
     notebook.AddPage(get_panels.get_simple_panel (titles, notebook), "Nazivi")
     notebook.AddPage(get_panels.get_simple_panel (turnus_types, notebook), "Vrste turnusov")
     notebook.AddPage(get_panels.get_simple_panel (roles, notebook), 'Vloge')
