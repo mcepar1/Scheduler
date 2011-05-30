@@ -168,6 +168,35 @@ class ScheduleContainer (general.DataContainer):
         dates.append (date)
     return dates
   
+  
+  def get_warnings (self, workers):
+    #TODO: finish
+    """
+    Returns the warnings, for this result.
+      @param workers: a workers object
+    """
+    too_few  = {}
+    too_many = {}
+    
+    scheduling_units = set ( )
+    for person in self.get_all ( ):
+      scheduling_units |= set (person.get_scheduling_units ( ))
+    scheduling_units = sorted (scheduling_units)
+    
+    turnuses         = {}
+    for scheduling_unit in scheduling_units:
+      turnuses[scheduling_unit] = scheduling_unit.get_allowed_turnuses ( )
+    
+    dates = calendar_utils.get_same_month_dates (self.date)
+    
+    for scheduling_unit in scheduling_units:
+      for turnus_type in sorted (scheduling_unit.get_turnus_types ( )):
+        for turnus in turnuses[scheduling_unit]:
+          if turnus.has_type (turnus_type):
+            for date in dates:
+              person.is_scheduled_exact (scheduling_unit, turnus, date)
+    
+  
   def get_exportable (self):
     """
     Returns a dictionary, that maps scheduling units to a schedule matrix, 

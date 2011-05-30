@@ -113,53 +113,24 @@ class PersonScheduler:
     """
     people = sorted (self.__mapper.get_all_people ( ))
     return schedule_container.ScheduleContainer (self.get_date ( ), people)
-  
-  
-  def get_workplace_matrix(self):
-    """
-    @deperecated: there are no more workplaces
-    Returns a dictionary, that maps workplaces to roles and roles to a schedule matrix, 
-    that contains only persons and turnuses, that were scheduled into this role - 
-    workplace pair.
-    """
-    map = {}
-    
-    headers = ['Oseba']
-    for date in self.__workers.get_dates ( ):
-      headers.append(time_conversion.date_to_string(date))
-    
-    for scheduling_unit in self.__mapper.get_scheduling_units ( ):
-      map[scheduling_unit] = [headers] 
-      people = []
-      for person in self.__mapper.get_scheduling_unit_people (scheduling_unit):
-        people.append(person)
-      
-      for person in people:
-        person_schedule = [person.get_academic_name ( )]
-        for date in self.__workers.get_dates ( ):
-            turnus = person.get_turnus(date, scheduling_unit)
-            if turnus:
-              person_schedule.append(turnus.code[0])
-            else:
-              person_schedule.append('')
-        map[scheduling_unit].append(person_schedule)
-    
-    return map
           
-  def get_workplace_warnings(self):
+  def get_workplace_warnings(self, workers=None):
     """
     @deprecated: no more workplaces
     Returns workplace warnings.
       returns: a nested dictionary that maps workplaces to roles, roles to turnuses, 
                turnuses to dates and dates to warning messages
     """
+    if not workers:
+      workers = self.__workers
+    
     temp = {}
     
     for scheduling_unit in sorted (self.__mapper.get_scheduling_units ( )):
-      for date in self.__workers.get_dates ( ):
+      for date in workers.get_dates ( ):
         turnus_types = scheduling_unit.get_turnus_types ( )
         for turnus_type in sorted(turnus_types):
-          needed = self.__workers.get_workers (date, scheduling_unit, turnus_type)
+          needed = workers.get_workers (date, scheduling_unit, turnus_type)
           scheduled = schedule_utils.get_alerady_scheduled_by_type (self.__mapper, scheduling_unit, [turnus_type], date)
           if scheduled < needed or scheduled > needed:
             if scheduling_unit not in temp:

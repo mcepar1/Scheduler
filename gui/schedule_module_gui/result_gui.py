@@ -177,6 +177,8 @@ class Result (wx.Panel):
     self.Layout ( )
     self.grid.select (self.manual_edit.get_people ( ), self.manual_edit.get_dates ( ))
     
+    self.warnings.display_warnings(self.scheduler.get_warnings())
+    
     self.Thaw ( )
         
   def __reconstruct(self):
@@ -703,13 +705,6 @@ class Scheduler(Thread):
       return self.scheduler.get_result ( )
     else:
       None
-  
-  def get_workplace_result(self):
-    """A wrapper around the Personget_workplace_matrix method."""
-    if self.scheduler:
-      return self.scheduler.get_workplace_matrix ( )
-    else:
-      return {}
     
   def get_warnings(self):
     """A wrapper around the Personget_workplace_warnings function."""
