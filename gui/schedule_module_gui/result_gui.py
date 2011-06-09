@@ -47,7 +47,7 @@ class Result (wx.Panel):
     self.Bind (custom_events.EVT_TB_SEARCH,        self.__search,   self.manual_edit)
     
     result_sizer = wx.BoxSizer(wx.HORIZONTAL)
-    result_sizer.Add (self.manual_edit, 1, wx.ALIGN_LEFT | wx.EXPAND)
+    result_sizer.Add (self.manual_edit, 0, wx.ALIGN_LEFT | wx.EXPAND)
     result_sizer.Add (self.grid,        5, wx.ALIGN_LEFT | wx.EXPAND | wx.LEFT, 4)
     result_sizer.Add (self.warnings,    1, wx.ALIGN_LEFT | wx.EXPAND)
     
@@ -299,6 +299,7 @@ class ManualEditPanel (fpb.FoldPanelBar):
     self.name_search.ShowCancelButton (True)
     
     self.__set_permissions ( )
+    self.SetMinSize((self.schedule_unit_selector.GetMinWidth(), -1))
     self.Expand (scheduleable_item)
     
   def set_unit (self, data):

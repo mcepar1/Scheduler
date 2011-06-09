@@ -1,6 +1,7 @@
 # -*- coding: Cp1250 -*-
 
 import wx
+import wx.lib.anchors
 
 import os
 
@@ -23,6 +24,7 @@ class MainWindow(wx.Frame):
     
     self.notebook_toolbar = NotebookPageToolbar (self, wx.ID_ANY, style = wx.TB_HORIZONTAL | wx.TB_FLAT | wx.TB_NODIVIDER)
     self.schedule_page = schedule_page.SchedulePage (proxy, self, wx.ID_ANY)
+    
     
     self.Bind (custom_events.EVT_TB_ADD,    self.__add,     self.notebook_toolbar)
     self.Bind (custom_events.EVT_TB_TOGGLE, self.__toggle,  self.notebook_toolbar)
